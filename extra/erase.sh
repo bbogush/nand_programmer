@@ -1,0 +1,1 @@
+openocd -f $1 -c init -c "reset halt" -c "flash erase_address 0x08000000 0x40000" -c "flash erase_check 0" -c shutdown

@@ -1,0 +1,24 @@
+start debugger
+==============
+1. Start openocd server:
+#openocd -f openocd.cfg
+2. Connect to the server using telnet:
+#telnet 127.0.0.1 4444
+3. Reset board:
+>reset halt
+4. Start GDB: 
+#../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-gdb obj/flomon.elf
+5. Connect to board:
+>target remote localhost:3333
+
+useful commands
+===============
+1. Disable pagination: 
+> set pagination off
+2. Print on breakpoint:
+> break foo if x>0
+     commands
+     silent
+     printf "x is %d\n",x
+     cont
+     end
