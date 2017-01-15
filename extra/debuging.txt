@@ -7,7 +7,7 @@ start debugger
 3. Reset board:
 >reset halt
 4. Start GDB: 
-#../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-gdb obj/flomon.elf
+#../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-gdb obj/prog.elf
 5. Connect to board:
 >target remote localhost:3333
 
