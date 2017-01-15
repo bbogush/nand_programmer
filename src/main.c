@@ -2,9 +2,8 @@
 /* SPL */
 #include <stm32f10x.h>
 
-#define BUFFER_SIZE         0x400
-#define NAND_ST_MakerID     0x20
-#define NAND_ST_DeviceID    0x76
+#define PAGE_NUM      2
+#define BUFFER_SIZE   (PAGE_NUM * NAND_PAGE_SIZE)
 
 NAND_IDTypeDef NAND_ID;
 NAND_ADDRESS WriteReadAddr;
@@ -41,10 +40,10 @@ int main()
     /* Fill the buffer to send */
     Fill_Buffer(TxBuffer, BUFFER_SIZE , 0x66);
 
-    status = NAND_WriteSmallPage(TxBuffer, WriteReadAddr, PageNumber);
+    status = NAND_WriteSmallPage(TxBuffer, WriteReadAddr, PAGE_NUM);
 
     /* Read back the written data */
-    status = NAND_ReadSmallPage (RxBuffer, WriteReadAddr, PageNumber);
+    status = NAND_ReadSmallPage (RxBuffer, WriteReadAddr, PAGE_NUM);
    
     /* Verify the written data */
     for (j = 0; j < BUFFER_SIZE; j++)

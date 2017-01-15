@@ -130,23 +130,73 @@ void NAND_Init(void)
 
   GPIO_Init(GPIOD, &GPIO_InitStructure); 
 
-/*!< INT2 NAND pin configuration */  
+/*!< INT2 NAND pin configuration, not available in LQFP100 */
+#if 0
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
   GPIO_Init(GPIOG, &GPIO_InitStructure);
+#endif
 
   /*-- FSMC Configuration ------------------------------------------------------*/
-  p.FSMC_SetupTime = 0x0;
-  p.FSMC_WaitSetupTime = 0x2;
+
+  /* Calculations of timing paramaters
+   *           _   _   _   _   _   _   _   _   _   _   _   _
+   * HCLK    _| |_| |_| |_| |_| |_| |_| |_| |_| |_| |_| |_| |
+   *         _____ _________________________________ ________
+   * A[25:0] _____|_________________________________|________ 
+   *         _____                                   ________
+   * NCE          |_________________________________|        
+   *
+   *              |SET+1|      WAIT+1       |HOLD+1 |        
+   *         ___________                     ________________
+   * NOE/NWE            |___________________|                
+   *
+   *              | HIZ+1 |
+   * Write                 _________________________         
+   * data    -------------|_________________________|--------
+   * 
+   * Read                __________________________
+   * data    -----------|__________________________|--------- 
+   *
+   * (SET + 1) * tHCLK >= max(tCS, tCLS, tALS) - tWP
+   * (SET + 1) * tHCLK >= max(tCLR, tAR)
+   * (WAIT + 1) * tHCLK >= max(tWP, tRP)
+   * (WAIT + 1) * tHCLK >= (tREA + tsu(D-NOE))   
+   * (HIZ + 1) * tHCLK >= max(tCS , tALS, tCLS) - tDS
+   * (HOLD + 1) x tHCLK >= max(tCH, tCLH, tALH)
+   * ((WAIT + 1) + (HOLD + 1) + (SET + 1)) x tHCLK >= max(tWC, tRC)
+   * tsu(D-NOE) = 25ns
+   * tHCLK = 1/72MHz = 13.89ns
+   */
+
+   /* K9F2G08U0C parameters:
+    * tCS = 20ns
+    * tCLS = 12ns
+    * tALS = 12ns
+    * tCLR = 10ns
+    * tAR = 10ns
+    * tWP = 12ns
+    * tRP = 12ns
+    * tDS = 12ns
+    * tCH = 5ns
+    * tCLH = 5ns
+    * tALH = 5ns
+    * tWC = 25ns
+    * tRC = 25ns
+    * tREA = 20ns
+    */
+
+  p.FSMC_SetupTime = 0x1;
+  p.FSMC_WaitSetupTime = 0x3;
   p.FSMC_HoldSetupTime = 0x1;
-  p.FSMC_HiZSetupTime = 0x0;
+  p.FSMC_HiZSetupTime = 0x1;
 
   FSMC_NANDInitStructure.FSMC_Bank = FSMC_Bank2_NAND;
   FSMC_NANDInitStructure.FSMC_Waitfeature = FSMC_Waitfeature_Enable;
   FSMC_NANDInitStructure.FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_8b;
   FSMC_NANDInitStructure.FSMC_ECC = FSMC_ECC_Enable;
-  FSMC_NANDInitStructure.FSMC_ECCPageSize = FSMC_ECCPageSize_512Bytes;
-  FSMC_NANDInitStructure.FSMC_TCLRSetupTime = 0x00;
-  FSMC_NANDInitStructure.FSMC_TARSetupTime = 0x00;
+  FSMC_NANDInitStructure.FSMC_ECCPageSize = FSMC_ECCPageSize_2048Bytes;
+  FSMC_NANDInitStructure.FSMC_TCLRSetupTime = 0x01;
+  FSMC_NANDInitStructure.FSMC_TARSetupTime = 0x01;
   FSMC_NANDInitStructure.FSMC_CommonSpaceTimingStruct = &p;
   FSMC_NANDInitStructure.FSMC_AttributeSpaceTimingStruct = &p;
 
@@ -200,9 +250,9 @@ uint32_t NAND_WriteSmallPage(uint8_t *pBuffer, NAND_ADDRESS Address, uint32_t Nu
   while((NumPageToWrite != 0x00) && (addressstatus == NAND_VALID_ADDRESS) && (status == NAND_READY))
   {
     /*!< Page write command and address */
-    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_AREA_A;
     *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_WRITE0;
 
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
     *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
     *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(ROW_ADDRESS);
     *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(ROW_ADDRESS);
@@ -257,12 +307,15 @@ uint32_t NAND_ReadSmallPage(uint8_t *pBuffer, NAND_ADDRESS Address, uint32_t Num
   while((NumPageToRead != 0x0) && (addressstatus == NAND_VALID_ADDRESS))
   {
     /*!< Page Read command and page address */
-    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_AREA_A;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ0;
    
     *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00; 
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
     *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(ROW_ADDRESS);
     *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(ROW_ADDRESS);
     *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(ROW_ADDRESS);
+
+     *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ1;
     
     /*!< Calculate the size */
     size = NAND_PAGE_SIZE + (NAND_PAGE_SIZE * numpageread);

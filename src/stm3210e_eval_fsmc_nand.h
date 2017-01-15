@@ -86,6 +86,9 @@ typedef struct
 #define NAND_CMD_AREA_B            ((uint8_t)0x01)
 #define NAND_CMD_AREA_C            ((uint8_t)0x50)
 
+#define NAND_CMD_READ0             ((uint8_t)0x00)
+#define NAND_CMD_READ1             ((uint8_t)0x30)
+
 #define NAND_CMD_WRITE0            ((uint8_t)0x80)
 #define NAND_CMD_WRITE_TRUE1       ((uint8_t)0x10)
 
@@ -110,11 +113,11 @@ typedef struct
 /** 
   * @brief  FSMC NAND memory parameters  
   */  
-#define NAND_PAGE_SIZE             ((uint16_t)0x0200) /* 512 bytes per page w/o Spare Area */
-#define NAND_BLOCK_SIZE            ((uint16_t)0x0020) /* 32x512 bytes pages per block */
-#define NAND_ZONE_SIZE             ((uint16_t)0x0400) /* 1024 Block per zone */
-#define NAND_SPARE_AREA_SIZE       ((uint16_t)0x0010) /* last 16 bytes as spare area */
-#define NAND_MAX_ZONE              ((uint16_t)0x0004) /* 4 zones of 1024 block */
+#define NAND_PAGE_SIZE             ((uint16_t)0x0800) /* 2048 bytes per page w/o Spare Area */
+#define NAND_BLOCK_SIZE            ((uint16_t)0x0040) /* 64 pages per block */
+#define NAND_ZONE_SIZE             ((uint16_t)0x0800) /* 2048 Block per zone (plane) */
+#define NAND_SPARE_AREA_SIZE       ((uint16_t)0x0040) /* last 64 bytes as spare area */
+#define NAND_MAX_ZONE              ((uint16_t)0x0001) /* 1 zones of 2048 block */
 
 /** 
   * @brief  FSMC NAND memory address computation  
