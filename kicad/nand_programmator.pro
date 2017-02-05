@@ -1,4 +1,4 @@
-update=Mon 30 Jan 2017 09:30:50 PM EET
+update=Sun 05 Feb 2017 04:51:47 PM EET
 version=1
 last_client=kicad
 [pcbnew]
@@ -23,16 +23,6 @@ ModuleOutlineThickness=0.150000000000
 [cvpcb]
 version=1
 NetIExt=net
-[schematic_editor]
-version=1
-PageLayoutDescrFile=
-PlotDirectoryName=
-SubpartIdSeparator=0
-SubpartFirstId=65
-NetFmtName=
-SpiceForceRefPrefix=0
-SpiceUseNetNumbers=0
-LabSize=60
 [general]
 version=1
 [eeschema]
@@ -70,3 +60,13 @@ LibName28=contrib
 LibName29=valves
 LibName30=stm32
 LibName31=adapters
+[schematic_editor]
+version=1
+PageLayoutDescrFile=
+PlotDirectoryName=
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=
+SpiceForceRefPrefix=0
+SpiceUseNetNumbers=0
+LabSize=60
