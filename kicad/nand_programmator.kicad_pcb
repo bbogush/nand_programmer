@@ -13,6 +13,11 @@
   )
 
   (page A4)
+  (title_block
+    (title "NAND programmer")
+    (rev v1.0)
+  )
+
   (layers
     (0 F.Cu signal)
     (31 B.Cu signal)

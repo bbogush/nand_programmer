@@ -5,7 +5,7 @@
     (no_connects 0)
     (area 100.813698 52.230136 222.9637 99.380138)
     (thickness 1.5)
-    (drawings 15)
+    (drawings 16)
     (tracks 569)
     (zones 0)
     (modules 36)
@@ -13,6 +13,11 @@
   )
 
   (page A4)
+  (title_block
+    (title "NAND programmer")
+    (rev v0.1)
+  )
+
   (layers
     (0 F.Cu signal)
     (31 B.Cu signal)
@@ -1904,6 +1909,9 @@
     )
   )
 
+  (gr_text JTAG (at 192.888699 78.305137) (layer F.SilkS)
+    (effects (font (size 1.5 1.5) (thickness 0.3)))
+  )
   (gr_text "NAND programmer v1.0" (at 133.888699 94.305137) (layer F.SilkS)
     (effects (font (size 1.5 1.5) (thickness 0.3)))
   )
