@@ -15,7 +15,7 @@
   (page A4)
   (title_block
     (title "NAND programmer")
-    (rev v0.1)
+    (rev v1.0)
   )
 
   (layers
@@ -2439,8 +2439,8 @@
   (segment (start 212.583562 91.3) (end 207.261781 85.978219) (width 0.2) (layer F.Cu) (net 58) (tstamp 58950FB0) (status 20))
   (segment (start 218.283562 91.3) (end 212.583562 91.3) (width 0.2) (layer F.Cu) (net 58) (tstamp 58950FAD))
   (segment (start 219.35 92.366438) (end 218.283562 91.3) (width 0.2) (layer F.Cu) (net 58) (tstamp 58950FA7))
-  (segment (start 198.531111 84.7) (end 186.9 84.7) (width 0.2) (layer B.Cu) (net 59) (tstamp 58962608))
-  (segment (start 186.9 84.7) (end 184.5 82.3) (width 0.2) (layer B.Cu) (net 59) (tstamp 5896260B))
+  (segment (start 198.764444 85) (end 187.2 85) (width 0.2) (layer B.Cu) (net 59) (tstamp 58962608))
+  (segment (start 187.2 85) (end 184.5 82.3) (width 0.2) (layer B.Cu) (net 59) (tstamp 5896260B))
   (segment (start 184.5 82.3) (end 184.5 74.6) (width 0.2) (layer B.Cu) (net 59) (tstamp 58962612))
   (segment (start 184.5 74.6) (end 182.6 72.7) (width 0.2) (layer B.Cu) (net 59) (tstamp 58962614))
   (segment (start 182.6 72.7) (end 179.4 72.7) (width 0.2) (layer B.Cu) (net 59) (tstamp 58962620))
@@ -2450,7 +2450,7 @@
   (via (at 179.8 70.3) (size 0.6) (drill 0.4) (layers F.Cu B.Cu) (net 59))
   (segment (start 179.8 70.3) (end 179.6 70.5) (width 0.2) (layer F.Cu) (net 59) (tstamp 5896263F))
   (segment (start 179.6 70.5) (end 177.9 70.5) (width 0.2) (layer F.Cu) (net 59) (tstamp 58962640))
-  (segment (start 199.62 86.1) (end 198.531111 84.7) (width 0.2) (layer B.Cu) (net 59) (tstamp 58962605) (status 10))
+  (segment (start 199.62 86.1) (end 198.764444 85) (width 0.2) (layer B.Cu) (net 59) (tstamp 58962605) (status 10))
   (segment (start 198.35 93) (end 198.35 87.196164) (width 0.2) (layer F.Cu) (net 59) (status 10))
   (segment (start 198.35 87.196164) (end 199.751301 85.794863) (width 0.2) (layer F.Cu) (net 59) (tstamp 58950F84) (status 20))
   (segment (start 191.35 93) (end 191.35 91.743836) (width 0.2) (layer F.Cu) (net 60))
