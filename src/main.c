@@ -121,6 +121,47 @@ static void nand_read()
     }
 }
 
+static void usb_handler()
+{
+    if (bDeviceState == CONFIGURED)
+    {
+        CDC_Receive_DATA();
+        /*Check to see if we have data yet */
+        if (Receive_length != 0)
+        {
+            int ret = 0;
+            uint8_t cmd = Receive_Buffer[0];
+ 
+            Receive_Buffer[0] = '\0';
+ 
+            switch (cmd)
+            {
+            case 'i':
+                ret = nand_read_id((char *)Receive_Buffer,
+                    sizeof(Receive_Buffer));
+                if (ret < 0)
+                    return;
+                break;
+            case 'e':
+                nand_erase();
+                 break;
+            case 'w':
+                nand_write();
+                break;
+            case 'r':
+                nand_read();
+            default:
+                break;
+            }
+
+            if (packet_sent == 1)
+                CDC_Send_DATA ((unsigned char*)Receive_Buffer, ret + 1);
+
+            Receive_length = 0;
+        }
+    }
+}
+
 int main()
 {
     jtag_init();
@@ -130,45 +171,7 @@ int main()
     nand_init();
 
     while (1)
-    {
-        if (bDeviceState == CONFIGURED)
-        {
-            CDC_Receive_DATA();
-            /*Check to see if we have data yet */
-            if (Receive_length != 0)
-            {
-                int ret = 0;
-                uint8_t cmd = Receive_Buffer[0];
-
-                Receive_Buffer[0] = '\0';
-
-                switch (cmd)
-		{
-		case 'i':
-                    ret = nand_read_id((char *)Receive_Buffer,
-                        sizeof(Receive_Buffer));
-                    if (ret < 0)
-                        return -1;
-		    break;
-                case 'e':
-                    nand_erase();
-                    break;
-                case 'w':
-                    nand_write();
-                    break;
-                case 'r':
-                    nand_read();
-                default:
-                    break;
-		}
-
-                if (packet_sent == 1)
-                    CDC_Send_DATA ((unsigned char*)Receive_Buffer, ret + 1);
-
-                Receive_length = 0;
-            }
-        }
-    }
+        usb_handler();
 
     return 0;
 }
