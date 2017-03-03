@@ -39,6 +39,13 @@ static void usb_init()
     USB_Init();
 }
 
+static void nand_init()
+{
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_FSMC, ENABLE);
+
+    NAND_Init();
+}
+
 void Fill_Buffer(uint8_t *pBuffer, uint16_t BufferLenght, uint32_t Offset)
 {
     uint16_t IndexTmp = 0;
@@ -120,9 +127,7 @@ int main()
 
     usb_init();
 
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_FSMC, ENABLE);
-
-    NAND_Init();
+    nand_init();
 
     while (1)
     {
