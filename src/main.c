@@ -31,6 +31,14 @@ static void jtag_init()
     DBGMCU_Config(DBGMCU_SLEEP | DBGMCU_STANDBY | DBGMCU_STOP, ENABLE);
 }
 
+static void usb_init()
+{
+    Set_System();
+    Set_USBClock();
+    USB_Interrupts_Config();
+    USB_Init();
+}
+
 void Fill_Buffer(uint8_t *pBuffer, uint16_t BufferLenght, uint32_t Offset)
 {
     uint16_t IndexTmp = 0;
@@ -110,10 +118,7 @@ int main()
 {
     jtag_init();
 
-    Set_System();
-    Set_USBClock();
-    USB_Interrupts_Config();
-    USB_Init();
+    usb_init();
 
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_FSMC, ENABLE);
 
