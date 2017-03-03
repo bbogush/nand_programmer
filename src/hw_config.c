@@ -60,7 +60,6 @@ extern LINE_CODING linecoding;
 * Input          : None.
 * Return         : None.
 *******************************************************************************/
-#if 0
 void Set_System(void)
 {
 #if !defined(STM32L1XX_MD) && !defined(STM32L1XX_HD) && !defined(STM32L1XX_MD_PLUS)
@@ -83,7 +82,8 @@ void Set_System(void)
 #endif /* STM32L1XX_XD */ 
    
 #if !defined(STM32L1XX_MD) && !defined(STM32L1XX_HD) && !defined(STM32L1XX_MD_PLUS) && !defined(STM32F37X) && !defined(STM32F30X)
-  /* Enable USB_DISCONNECT GPIO clock */
+#ifdef USB_DISCONNECT_GPIO
+/* Enable USB_DISCONNECT GPIO clock */
   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIO_DISCONNECT, ENABLE);
 
   /* Configure USB pull-up pin */
@@ -91,6 +91,7 @@ void Set_System(void)
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
   GPIO_Init(USB_DISCONNECT, &GPIO_InitStructure);
+#endif
 #endif /* STM32L1XX_MD && STM32L1XX_XD */
    
 #if defined(USB_USE_EXTERNAL_PULLUP)
@@ -132,8 +133,16 @@ void Set_System(void)
   GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
   GPIO_Init(USB_DISCONNECT, &GPIO_InitStructure);
 #endif /* STM32F37X  && STM32F30X)*/
- 
-   /* Configure the EXTI line 18 connected internally to the USB IP */
+
+#if defined(STM32F10X_HD)
+  RCC_AHBPeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+#endif
+
+  /* Configure the EXTI line 18 connected internally to the USB IP */
   EXTI_ClearITPendingBit(EXTI_Line18);
   EXTI_InitStructure.EXTI_Line = EXTI_Line18;
   EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
@@ -161,7 +170,7 @@ void Set_USBClock(void)
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_USB, ENABLE);
 #endif /* STM32L1XX_MD */
 }
-#endif
+
 /*******************************************************************************
 * Function Name  : Enter_LowPowerMode
 * Description    : Power-off system clocks and power while entering suspend mode
