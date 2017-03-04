@@ -1,5 +1,5 @@
 cscope.*
-src/libs/spl/obj/
-src/libs/spl/libstm32f10x.a
-src/obj/
+firmware/libs/spl/obj/
+firmware/libs/spl/libstm32f10x.a
+firmware/obj/
 *.swp
