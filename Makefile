@@ -42,8 +42,8 @@ vpath %.s $(SRC_DIR)
 
 STARTUP=startup_stm32f10x_hd.s
 
-SRCS=main.c system_stm32f10x.c syscalls.c stm3210e_eval_fsmc_nand.c \
-  hw_config.c stm32_it.c usb_prop.c usb_desc.c usb_istr.c usb_pwr.c usb_endp.c
+SRCS=main.c system_stm32f10x.c syscalls.c fsmc_nand.c hw_config.c stm32_it.c \
+  usb_prop.c usb_desc.c usb_istr.c usb_pwr.c usb_endp.c
 
 OBJS=$(addprefix $(OBJ_DIR),$(SRCS:.c=.o)) \
   $(addprefix $(OBJ_DIR),$(STARTUP:.s=.o))

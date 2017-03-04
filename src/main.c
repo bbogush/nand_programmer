@@ -1,4 +1,5 @@
-#include "stm3210e_eval_fsmc_nand.h"
+/* NAND */
+#include "fsmc_nand.h"
 /* SPL */
 #include <stm32f10x.h>
 /* USB */

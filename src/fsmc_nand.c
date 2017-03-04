@@ -21,7 +21,7 @@
   */ 
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm3210e_eval_fsmc_nand.h"
+#include "fsmc_nand.h"
 
 /** @addtogroup Utilities
   * @{
