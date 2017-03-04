@@ -81,7 +81,7 @@ static int nand_read_id(char *buf, size_t buf_size)
     return ret;
 }
 
-static void nand_erase()
+/*static*/ void nand_erase()
 {
     /* NAND memory address to write to */
     WriteReadAddr.Zone = 0x00;
@@ -92,7 +92,7 @@ static void nand_erase()
     status = NAND_EraseBlock(WriteReadAddr);
 }
 
-static void nand_write()
+/*static*/ void nand_write()
 {
     /* NAND memory address to write to */
     WriteReadAddr.Zone = 0x00;
@@ -106,7 +106,7 @@ static void nand_write()
     status = NAND_WriteSmallPage(TxBuffer, WriteReadAddr, PAGE_NUM);
 }
 
-static void nand_read()
+/*static*/ void nand_read()
 {
     /* NAND memory address to write to */
     WriteReadAddr.Zone = 0x00;
@@ -128,44 +128,33 @@ static void nand_read()
 
 static void usb_handler()
 {
-    if (bDeviceState == CONFIGURED)
+    int len;
+    cmd_t cmd;
+
+    if (bDeviceState != CONFIGURED)
+        return;
+
+    CDC_Receive_DATA();
+    if (!Receive_length)
+        return;
+
+    cmd = Receive_Buffer[0];
+    Receive_length = 0;
+
+    switch (cmd)
     {
-        CDC_Receive_DATA();
-        /*Check to see if we have data yet */
-        if (Receive_length != 0)
-        {
-            int ret = 0;
-            cmd_t cmd = Receive_Buffer[0];
-
-            usb_send_buffer[0] = '\0';
-  
-            switch (cmd)
-            {
-            case CMD_NAND_READ_ID:
-                ret = nand_read_id((char *)usb_send_buffer,
-                    sizeof(usb_send_buffer));
-                if (ret < 0)
-                    return;
-                break;
-            case CMD_NAND_ERASE:
-                 nand_erase();
-                 break;
-            case CMD_NAND_WRITE:
-                nand_write();
-                break;
-            case CMD_NAND_READ:
-                nand_read();
-                break;
-            default:
-                break;
-            }
-
-            if (packet_sent == 1)
-                CDC_Send_DATA(usb_send_buffer, ret + 1);
-
-            Receive_length = 0;
-        }
+    case CMD_NAND_READ_ID:
+        len = nand_read_id((char *)usb_send_buffer, sizeof(usb_send_buffer));
+        if (len < 0)
+            return;
+        len++;
+        break;
+    default:
+        return;
     }
+
+    if (packet_sent)
+        CDC_Send_DATA(usb_send_buffer, len);
 }
 
 int main()
