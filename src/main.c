@@ -11,7 +11,16 @@
 #define PAGE_NUM      2
 #define BUFFER_SIZE   (PAGE_NUM * NAND_PAGE_SIZE)
 
-NAND_IDTypeDef NAND_ID;
+#define USB_BUF_SIZE 64
+
+typedef enum
+{
+    CMD_NAND_READ_ID = 'i',
+    CMD_NAND_ERASE   = 'e',
+    CMD_NAND_READ    = 'r',
+    CMD_NAND_WRITE   = 'w',
+} cmd_t;
+
 NAND_ADDRESS WriteReadAddr;
 uint8_t TxBuffer[BUFFER_SIZE], RxBuffer[BUFFER_SIZE];
 uint32_t PageNumber = 2, WriteReadStatus = 0, status= 0;
@@ -19,10 +28,10 @@ uint32_t j = 0;
 
 uint32_t packet_sent=1;
 uint32_t packet_receive=1;
-extern __IO uint8_t Receive_Buffer[64];
+extern __IO uint8_t Receive_Buffer[USB_BUF_SIZE];
 extern __IO  uint32_t Receive_length ;
 extern __IO  uint32_t length ;
-uint8_t Send_Buffer[64];
+uint8_t usb_send_buffer[USB_BUF_SIZE];
 
 
 static void jtag_init()
@@ -57,19 +66,15 @@ void Fill_Buffer(uint8_t *pBuffer, uint16_t BufferLenght, uint32_t Offset)
     }
 }
 
-static int nand_read_id(char *tx_buf, size_t buf_size)
+static int nand_read_id(char *buf, size_t buf_size)
 {
+    NAND_IDTypeDef nand_id;
     int ret;
 
-    //NAND_ReadID(&NAND_ID);
-    NAND_ID.Maker_ID = 0x12;
-    NAND_ID.Device_ID = 0x34;
-    NAND_ID.Third_ID = 0x56;
-    NAND_ID.Fourth_ID = 0x78;
+    NAND_ReadID(&nand_id);
 
-    ret = snprintf(tx_buf, buf_size, "0x%x 0x%x 0x%x 0x%x\r\n",
-        NAND_ID.Maker_ID, NAND_ID.Device_ID, NAND_ID.Third_ID,
-        NAND_ID.Fourth_ID);
+    ret = snprintf(buf, buf_size, "0x%x 0x%x 0x%x 0x%x\r\n", nand_id.Maker_ID,
+        nand_id.Device_ID, nand_id.Third_ID, nand_id.Fourth_ID);
     if (ret < 0 || ret >= buf_size)
         return -1;
 
@@ -130,32 +135,33 @@ static void usb_handler()
         if (Receive_length != 0)
         {
             int ret = 0;
-            uint8_t cmd = Receive_Buffer[0];
- 
-            Receive_Buffer[0] = '\0';
- 
+            cmd_t cmd = Receive_Buffer[0];
+
+            usb_send_buffer[0] = '\0';
+  
             switch (cmd)
             {
-            case 'i':
-                ret = nand_read_id((char *)Receive_Buffer,
-                    sizeof(Receive_Buffer));
+            case CMD_NAND_READ_ID:
+                ret = nand_read_id((char *)usb_send_buffer,
+                    sizeof(usb_send_buffer));
                 if (ret < 0)
                     return;
                 break;
-            case 'e':
-                nand_erase();
+            case CMD_NAND_ERASE:
+                 nand_erase();
                  break;
-            case 'w':
+            case CMD_NAND_WRITE:
                 nand_write();
                 break;
-            case 'r':
+            case CMD_NAND_READ:
                 nand_read();
+                break;
             default:
                 break;
             }
 
             if (packet_sent == 1)
-                CDC_Send_DATA ((unsigned char*)Receive_Buffer, ret + 1);
+                CDC_Send_DATA(usb_send_buffer, ret + 1);
 
             Receive_length = 0;
         }
