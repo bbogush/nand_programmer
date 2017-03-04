@@ -3,7 +3,7 @@ LIB_NAME=libstm32f10x.a
 SRC_DIR=STM32F10x_StdPeriph_Driver/src/ STM32_USB-FS-Device_Driver/src/
 OBJ_DIR=obj/
 
-TOOLCHAIN=../../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
+TOOLCHAIN=../../../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
 
 CC=$(TOOLCHAIN)gcc
 AR=$(TOOLCHAIN)ar

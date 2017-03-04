@@ -1,8 +1,8 @@
 PROG_NAME=prog
 
-SRC_DIR=src/
+SRC_DIR=./
 OBJ_DIR=obj/
-EXTRA_DIR=extra/
+EXTRA_DIR=../extra/
 PROG=$(OBJ_DIR)$(PROG_NAME)
 
 SPL_PATH=libs/spl/
@@ -14,7 +14,7 @@ SPL_LIB=stm32f10x
 SPL_CONFIG_FILE=$(SPL_PATH)stm32f10x_conf.h
 SPL_FLAGS=-DSTM32F10X_HD
 
-TOOLCHAIN=../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
+TOOLCHAIN=../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
 
 CC=$(TOOLCHAIN)gcc
 OBJCOPY=$(TOOLCHAIN)objcopy

@@ -1,5 +1,5 @@
 cscope.*
-libs/spl/STM32F10x_StdPeriph_Driver/obj/
-libs/spl/libstm32f10x.a
-obj/
+src/libs/spl/obj/
+src/libs/spl/libstm32f10x.a
+src/obj/
 *.swp
