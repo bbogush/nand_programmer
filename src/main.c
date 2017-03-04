@@ -8,8 +8,8 @@
 /* STD */
 #include <stdio.h>
 
-#define PAGE_NUM      2
-#define BUFFER_SIZE   (PAGE_NUM * NAND_PAGE_SIZE)
+#define NAND_PAGE_NUM      2
+#define NAND_BUFFER_SIZE   (NAND_PAGE_NUM * NAND_PAGE_SIZE)
 
 #define USB_BUF_SIZE 64
 
@@ -21,18 +21,14 @@ typedef enum
     CMD_NAND_WRITE   = 'w',
 } cmd_t;
 
-NAND_ADDRESS WriteReadAddr;
-uint8_t TxBuffer[BUFFER_SIZE], RxBuffer[BUFFER_SIZE];
-uint32_t PageNumber = 2, WriteReadStatus = 0, status= 0;
-uint32_t j = 0;
+NAND_ADDRESS nand_write_read_addr = { 0x00, 0x00, 0x00 };
+uint8_t nand_write_buf[NAND_BUFFER_SIZE], nand_read_buf[NAND_BUFFER_SIZE];
 
-uint32_t packet_sent=1;
-uint32_t packet_receive=1;
 extern __IO uint8_t Receive_Buffer[USB_BUF_SIZE];
-extern __IO  uint32_t Receive_length ;
-extern __IO  uint32_t length ;
-uint8_t usb_send_buffer[USB_BUF_SIZE];
-
+extern __IO uint32_t Receive_length;
+uint32_t packet_sent = 1;
+uint32_t packet_receive = 1;
+uint8_t usb_send_buf[USB_BUF_SIZE];
 
 static void jtag_init()
 {
@@ -55,75 +51,89 @@ static void nand_init()
     NAND_Init();
 }
 
-void Fill_Buffer(uint8_t *pBuffer, uint16_t BufferLenght, uint32_t Offset)
+void fill_buffer(uint8_t *buf, uint16_t buf_len, uint32_t offset)
 {
-    uint16_t IndexTmp = 0;
+    uint16_t i;
 
     /* Put in global buffer same values */
-    for (IndexTmp = 0; IndexTmp < BufferLenght; IndexTmp++ )
-    {
-        pBuffer[IndexTmp] = IndexTmp + Offset;
-    }
+    for (i = 0; i < buf_len; i++)
+        buf[i] = i + offset;
 }
 
 static int nand_read_id(char *buf, size_t buf_size)
 {
     NAND_IDTypeDef nand_id;
-    int ret;
+    int len;
 
     NAND_ReadID(&nand_id);
 
-    ret = snprintf(buf, buf_size, "0x%x 0x%x 0x%x 0x%x\r\n", nand_id.Maker_ID,
+    len = snprintf(buf, buf_size, "0x%x 0x%x 0x%x 0x%x\r\n", nand_id.Maker_ID,
         nand_id.Device_ID, nand_id.Third_ID, nand_id.Fourth_ID);
-    if (ret < 0 || ret >= buf_size)
+    if (len < 0 || len >= buf_size)
         return -1;
-
-    return ret;
+ 
+    len++;
+    return len;
 }
 
-/*static*/ void nand_erase()
+static int nand_erase(char *buf, size_t buf_size)
 {
-    /* NAND memory address to write to */
-    WriteReadAddr.Zone = 0x00;
-    WriteReadAddr.Block = 0x00;
-    WriteReadAddr.Page = 0x00;
+    uint32_t status;
+    int len;
 
     /* Erase the NAND first Block */
-    status = NAND_EraseBlock(WriteReadAddr);
+    status = NAND_EraseBlock(nand_write_read_addr);
+
+    len = snprintf(buf, buf_size, "0x%x\r\n", (unsigned int)status);
+    if (len < 0 || len >= buf_size)
+        return -1;
+
+    len++;
+    return len;
 }
 
-/*static*/ void nand_write()
+static int nand_write(char *buf, size_t buf_size)
 {
-    /* NAND memory address to write to */
-    WriteReadAddr.Zone = 0x00;
-    WriteReadAddr.Block = 0x00;
-    WriteReadAddr.Page = 0x00;
+    uint32_t status;
+    int len;
 
     /* Write data to FSMC NAND memory */
     /* Fill the buffer to send */
-    Fill_Buffer(TxBuffer, BUFFER_SIZE , 0x66);
+    fill_buffer(nand_write_buf, NAND_BUFFER_SIZE , 0x66);
 
-    status = NAND_WriteSmallPage(TxBuffer, WriteReadAddr, PAGE_NUM);
+    status = NAND_WriteSmallPage(nand_write_buf, nand_write_read_addr,
+        NAND_PAGE_NUM);
+    len = snprintf(buf, buf_size, "0x%x\r\n", (unsigned int)status);
+    if (len < 0 || len >= buf_size)
+        return -1;
+
+    len++;
+    return len;
 }
 
-/*static*/ void nand_read()
+static int nand_read(char *buf, size_t buf_size)
 {
-    /* NAND memory address to write to */
-    WriteReadAddr.Zone = 0x00;
-    WriteReadAddr.Block = 0x00;
-    WriteReadAddr.Page = 0x00;
+    uint32_t status;
+    int i, len, read_write_diff = 0;    
 
     /* Read back the written data */
-    status = NAND_ReadSmallPage (RxBuffer, WriteReadAddr, PAGE_NUM);
-   
+    status = NAND_ReadSmallPage(nand_read_buf, nand_write_read_addr,
+        NAND_PAGE_NUM);
+
     /* Verify the written data */
-    for (j = 0; j < BUFFER_SIZE; j++)
+    for (i = 0; i < NAND_BUFFER_SIZE; i++)
     {
-        if (TxBuffer[j] != RxBuffer[j])
-        {
-            WriteReadStatus++;
-        }
+        if (nand_write_buf[i] != nand_read_buf[i])
+            read_write_diff++;
     }
+
+    len = snprintf(buf, buf_size, "0x%x %u\r\n", (unsigned int)status,
+        read_write_diff);
+    if (len < 0 || len >= buf_size)
+        return -1;
+
+    len++;
+    return len;
 }
 
 static void usb_handler()
@@ -144,17 +154,31 @@ static void usb_handler()
     switch (cmd)
     {
     case CMD_NAND_READ_ID:
-        len = nand_read_id((char *)usb_send_buffer, sizeof(usb_send_buffer));
+        len = nand_read_id((char *)usb_send_buf, sizeof(usb_send_buf));
         if (len < 0)
             return;
-        len++;
+        break;
+    case CMD_NAND_ERASE:
+        len = nand_erase((char *)usb_send_buf, sizeof(usb_send_buf));
+        if (len < 0)
+            return;
+        break;
+    case CMD_NAND_WRITE:
+        len = nand_write((char *)usb_send_buf, sizeof(usb_send_buf));
+        if (len < 0)
+            return;
+        break;
+    case CMD_NAND_READ:
+        len = nand_read((char *)usb_send_buf, sizeof(usb_send_buf));
+        if (len < 0)
+            return;
         break;
     default:
         return;
     }
 
     if (packet_sent)
-        CDC_Send_DATA(usb_send_buffer, len);
+        CDC_Send_DATA(usb_send_buf, len);
 }
 
 int main()
