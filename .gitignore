@@ -3,5 +3,5 @@ firmware/libs/spl/obj/
 firmware/libs/spl/libstm32f10x.a
 firmware/obj/
 *.swp
-qt/build-qt-Desktop_Qt_5_5_1_GCC_32bit-Debug/
-qt/qt.pro.user
+qt/build-qt-Desktop_Qt_5_*
+qt/qt.pro.user*
