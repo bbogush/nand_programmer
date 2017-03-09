@@ -20,3 +20,5 @@ HEADERS  += main_window.h \
     programmer.h
 
 FORMS    += main_window.ui
+
+QMAKE_CXXFLAGS += -std=c++11 -Wextra -Werror
