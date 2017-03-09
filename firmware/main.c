@@ -8,19 +8,49 @@
 #include "hw_config.h"
 /* STD */
 #include <stdio.h>
+#include <string.h>
 
 #define NAND_PAGE_NUM      2
 #define NAND_BUFFER_SIZE   (NAND_PAGE_NUM * NAND_PAGE_SIZE)
 
 #define USB_BUF_SIZE 64
 
+enum
+{
+    CMD_NAND_READ_ID = 0x00,
+    CMD_NAND_ERASE   = 0x01,
+    CMD_NAND_READ    = 0x02,
+    CMD_NAND_WRITE   = 0x03,
+};
+
+typedef struct
+{
+    uint8_t code;
+} cmd_t;
+
+enum
+{
+    RESP_DATA   = 0x00,
+    RESP_STATUS = 0x01,
+};
+
+typedef struct
+{
+    uint8_t code : 2;
+    uint8_t data : 6;
+} resp_header_t;
+
 typedef enum
 {
-    CMD_NAND_READ_ID = 'i',
-    CMD_NAND_ERASE   = 'e',
-    CMD_NAND_READ    = 'r',
-    CMD_NAND_WRITE   = 'w',
-} cmd_t;
+    STATUS_OK    = 0x00,
+    STATUS_ERROR = 0x01,
+} status_data_t;
+
+typedef struct __attribute__((__packed__))
+{
+    resp_header_t header;
+    NAND_IDTypeDef nand_id;
+} resp_id_t;
 
 NAND_ADDRESS nand_write_read_addr = { 0x00, 0x00, 0x00 };
 uint8_t nand_write_buf[NAND_BUFFER_SIZE], nand_read_buf[NAND_BUFFER_SIZE];
@@ -52,6 +82,16 @@ static void nand_init()
     NAND_Init();
 }
 
+static int make_status(uint8_t *buf, status_data_t status_data)
+{
+    resp_header_t status = { RESP_STATUS,  status_data };
+    size_t len = sizeof(status);
+
+    memcpy(buf, &status, len);
+
+    return len;
+}
+
 void fill_buffer(uint8_t *buf, uint16_t buf_len, uint32_t offset)
 {
     uint16_t i;
@@ -61,20 +101,21 @@ void fill_buffer(uint8_t *buf, uint16_t buf_len, uint32_t offset)
         buf[i] = i + offset;
 }
 
-static int nand_read_id(char *buf, size_t buf_size)
+static int nand_read_id(uint8_t *buf, size_t buf_size)
 {
-    NAND_IDTypeDef nand_id;
-    int len;
+    resp_id_t resp;
+    size_t resp_len = sizeof(resp);
 
-    NAND_ReadID(&nand_id);
-
-    len = snprintf(buf, buf_size, "0x%x 0x%x 0x%x 0x%x\r\n", nand_id.Maker_ID,
-        nand_id.Device_ID, nand_id.Third_ID, nand_id.Fourth_ID);
-    if (len < 0 || len >= buf_size)
+    if (buf_size < resp_len)
         return -1;
- 
-    len++;
-    return len;
+
+    resp.header.code = RESP_DATA;
+    resp.header.data = resp_len - sizeof(resp.header);
+    NAND_ReadID(&resp.nand_id);
+
+    memcpy(buf, &resp, resp_len);
+
+    return resp_len;
 }
 
 static int nand_erase(char *buf, size_t buf_size)
@@ -149,15 +190,14 @@ static void usb_handler()
     if (!Receive_length)
         return;
 
-    cmd = Receive_Buffer[0];
+    cmd.code = Receive_Buffer[0];
     Receive_length = 0;
 
-    switch (cmd)
+    switch (cmd.code)
     {
     case CMD_NAND_READ_ID:
-        len = nand_read_id((char *)usb_send_buf, sizeof(usb_send_buf));
-        if (len < 0)
-            return;
+        if ((len = nand_read_id(usb_send_buf, sizeof(usb_send_buf))) < 0)
+            len = make_status(usb_send_buf, STATUS_ERROR);
         break;
     case CMD_NAND_ERASE:
         len = nand_erase((char *)usb_send_buf, sizeof(usb_send_buf));
