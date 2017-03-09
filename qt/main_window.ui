@@ -247,7 +247,7 @@
   </widget>
   <action name="actionDetect_Device">
    <property name="text">
-    <string>Detect</string>
+    <string>Read ID</string>
    </property>
   </action>
   <action name="actionConnect">

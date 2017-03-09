@@ -78,5 +78,15 @@ void MainWindow::slotProgConnect()
 
 void MainWindow::slotProgReadDeviceId()
 {
-    ui->deviceValueLabel->setText(prog->readDeviceId());
+    ChipId id;
+    QString idStr;
+
+    if (prog->readChipId(&id))
+        log(tr("Failed to read chip ID\n"));
+    else
+    {
+        idStr.sprintf("0x%02X 0x%02X 0x%02X 0x%02X", id.makerId, id.deviceId,
+            id.thirdId, id.fourthId);
+        ui->deviceValueLabel->setText(idStr);
+    }
 }

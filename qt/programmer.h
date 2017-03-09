@@ -3,8 +3,17 @@
 
 #include <QObject>
 #include <fstream>
+#include <cstdint>
 
 using namespace std;
+
+typedef struct
+{
+    uint8_t makerId;
+    uint8_t deviceId;
+    uint8_t thirdId;
+    uint8_t fourthId;
+} ChipId;
 
 class Programmer : public QObject
 {
@@ -18,7 +27,7 @@ public:
     int connect();
     void disconnect();
     bool isConnected();
-    char *readDeviceId();
+    int readChipId(ChipId *id);
 };
 
 #endif // PROGRAMMER_H
