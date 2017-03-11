@@ -15,12 +15,30 @@ typedef struct
     uint8_t fourthId;
 } ChipId;
 
+typedef struct
+{
+    uint8_t code : 2;
+    uint8_t data : 6;
+} RespHeader;
+
+typedef struct __attribute__((__packed__))
+{
+    RespHeader header;
+    ChipId nandId;
+} RespId;
+
 class Programmer : public QObject
 {
     Q_OBJECT
 
     fstream cdcDev;
     bool isConn;
+
+    int sendCmd(uint8_t cmdCode);
+    int readRespHead(RespHeader *respHead);
+    int handleStatus(RespHeader *respHead);
+    int handleWrongResp();
+    int handleRespChipId(RespId *respId, ChipId *id);
 public:
     explicit Programmer(QObject *parent = 0);
     ~Programmer();
@@ -28,6 +46,7 @@ public:
     void disconnect();
     bool isConnected();
     int readChipId(ChipId *id);
+    int eraseChip();
 };
 
 #endif // PROGRAMMER_H

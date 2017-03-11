@@ -22,23 +22,11 @@ enum
     RESP_STATUS = 0x01,
 };
 
-typedef struct
-{
-    uint8_t code : 2;
-    uint8_t data : 6;
-} RespHeader;
-
 typedef enum
 {
     STATUS_OK    = 0x00,
     STATUS_ERROR = 0x01,
 } StatusData;
-
-typedef struct __attribute__((__packed__))
-{
-    RespHeader header;
-    ChipId nandId;
-} RespId;
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
@@ -74,10 +62,9 @@ bool Programmer::isConnected()
     return isConn;
 }
 
-int Programmer::readChipId(ChipId *id)
+int Programmer::sendCmd(uint8_t cmdCode)
 {
-    Cmd cmd;
-    RespId respId;
+    Cmd cmd = { cmdCode };
 
     if (!cdcDev.is_open())
     {
@@ -85,58 +72,113 @@ int Programmer::readChipId(ChipId *id)
         return -1;
     }
 
-    cmd.code = CMD_NAND_READ_ID;
     if (!cdcDev.write((char *)&cmd, sizeof(cmd)))
     {
-        qCritical() << "Failed to write chip ID command";
+        qCritical() << "Failed to write chip command";
         return -1;
     }
 
-    if (!cdcDev.read((char *)&respId.header, sizeof(respId.header)))
+    return 0;
+}
+
+int Programmer::readRespHead(RespHeader *respHead)
+{
+    if (!cdcDev.read((char *)respHead, sizeof(RespHeader)))
     {
         qCritical() << "Failed to read responce header";
         return -1;
     }
 
+    return 0;
+}
+
+int Programmer::handleStatus(RespHeader *respHead)
+{
+    switch (respHead->data)
+    {
+    case STATUS_OK:
+        break;
+    case STATUS_ERROR:
+        qCritical() << "Programmer command failed";
+        return -1;
+    default:
+        qCritical() << "Programmer returned unknown status code";
+        return -1;
+    }
+
+    return 0;
+}
+
+int Programmer::handleWrongResp()
+{
+    qCritical() << "Programmer returned wrong responce: ";
+    return -1;
+}
+
+int Programmer::handleRespChipId(RespId *respId, ChipId *id)
+{
+    if (respId->header.data != sizeof(respId->nandId))
+    {
+        qCritical() << "Wrong chip ID responce length";
+        return -1;
+    }
+
+    if (!cdcDev.read((char *)&respId->nandId, sizeof(respId->nandId)))
+    {
+        qCritical() << "Failed to read chip ID";
+        return -1;
+    }
+
+    if (cdcDev.gcount() < (streamsize)sizeof(respId->nandId))
+    {
+        qCritical() << "Chip ID responce is too short";
+        return -1;
+    }
+
+    *id = respId->nandId;
+
+    return 0;
+}
+
+int Programmer::readChipId(ChipId *id)
+{
+    RespId respId;
+
+    if (sendCmd(CMD_NAND_READ_ID))
+        return -1;
+
+    if (readRespHead(&respId.header))
+        return -1;
+
     switch (respId.header.code)
     {
     case RESP_DATA:
-        if (respId.header.data != sizeof(respId.nandId))
-        {
-            qCritical() << "Wrong chip ID responce length";
-            return -1;
-        }
-
-        if (!cdcDev.read((char *)&respId.nandId, sizeof(respId.nandId)))
-        {
-            qCritical() << "Failed to read chip ID";
-            return -1;
-        }
-
-        if (cdcDev.gcount() < (streamsize)sizeof(respId.nandId))
-        {
-            qCritical() << "Chip ID responce is too short";
-            return -1;
-        }
-
-        *id = respId.nandId;
-        break;
+        return handleRespChipId(&respId, id);
     case RESP_STATUS:
-        switch (respId.header.data)
-        {
-        case STATUS_ERROR:
-            qCritical() << "Programmer read chip ID failed";
-            return -1;
-        case STATUS_OK:
-            break;
-        default:
-            qCritical() << "Programmer returns unknown status code";
-            return -1;
-        }
-        break;
+        return handleStatus(&respId.header);
      default:
-        qCritical() << "Programmer returned wrong responce code";
+        return handleWrongResp();
+    }
+
+    return 0;
+}
+
+int Programmer::eraseChip()
+{
+    RespHeader resp;
+
+    if (sendCmd(CMD_NAND_ERASE))
         return -1;
+
+    if (readRespHead(&resp))
+        return -1;
+
+    switch (resp.code)
+    {
+    case RESP_STATUS:
+        return handleStatus(&resp);
+    default:
+        return handleWrongResp();
     }
 
     return 0;

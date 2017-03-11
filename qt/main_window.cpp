@@ -43,6 +43,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotProgConnect()));
     connect(ui->actionDetect_Device, SIGNAL(triggered()), this,
         SLOT(slotProgReadDeviceId()));
+    connect(ui->actionErase, SIGNAL(triggered()), this,
+        SLOT(slotProgErase()));
+
 }
 
 MainWindow::~MainWindow()
@@ -89,4 +92,12 @@ void MainWindow::slotProgReadDeviceId()
             id.thirdId, id.fourthId);
         ui->deviceValueLabel->setText(idStr);
     }
+}
+
+void MainWindow::slotProgErase()
+{
+    if (prog->eraseChip())
+        log(tr("Failed to erase chip\n"));
+    else
+        log(tr("Chip has been erased successfully\n"));
 }

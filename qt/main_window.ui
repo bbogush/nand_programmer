@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>570</width>
-    <height>500</height>
+    <height>501</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -205,6 +205,7 @@
      <string>Device</string>
     </property>
     <addaction name="actionDetect_Device"/>
+    <addaction name="actionErase"/>
     <addaction name="actionRead"/>
     <addaction name="actionWrite"/>
    </widget>
@@ -273,6 +274,11 @@
   <action name="actionWrite">
    <property name="text">
     <string>Write</string>
+   </property>
+  </action>
+  <action name="actionErase">
+   <property name="text">
+    <string>Erase</string>
    </property>
   </action>
  </widget>

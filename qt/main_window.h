@@ -25,6 +25,7 @@ private:
 public slots:
     void slotProgConnect();
     void slotProgReadDeviceId();
+    void slotProgErase();
 };
 
 #endif // MAIN_WINDOW_H
