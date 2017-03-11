@@ -40,11 +40,11 @@ typedef struct
     uint8_t data : 6;
 } resp_header_t;
 
-typedef enum
+enum
 {
     STATUS_OK    = 0x00,
     STATUS_ERROR = 0x01,
-} status_data_t;
+};
 
 typedef struct __attribute__((__packed__))
 {
@@ -82,10 +82,13 @@ static void nand_init()
     NAND_Init();
 }
 
-static int make_status(uint8_t *buf, status_data_t status_data)
+static int make_status(uint8_t *buf, size_t buf_size, int is_ok)
 {
-    resp_header_t status = { RESP_STATUS,  status_data };
+    resp_header_t status = { RESP_STATUS,  is_ok ? STATUS_OK : STATUS_ERROR };
     size_t len = sizeof(status);
+
+    if (len > buf_size)
+        return -1;
 
     memcpy(buf, &status, len);
 
@@ -107,7 +110,7 @@ static int nand_read_id(uint8_t *buf, size_t buf_size)
     size_t resp_len = sizeof(resp);
 
     if (buf_size < resp_len)
-        return -1;
+        goto Error;
 
     resp.header.code = RESP_DATA;
     resp.header.data = resp_len - sizeof(resp.header);
@@ -116,22 +119,19 @@ static int nand_read_id(uint8_t *buf, size_t buf_size)
     memcpy(buf, &resp, resp_len);
 
     return resp_len;
+
+Error:
+    return make_status(usb_send_buf, buf_size, 0);
 }
 
-static int nand_erase(char *buf, size_t buf_size)
+static int nand_erase(uint8_t *buf, size_t buf_size)
 {
     uint32_t status;
-    int len;
 
     /* Erase the NAND first Block */
     status = NAND_EraseBlock(nand_write_read_addr);
 
-    len = snprintf(buf, buf_size, "0x%x\r\n", (unsigned int)status);
-    if (len < 0 || len >= buf_size)
-        return -1;
-
-    len++;
-    return len;
+    return make_status(buf, buf_size, status == NAND_READY);
 }
 
 static int nand_write(char *buf, size_t buf_size)
@@ -197,11 +197,10 @@ static void usb_handler()
     {
     case CMD_NAND_READ_ID:
         if ((len = nand_read_id(usb_send_buf, sizeof(usb_send_buf))) < 0)
-            len = make_status(usb_send_buf, STATUS_ERROR);
+            return;
         break;
     case CMD_NAND_ERASE:
-        len = nand_erase((char *)usb_send_buf, sizeof(usb_send_buf));
-        if (len < 0)
+        if ((len = nand_erase(usb_send_buf, sizeof(usb_send_buf))) < 0)
             return;
         break;
     case CMD_NAND_WRITE:
