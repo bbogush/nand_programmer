@@ -2,7 +2,7 @@
 #define PROGRAMMER_H
 
 #include <QObject>
-#include <fstream>
+#include <QtSerialPort/QSerialPort>
 #include <cstdint>
 
 using namespace std;
@@ -31,7 +31,8 @@ class Programmer : public QObject
 {
     Q_OBJECT
 
-    fstream cdcDev;
+    QSerialPort serialPort;
+
     bool isConn;
 
     int sendCmd(uint8_t cmdCode);

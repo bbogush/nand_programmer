@@ -40,9 +40,15 @@ Programmer::~Programmer()
 
 int Programmer::connect()
 {
-    cdcDev.open(CDC_DEV_NAME, ios::in | ios::out | ios::binary);
-    if (cdcDev.fail())
+    serialPort.setPortName(CDC_DEV_NAME);
+    serialPort.setBaudRate(QSerialPort::Baud9600);
+
+    if (!serialPort.open(QIODevice::ReadWrite))
+    {
+        qCritical() << "Failed to open serial port: " << serialPort.error()
+            << serialPort.errorString();
         return -1;
+    }
 
     isConn = true;
 
@@ -51,8 +57,7 @@ int Programmer::connect()
 
 void Programmer::disconnect()
 {
-    if (cdcDev.is_open())
-        cdcDev.close();
+    serialPort.close();
 
     isConn = false;
 }
@@ -64,17 +69,26 @@ bool Programmer::isConnected()
 
 int Programmer::sendCmd(uint8_t cmdCode)
 {
+    qint64 ret;
     Cmd cmd = { cmdCode };
 
-    if (!cdcDev.is_open())
+    if (!serialPort.isOpen())
     {
         qCritical() << "Programmer is not connected";
         return -1;
     }
 
-    if (!cdcDev.write((char *)&cmd, sizeof(cmd)))
+    ret = serialPort.write((const char *)&cmd, sizeof(cmd));
+    if (ret < 0)
     {
-        qCritical() << "Failed to write chip command";
+        qCritical() << "Failed to write command: " << serialPort.error()
+            << serialPort.errorString();
+        return -1;
+    }
+
+    if (ret != sizeof(cmd))
+    {
+        qCritical() << "Failed to write command: data was partially sent";
         return -1;
     }
 
@@ -83,9 +97,21 @@ int Programmer::sendCmd(uint8_t cmdCode)
 
 int Programmer::readRespHead(RespHeader *respHead)
 {
-    if (!cdcDev.read((char *)respHead, sizeof(RespHeader)))
+    qint64 ret;
+
+    serialPort.waitForReadyRead(1);
+    ret = serialPort.read((char *)respHead, sizeof(RespHeader));
+    if (ret < 0)
     {
-        qCritical() << "Failed to read responce header";
+        qCritical() << "Failed to read responce header: " << serialPort.error()
+            << serialPort.errorString();
+        return -1;
+    }
+
+    if (ret != sizeof(RespHeader))
+    {
+        qCritical() << "Failed to read responce header: data was partially "
+            "received";
         return -1;
     }
 
@@ -117,21 +143,27 @@ int Programmer::handleWrongResp()
 
 int Programmer::handleRespChipId(RespId *respId, ChipId *id)
 {
+    qint64 ret;
+
     if (respId->header.data != sizeof(respId->nandId))
     {
         qCritical() << "Wrong chip ID responce length";
         return -1;
     }
 
-    if (!cdcDev.read((char *)&respId->nandId, sizeof(respId->nandId)))
+    serialPort.waitForReadyRead(1);
+    ret = serialPort.read((char *)&respId->nandId, sizeof(respId->nandId));
+    if (ret < 0)
     {
-        qCritical() << "Failed to read chip ID";
+        qCritical() << "Failed to read response data: " << serialPort.error()
+            << serialPort.errorString();
         return -1;
     }
 
-    if (cdcDev.gcount() < (streamsize)sizeof(respId->nandId))
+    if (ret != sizeof(respId->nandId))
     {
-        qCritical() << "Chip ID responce is too short";
+        qCritical() << "Failed to read responce data: data was partially "
+            "received";
         return -1;
     }
 
