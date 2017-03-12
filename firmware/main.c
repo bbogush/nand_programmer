@@ -36,9 +36,10 @@ enum
 
 typedef struct
 {
-    uint8_t code : 2;
-    uint8_t data : 6;
-} resp_header_t;
+    uint8_t code;
+    uint8_t info;
+    uint8_t data[];
+} resp_t;
 
 enum
 {
@@ -48,7 +49,7 @@ enum
 
 typedef struct __attribute__((__packed__))
 {
-    resp_header_t header;
+    resp_t header;
     NAND_IDTypeDef nand_id;
 } resp_id_t;
 
@@ -84,7 +85,7 @@ static void nand_init()
 
 static int make_status(uint8_t *buf, size_t buf_size, int is_ok)
 {
-    resp_header_t status = { RESP_STATUS,  is_ok ? STATUS_OK : STATUS_ERROR };
+    resp_t status = { RESP_STATUS,  is_ok ? STATUS_OK : STATUS_ERROR };
     size_t len = sizeof(status);
 
     if (len > buf_size)
@@ -113,7 +114,7 @@ static int nand_read_id(uint8_t *buf, size_t buf_size)
         goto Error;
 
     resp.header.code = RESP_DATA;
-    resp.header.data = resp_len - sizeof(resp.header);
+    resp.header.info = resp_len - sizeof(resp.header);
     NAND_ReadID(&resp.nand_id);
 
     memcpy(buf, &resp, resp_len);
