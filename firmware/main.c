@@ -134,7 +134,7 @@ static int nand_erase(uint8_t *buf, size_t buf_size)
     return make_status(buf, buf_size, status == NAND_READY);
 }
 
-static int nand_write(char *buf, size_t buf_size)
+static int nand_write(uint8_t *buf, size_t buf_size)
 {
     uint32_t status;
     int len;
@@ -145,7 +145,7 @@ static int nand_write(char *buf, size_t buf_size)
 
     status = NAND_WriteSmallPage(nand_write_buf, nand_write_read_addr,
         NAND_PAGE_NUM);
-    len = snprintf(buf, buf_size, "0x%x\r\n", (unsigned int)status);
+    len = snprintf((char *)buf, buf_size, "0x%x\r\n", (unsigned int)status);
     if (len < 0 || len >= buf_size)
         return -1;
 
@@ -153,7 +153,7 @@ static int nand_write(char *buf, size_t buf_size)
     return len;
 }
 
-static int nand_read(char *buf, size_t buf_size)
+static int nand_read(uint8_t *buf, size_t buf_size)
 {
     uint32_t status;
     int i, len, read_write_diff = 0;    
@@ -169,7 +169,7 @@ static int nand_read(char *buf, size_t buf_size)
             read_write_diff++;
     }
 
-    len = snprintf(buf, buf_size, "0x%x %u\r\n", (unsigned int)status,
+    len = snprintf((char *)buf, buf_size, "0x%x %u\r\n", (unsigned int)status,
         read_write_diff);
     if (len < 0 || len >= buf_size)
         return -1;
@@ -178,10 +178,36 @@ static int nand_read(char *buf, size_t buf_size)
     return len;
 }
 
+static int cmd_handler(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
+    size_t tx_buf_size)
+{
+    cmd_t *cmd = (cmd_t *)rx_buf;
+    int ret = -1;
+
+    switch (cmd->code)
+    {
+    case CMD_NAND_READ_ID:
+        ret = nand_read_id(tx_buf, tx_buf_size);
+        break;
+    case CMD_NAND_ERASE:
+        ret = nand_erase(tx_buf, tx_buf_size);
+        break;
+    case CMD_NAND_READ:
+        ret = nand_read(tx_buf, tx_buf_size);
+        break;
+    case CMD_NAND_WRITE:
+        ret = nand_write(tx_buf, tx_buf_size);
+        break;
+    default:
+        break;
+    }
+
+    return ret;
+}
+
 static void usb_handler()
 {
     int len;
-    cmd_t cmd;
 
     if (bDeviceState != CONFIGURED)
         return;
@@ -190,35 +216,16 @@ static void usb_handler()
     if (!Receive_length)
         return;
 
-    cmd.code = Receive_Buffer[0];
-    Receive_length = 0;
-
-    switch (cmd.code)
-    {
-    case CMD_NAND_READ_ID:
-        if ((len = nand_read_id(usb_send_buf, sizeof(usb_send_buf))) < 0)
-            return;
-        break;
-    case CMD_NAND_ERASE:
-        if ((len = nand_erase(usb_send_buf, sizeof(usb_send_buf))) < 0)
-            return;
-        break;
-    case CMD_NAND_WRITE:
-        len = nand_write((char *)usb_send_buf, sizeof(usb_send_buf));
-        if (len < 0)
-            return;
-        break;
-    case CMD_NAND_READ:
-        len = nand_read((char *)usb_send_buf, sizeof(usb_send_buf));
-        if (len < 0)
-            return;
-        break;
-    default:
-        return;
-    }
+    len = cmd_handler((uint8_t *)Receive_Buffer, sizeof(Receive_Buffer),
+        usb_send_buf, sizeof(usb_send_buf));
+    if (len <= 0)
+        goto Exit;
 
     if (packet_sent)
         CDC_Send_DATA(usb_send_buf, len);
+
+Exit:
+    Receive_length = 0;
 }
 
 int main()
