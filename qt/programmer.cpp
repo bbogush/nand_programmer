@@ -120,7 +120,7 @@ int Programmer::readRespHead(RespHeader *respHead)
 
 int Programmer::handleStatus(RespHeader *respHead)
 {
-    switch (respHead->data)
+    switch (respHead->info)
     {
     case STATUS_OK:
         break;
@@ -145,7 +145,7 @@ int Programmer::handleRespChipId(RespId *respId, ChipId *id)
 {
     qint64 ret;
 
-    if (respId->header.data != sizeof(respId->nandId))
+    if (respId->header.info != sizeof(respId->nandId))
     {
         qCritical() << "Wrong chip ID responce length";
         return -1;

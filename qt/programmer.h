@@ -17,8 +17,9 @@ typedef struct
 
 typedef struct
 {
-    uint8_t code : 2;
-    uint8_t data : 6;
+    uint8_t code;
+    uint8_t info;
+    uint8_t data[];
 } RespHeader;
 
 typedef struct __attribute__((__packed__))
