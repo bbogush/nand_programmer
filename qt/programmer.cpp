@@ -2,31 +2,7 @@
 #include <QDebug>
 
 #define CDC_DEV_NAME "/dev/ttyACM0"
-
-enum
-{
-    CMD_NAND_READ_ID = 0x00,
-    CMD_NAND_ERASE   = 0x01,
-    CMD_NAND_READ    = 0x02,
-    CMD_NAND_WRITE   = 0x03,
-};
-
-typedef struct
-{
-    uint8_t code;
-} Cmd;
-
-enum
-{
-    RESP_DATA   = 0x00,
-    RESP_STATUS = 0x01,
-};
-
-typedef enum
-{
-    STATUS_OK    = 0x00,
-    STATUS_ERROR = 0x01,
-} StatusData;
+#define CDC_BUF_SIZE 60
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
@@ -67,10 +43,9 @@ bool Programmer::isConnected()
     return isConn;
 }
 
-int Programmer::sendCmd(uint8_t cmdCode)
+int Programmer::sendCmd(Cmd *cmd, size_t size)
 {
     qint64 ret;
-    Cmd cmd = { cmdCode };
 
     if (!serialPort.isOpen())
     {
@@ -78,7 +53,7 @@ int Programmer::sendCmd(uint8_t cmdCode)
         return -1;
     }
 
-    ret = serialPort.write((const char *)&cmd, sizeof(cmd));
+    ret = serialPort.write((const char *)cmd, size);
     if (ret < 0)
     {
         qCritical() << "Failed to write command: " << serialPort.error()
@@ -86,7 +61,7 @@ int Programmer::sendCmd(uint8_t cmdCode)
         return -1;
     }
 
-    if (ret != sizeof(cmd))
+    if (ret != size)
     {
         qCritical() << "Failed to write command: data was partially sent";
         return -1;
@@ -99,7 +74,7 @@ int Programmer::readRespHead(RespHeader *respHead)
 {
     qint64 ret;
 
-    serialPort.waitForReadyRead(1);
+    serialPort.waitForReadyRead(1000);
     ret = serialPort.read((char *)respHead, sizeof(RespHeader));
     if (ret < 0)
     {
@@ -110,8 +85,8 @@ int Programmer::readRespHead(RespHeader *respHead)
 
     if (ret != sizeof(RespHeader))
     {
-        qCritical() << "Failed to read responce header: data was partially "
-            "received";
+        qCritical() << "Failed to read response header: data was partially "
+            "received, length: " << ret;
         return -1;
     }
 
@@ -175,8 +150,9 @@ int Programmer::handleRespChipId(RespId *respId, ChipId *id)
 int Programmer::readChipId(ChipId *id)
 {
     RespId respId;
+    Cmd cmd = { .code = CMD_NAND_READ_ID };
 
-    if (sendCmd(CMD_NAND_READ_ID))
+    if (sendCmd(&cmd, sizeof(cmd)))
         return -1;
 
     if (readRespHead(&respId.header))
@@ -198,8 +174,9 @@ int Programmer::readChipId(ChipId *id)
 int Programmer::eraseChip()
 {
     RespHeader resp;
+    Cmd cmd = { .code = CMD_NAND_ERASE };
 
-    if (sendCmd(CMD_NAND_ERASE))
+    if (sendCmd(&cmd, sizeof(cmd)))
         return -1;
 
     if (readRespHead(&resp))
@@ -216,4 +193,70 @@ int Programmer::eraseChip()
     return 0;
 }
 
+int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
+{
+    int ret;
+    uint8_t rx_buf[CDC_BUF_SIZE];
+    RespHeader *dataResp;
+    uint32_t offset = 0;
+    Cmd cmd = { .code = CMD_NAND_READ };
+    ReadCmd readCmd = { .cmd = cmd, .addr = addr, .len = len };
+
+    if (sendCmd(&readCmd.cmd, sizeof(readCmd)))
+        return -1;
+
+    while (len)
+    {
+        serialPort.waitForReadyRead(10);
+        ret = serialPort.read((char *)rx_buf, sizeof(rx_buf));
+        if (ret < 0)
+        {
+            qCritical() << "Failed to read data " << serialPort.error()
+                << serialPort.errorString();
+            return -1;
+        }
+        (void)dataResp; (void)offset; (void)buf;
+
+        if (ret < (int)sizeof(RespHeader))
+        {
+            qCritical() << "Failed to read response header: data was partially"
+                " received, length: " << ret;
+            return -1;
+        }
+
+        dataResp = (RespHeader *)rx_buf;
+        if (dataResp->code == RESP_STATUS)
+        {
+            if (dataResp->info == STATUS_ERROR)
+            {
+                qCritical() << "Programmer failed to read data";
+                return -1;
+            }
+            return handleWrongResp();
+        }
+
+        if (dataResp->code == RESP_DATA)
+        {
+            if (dataResp->info > sizeof(rx_buf) - sizeof(RespHeader))
+            {
+                qCritical() << "Programmer returns wrong data length";
+                return -1;
+            }
+
+            ret -= sizeof(RespHeader);
+            if (dataResp->info != ret)
+            {
+                qCritical() << "Programmer returns only part of data: " << ret
+                    << "Bytes";
+                return -1;
+            }
+
+            memcpy(buf + offset, rx_buf, ret);
+            offset += ret;
+            len -= ret;
+        }
+    }
+
+    return 0;
+}
 

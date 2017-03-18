@@ -151,6 +151,7 @@ uint32_t NAND_Reset(void);
 uint32_t NAND_GetStatus(void);
 uint32_t NAND_ReadStatus(void);
 uint32_t NAND_AddressIncrement(NAND_ADDRESS* Address);
+uint32_t NAND_RawAddressToNandAddress(uint32_t RawAddress, NAND_ADDRESS* Address);
 
 #ifdef __cplusplus
 }

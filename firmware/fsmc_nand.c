@@ -579,6 +579,25 @@ uint32_t NAND_AddressIncrement(NAND_ADDRESS* Address)
 /**
   * @}
   */
+uint32_t NAND_RawAddressToNandAddress(uint32_t RawAddress, NAND_ADDRESS* Address)
+{
+  uint32_t blocks_in_zones, block_size;
+  uint32_t status = NAND_VALID_ADDRESS;
+
+  block_size = NAND_BLOCK_SIZE * NAND_PAGE_SIZE;
+  Address->Zone = RawAddress / (NAND_ZONE_SIZE * block_size);
+  blocks_in_zones = Address->Zone * NAND_ZONE_SIZE;
+  Address->Block = RawAddress / block_size - blocks_in_zones;
+  Address->Page = RawAddress / NAND_PAGE_SIZE - (blocks_in_zones + Address->Block) *
+    NAND_BLOCK_SIZE;
+
+  if(Address->Zone == NAND_MAX_ZONE)
+  {
+    status = NAND_INVALID_ADDRESS;
+  }
+  
+  return (status);
+}
 
 /**
   * @}

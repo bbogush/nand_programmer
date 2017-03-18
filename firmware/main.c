@@ -9,11 +9,12 @@
 /* STD */
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
 
 #define NAND_PAGE_NUM      2
 #define NAND_BUFFER_SIZE   (NAND_PAGE_NUM * NAND_PAGE_SIZE)
 
-#define USB_BUF_SIZE 64
+#define USB_BUF_SIZE 60
 
 enum
 {
@@ -23,10 +24,17 @@ enum
     CMD_NAND_WRITE   = 0x03,
 };
 
-typedef struct
+typedef struct __attribute__((__packed__))
 {
     uint8_t code;
 } cmd_t;
+
+typedef struct __attribute__((__packed__))
+{
+    cmd_t cmd;
+    uint32_t addr;
+    uint32_t len;
+} read_cmd_t;
 
 enum
 {
@@ -34,7 +42,7 @@ enum
     RESP_STATUS = 0x01,
 };
 
-typedef struct
+typedef struct __attribute__((__packed__))
 {
     uint8_t code;
     uint8_t info;
@@ -52,6 +60,18 @@ typedef struct __attribute__((__packed__))
     resp_t header;
     NAND_IDTypeDef nand_id;
 } resp_id_t;
+
+typedef struct
+{
+    NAND_ADDRESS addr;
+    int is_valid;
+} nand_addr_t;
+
+typedef struct
+{
+    uint8_t buf[NAND_PAGE_SIZE];
+    uint32_t offset;
+} page_t;
 
 NAND_ADDRESS nand_write_read_addr = { 0x00, 0x00, 0x00 };
 uint8_t nand_write_buf[NAND_BUFFER_SIZE], nand_read_buf[NAND_BUFFER_SIZE];
@@ -154,29 +174,69 @@ static int nand_write(uint8_t *buf, size_t buf_size)
     return len;
 }
 
-static int nand_read(uint8_t *buf, size_t buf_size)
+static int nand_read(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
+    size_t tx_buf_size)
 {
-    uint32_t status;
-    int i, len, read_write_diff = 0;    
+    nand_addr_t nand_addr;
+    static page_t page;
+    uint32_t status, write_len;
+    uint32_t page_size = sizeof(page.buf);
+    uint32_t resp_header_size = offsetof(resp_t, data);
+    uint32_t tx_data_len = tx_buf_size - resp_header_size;
+    read_cmd_t *read_cmd = (read_cmd_t *)rx_buf;
+    resp_t *resp = (resp_t *)tx_buf;
 
-    /* Read back the written data */
-    status = NAND_ReadSmallPage(nand_read_buf, nand_write_read_addr,
-        NAND_PAGE_NUM);
-
-    /* Verify the written data */
-    for (i = 0; i < NAND_BUFFER_SIZE; i++)
+    if (NAND_RawAddressToNandAddress(read_cmd->addr, &nand_addr.addr)
+        != NAND_VALID_ADDRESS)
     {
-        if (nand_write_buf[i] != nand_read_buf[i])
-            read_write_diff++;
+        goto Error;
     }
 
-    len = snprintf((char *)buf, buf_size, "0x%x %u\r\n", (unsigned int)status,
-        read_write_diff);
-    if (len < 0 || len >= buf_size)
-        return -1;
+    page.offset = read_cmd->addr % page_size;
 
-    len++;
-    return len;
+    resp->code = RESP_DATA;
+
+    while (read_cmd->len)
+    {
+        status = NAND_ReadSmallPage(page.buf, nand_addr.addr, 1);
+        if (!(status & NAND_READY))
+            goto Error;
+
+        while (page.offset < page_size && read_cmd->len)
+        {
+            if (page_size - page.offset >= tx_data_len)
+                write_len = tx_data_len;
+            else
+                write_len = page_size - page.offset;
+
+            if (write_len > read_cmd->len)
+                write_len = read_cmd->len;
+ 
+            memcpy(resp->data, page.buf + page.offset, write_len);
+
+            while (!packet_sent);
+
+            resp->info = write_len;
+            CDC_Send_DATA(tx_buf, resp_header_size + write_len);
+
+            page.offset += write_len;
+            if (page.offset == page_size)
+                page.offset = 0;
+            read_cmd->len -= write_len;
+        }
+
+        if (read_cmd->len)
+        {
+            status = NAND_AddressIncrement(&nand_addr.addr);
+            if (!(status & NAND_VALID_ADDRESS))
+                goto Error;
+        }
+    }
+
+    return 0;
+
+Error:
+    return make_status(tx_buf, tx_buf_size, 0);
 }
 
 static int cmd_handler(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
@@ -194,7 +254,7 @@ static int cmd_handler(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
         ret = nand_erase(tx_buf, tx_buf_size);
         break;
     case CMD_NAND_READ:
-        ret = nand_read(tx_buf, tx_buf_size);
+        ret = nand_read(rx_buf, rx_buf_size, tx_buf, tx_buf_size);
         break;
     case CMD_NAND_WRITE:
         ret = nand_write(tx_buf, tx_buf_size);
