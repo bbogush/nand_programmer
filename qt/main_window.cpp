@@ -1,6 +1,11 @@
 #include "main_window.h"
 #include "ui_main_window.h"
 #include "programmer.h"
+#include <QDebug>
+#include <QFileDialog>
+#include <QFile>
+
+#define ROW_DATA_SIZE 16
 
 static void initBufferTable(QTableWidget *bufTable)
 {
@@ -20,14 +25,6 @@ static void initBufferTable(QTableWidget *bufTable)
     bufTable->horizontalHeader()->setStretchLastSection(true);
     bufTable->setItem(0, 2, anciiHeaderItem);
     anciiHeaderItem->setTextAlignment(Qt::AlignCenter);
-
-#if 1
-    bufTable->insertRow(1);
-    bufTable->setItem(1, 0, new QTableWidgetItem("0x00000000"));
-    bufTable->setItem(1, 1, new QTableWidgetItem("FF FF FF FF FF "
-        "FF FF FF FF FF FF FF FF FF FF FF"));
-    bufTable->setItem(1, 2, new QTableWidgetItem("................"));
-#endif
 }
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
@@ -39,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     prog = new Programmer(this);
 
+    connect(ui->actionOpen, SIGNAL(triggered()), this,
+        SLOT(slotFileOpen()));
     connect(ui->actionConnect, SIGNAL(triggered()), this,
         SLOT(slotProgConnect()));
     connect(ui->actionDetect_Device, SIGNAL(triggered()), this,
@@ -59,6 +58,55 @@ MainWindow::~MainWindow()
 void MainWindow::log(QString logMsg)
 {
     ui->logTextEdit->insertPlainText(logMsg);
+}
+
+void MainWindow::slotFileOpen()
+{
+    qint64 ret;
+    QString addressString, hexString;
+    quint8 readBuf[ROW_DATA_SIZE] = {};
+    quint32 rowNum = 1, address = 0;
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), ".",
+        tr("Binary Files (*)"));
+
+    if (fileName.isNull())
+        return;
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        qCritical() << "Failed to open file:" << fileName << ", error:" <<
+            file.errorString();
+        return;
+    }
+
+    while ((ret = file.read((char *)readBuf, ROW_DATA_SIZE)) > 0)
+    {
+        ui->bufferTableWidget->insertRow(rowNum);
+
+        hexString.clear();
+        for (int i = 0; i < ret; i++)
+            hexString.append(QString().sprintf("%02X ", readBuf[i]));
+
+        addressString.sprintf("0x%08X", address);
+        address += ret;
+
+        ui->bufferTableWidget->setItem(rowNum, 0,
+            new QTableWidgetItem(addressString));
+        ui->bufferTableWidget->setItem(rowNum, 1,
+            new QTableWidgetItem(hexString));
+        ui->bufferTableWidget->setItem(rowNum, 2,
+            new QTableWidgetItem("................"));
+        rowNum++;
+    }
+
+    if (ret < 0)
+    {
+        qCritical() << "Failed to read file:" << fileName << ", error:" <<
+            file.errorString();
+    }
+
+    file.close();
 }
 
 void MainWindow::slotProgConnect()

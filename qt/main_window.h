@@ -23,6 +23,7 @@ private:
     Ui::MainWindow *ui;
 
 public slots:
+    void slotFileOpen();
     void slotProgConnect();
     void slotProgReadDeviceId();
     void slotProgErase();
