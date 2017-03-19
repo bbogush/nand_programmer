@@ -217,7 +217,6 @@ int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
                 << serialPort.errorString();
             return -1;
         }
-        (void)dataResp; (void)offset; (void)buf;
 
         if (ret < (int)sizeof(RespHeader))
         {
