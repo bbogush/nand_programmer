@@ -4,6 +4,8 @@
 #define CDC_DEV_NAME "/dev/ttyACM0"
 #define CDC_BUF_SIZE 60
 
+#define READ_WRITE_TIMEOUT_MS 10
+
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
 }
@@ -74,7 +76,7 @@ int Programmer::readRespHead(RespHeader *respHead)
 {
     qint64 ret;
 
-    serialPort.waitForReadyRead(1000);
+    serialPort.waitForReadyRead(READ_WRITE_TIMEOUT_MS);
     ret = serialPort.read((char *)respHead, sizeof(RespHeader));
     if (ret < 0)
     {
@@ -207,7 +209,7 @@ int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
 
     while (len)
     {
-        serialPort.waitForReadyRead(10);
+        serialPort.waitForReadyRead(READ_WRITE_TIMEOUT_MS);
         ret = serialPort.read((char *)rx_buf, sizeof(rx_buf));
         if (ret < 0)
         {
@@ -259,4 +261,165 @@ int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
 
     return 0;
 }
+
+int Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len)
+{
+    uint32_t send_data_len, tx_buf_data_len, offset;
+    uint8_t cdc_buf[CDC_BUF_SIZE];
+    WriteStartCmd *writeStartCmd;
+    WriteDataCmd *writeDataCmd;
+    WriteEndCmd *writeEndCmd;
+    RespHeader *status;
+    int ret;
+
+    writeStartCmd = (WriteStartCmd *)cdc_buf;
+    writeStartCmd->cmd.code = CMD_NAND_WRITE_S;
+    writeStartCmd->addr = addr;
+    ret = serialPort.write((char *)cdc_buf, sizeof(WriteStartCmd));
+    if (ret < 0)
+    {
+        qCritical() << "Failed to send start write command, error: "
+            << serialPort.errorString();
+        return -1;
+    }
+
+    if(!serialPort.waitForBytesWritten(READ_WRITE_TIMEOUT_MS))
+    {
+        qCritical() << "Timeout to send start write command.";
+        return -1;
+    }
+
+    if (!serialPort.waitForReadyRead(READ_WRITE_TIMEOUT_MS))
+    {
+        qCritical() << "Timeout waiting acknowledge from the programmer of write"
+            " start command.";
+        return -1;
+    }
+
+    ret = serialPort.read((char *)cdc_buf, sizeof(cdc_buf));
+    if (ret < 0)
+    {
+        qCritical() << "Failed to receive acknowledge for write start command,"
+            " error: " << serialPort.errorString();
+        return -1;
+    }
+
+    status = (RespHeader *)cdc_buf;
+    if (status->code != RESP_STATUS)
+    {
+        qCritical() << "Programmer returned wrong response to write start "
+            "command.";
+        return -1;
+    }
+
+    if (status->info == STATUS_ERROR)
+    {
+        qCritical() << "Programmer failed to handle write start command.";
+        return -1;
+    }
+
+    offset = 0;
+    tx_buf_data_len = sizeof(cdc_buf) - sizeof(WriteDataCmd);
+    while (len)
+    {
+        send_data_len = len < tx_buf_data_len ? len : tx_buf_data_len;
+
+        writeDataCmd = (WriteDataCmd *)cdc_buf;
+        writeDataCmd->cmd.code = CMD_NAND_WRITE_D;
+        writeDataCmd->len = send_data_len;
+        memcpy(writeDataCmd->data, buf + offset, send_data_len);
+        offset += send_data_len;
+        len -= send_data_len;
+
+        ret = serialPort.write((char *)cdc_buf, sizeof(WriteStartCmd) +
+            send_data_len);
+        if (ret < 0)
+        {
+            qCritical() << "Failed to send write command, error: "
+                << serialPort.errorString();
+            return -1;
+        }
+
+        if(!serialPort.waitForBytesWritten(READ_WRITE_TIMEOUT_MS))
+        {
+            qCritical() << "Timeout to send write command.";
+            return -1;
+        }
+
+        // Check if error status returned
+        if (serialPort.waitForReadyRead(READ_WRITE_TIMEOUT_MS))
+        {
+            ret = serialPort.read((char *)cdc_buf, sizeof(cdc_buf));
+            if (ret < 0)
+            {
+                qCritical() << "Failed to receive status of write command,"
+                    " error: " << serialPort.errorString();
+                return -1;
+            }
+
+            status = (RespHeader *)cdc_buf;
+            if (status->code != RESP_STATUS)
+            {
+                qCritical() << "Programmer returned wrong response to write "
+                    "command.";
+                return -1;
+            }
+
+            if (status->info == STATUS_ERROR)
+            {
+                qCritical() << "Programmer failed to write data.";
+                return -1;
+            }
+        }
+    }
+
+    writeEndCmd = (WriteEndCmd *)cdc_buf;
+    writeEndCmd->cmd.code = CMD_NAND_WRITE_E;
+
+    ret = serialPort.write((char *)cdc_buf, sizeof(WriteEndCmd));
+    if (ret < 0)
+    {
+        qCritical() << "Failed to send end write command, error: "
+            << serialPort.errorString();
+        return -1;
+    }
+
+    if(!serialPort.waitForBytesWritten(READ_WRITE_TIMEOUT_MS))
+    {
+        qCritical() << "Timeout to send end write command.";
+        return -1;
+    }
+
+    if (!serialPort.waitForReadyRead(READ_WRITE_TIMEOUT_MS))
+    {
+        qCritical() << "Timeout waiting acknowledge from the programmer of write"
+            " end command.";
+        return -1;
+    }
+
+    ret = serialPort.read((char *)cdc_buf, sizeof(cdc_buf));
+    if (ret < 0)
+    {
+        qCritical() << "Failed to receive acknowledge for write end command,"
+            " error: " << serialPort.errorString();
+        return -1;
+    }
+
+    status = (RespHeader *)cdc_buf;
+    if (status->code != RESP_STATUS)
+    {
+        qCritical() << "Programmer returned wrong response to write end "
+            "command.";
+        return -1;
+    }
+
+    if (status->info == STATUS_ERROR)
+    {
+        qCritical() << "Programmer failed to handle write end command.";
+        return -1;
+    }
+
+    return 0;
+}
+
 

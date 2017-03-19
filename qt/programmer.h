@@ -29,6 +29,11 @@ typedef struct __attribute__((__packed__))
     uint32_t len;
 } ReadCmd;
 
+typedef struct __attribute__((__packed__))
+{
+    Cmd cmd;
+    uint32_t addr;
+} WriteStartCmd;
 
 typedef struct __attribute__((__packed__))
 {
@@ -36,6 +41,11 @@ typedef struct __attribute__((__packed__))
     uint8_t len;
     uint8_t data[];
 } WriteDataCmd;
+
+typedef struct __attribute__((__packed__))
+{
+    Cmd cmd;
+} WriteEndCmd;
 
 enum
 {
@@ -92,6 +102,7 @@ public:
     int readChipId(ChipId *id);
     int eraseChip();
     int readChip(uint8_t *buf, uint32_t addr, uint32_t len);
+    int writeChip(uint8_t *buf, uint32_t addr, uint32_t len);
 };
 
 #endif // PROGRAMMER_H

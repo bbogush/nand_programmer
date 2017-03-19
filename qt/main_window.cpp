@@ -47,6 +47,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotProgErase()));
     connect(ui->actionRead, SIGNAL(triggered()), this,
         SLOT(slotProgRead()));
+    connect(ui->actionWrite, SIGNAL(triggered()), this,
+        SLOT(slotProgWrite()));
 }
 
 MainWindow::~MainWindow()
@@ -111,4 +113,18 @@ void MainWindow::slotProgRead()
         log(tr("Failed to read chip\n"));
     else
         log(tr("Data has been successfully read\n"));
+}
+
+void MainWindow::slotProgWrite()
+{
+    uint32_t i;
+    uint8_t buf[2048];
+
+    for (i = 0; i < sizeof(buf); i++)
+        buf[i] = i;
+
+    if (prog->writeChip(buf, 0x00000000, sizeof(buf)))
+        log(tr("Failed to write chip\n"));
+    else
+        log(tr("Data has been successfully written\n"));
 }
