@@ -253,7 +253,7 @@ int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
                 return -1;
             }
 
-            memcpy(buf + offset, rx_buf, ret);
+            memcpy(buf + offset, dataResp->data, ret);
             offset += ret;
             len -= ret;
         }
