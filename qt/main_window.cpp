@@ -32,6 +32,15 @@ static void initBufferTable(QTableWidget *bufTable)
     anciiHeaderItem->setTextAlignment(Qt::AlignCenter);
 }
 
+static void addChipDB(Programmer *prog, QComboBox *chipSelectComboBox)
+{
+    ChipInfo *db;
+    uint32_t size = prog->getChipDB(&db);
+
+    for (uint32_t i = 0; i < size; i++)
+        chipSelectComboBox->addItem(db[i].name);
+}
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
@@ -40,6 +49,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     initBufferTable(ui->bufferTableWidget);
 
     prog = new Programmer(this);
+
+    addChipDB(prog, ui->chipSelectComboBox);
+    connect(ui->chipSelectComboBox, SIGNAL(currentIndexChanged(int)),
+        this, SLOT(slotSelectChip(int)));
 
     connect(ui->actionOpen, SIGNAL(triggered()), this,
         SLOT(slotFileOpen()));
@@ -180,4 +193,10 @@ void MainWindow::slotProgWrite()
         log(tr("Failed to write chip\n"));
     else
         log(tr("Data has been successfully written\n"));
+}
+
+void MainWindow::slotSelectChip(int selectedChipNum)
+{
+    if (prog->selectChip(selectedChipNum))
+        log(tr("Failed to select chip"));
 }

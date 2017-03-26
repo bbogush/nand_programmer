@@ -12,6 +12,8 @@
 
 using namespace std;
 
+#define MAX_CHIP_NAME_LEN 15
+
 enum
 {
     CMD_NAND_READ_ID = 0x00,
@@ -20,6 +22,7 @@ enum
     CMD_NAND_WRITE_S = 0x03,
     CMD_NAND_WRITE_D = 0x04,
     CMD_NAND_WRITE_E = 0x05,
+    CMD_NAND_SELECT  = 0x06,
 };
 
 typedef struct __attribute__((__packed__))
@@ -51,6 +54,12 @@ typedef struct __attribute__((__packed__))
 {
     Cmd cmd;
 } WriteEndCmd;
+
+typedef struct __attribute__((__packed__))
+{
+    Cmd cmd;
+    uint32_t chipNum;
+} SelectCmd;
 
 enum
 {
@@ -85,6 +94,12 @@ typedef struct __attribute__((__packed__))
     ChipId nandId;
 } RespId;
 
+typedef struct
+{
+    uint32_t num;
+    char name[MAX_CHIP_NAME_LEN];
+} ChipInfo;
+
 class Programmer : public QObject
 {
     Q_OBJECT
@@ -92,6 +107,7 @@ class Programmer : public QObject
     QSerialPort serialPort;
 
     bool isConn;
+    int selectedChipNum;
 
     int sendCmd(Cmd *cmd, size_t size);
     int readRespHead(RespHeader *respHead);
@@ -108,6 +124,8 @@ public:
     int eraseChip();
     int readChip(uint8_t *buf, uint32_t addr, uint32_t len);
     int writeChip(uint8_t *buf, uint32_t addr, uint32_t len);
+    uint32_t getChipDB(ChipInfo **db);
+    int selectChip(uint32_t chipNum);
 };
 
 #endif // PROGRAMMER_H

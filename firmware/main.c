@@ -21,6 +21,8 @@
 
 #define USB_BUF_SIZE 60
 
+#define MAX_CHIP_NAME_LEN 15
+
 enum
 {
     CMD_NAND_READ_ID = 0x00,
@@ -29,6 +31,7 @@ enum
     CMD_NAND_WRITE_S = 0x03,
     CMD_NAND_WRITE_D = 0x04,
     CMD_NAND_WRITE_E = 0x05,
+    CMD_NAND_SELECT  = 0x06,
 };
 
 typedef struct __attribute__((__packed__))
@@ -60,6 +63,12 @@ typedef struct __attribute__((__packed__))
     uint32_t addr;
     uint32_t len;
 } read_cmd_t;
+
+typedef struct __attribute__((__packed__))
+{
+    cmd_t cmd;
+    uint32_t chip_num;
+} select_cmd_t;
 
 enum
 {
@@ -98,6 +107,25 @@ typedef struct
     uint32_t offset;
 } page_t;
 
+typedef struct
+{
+    uint32_t num;
+    char name[MAX_CHIP_NAME_LEN];
+} chip_info_t;
+
+enum
+{
+    CHIP_NUM_NONE = 0,
+    CHIP_NUM_K9F2G08U0C = 1,
+    CHIP_NUM_LAST = 2,
+};
+
+chip_info_t chip_db[] =
+{
+    { CHIP_NUM_NONE, "No Chip" },
+    { CHIP_NUM_K9F2G08U0C, "K9F2G08U0C" },
+};
+
 NAND_ADDRESS nand_write_read_addr = { 0x00, 0x00, 0x00 };
 uint8_t nand_write_buf[NAND_BUFFER_SIZE], nand_read_buf[NAND_BUFFER_SIZE];
 
@@ -106,6 +134,7 @@ extern __IO uint32_t Receive_length;
 uint32_t packet_sent = 1;
 uint32_t packet_receive = 1;
 uint8_t usb_send_buf[USB_BUF_SIZE];
+static uint32_t selected_chip;
 
 static void jtag_init()
 {
@@ -347,6 +376,20 @@ Error:
     return make_status(tx_buf, tx_buf_size, 0);
 }
 
+static int nand_select(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
+    size_t tx_buf_size)
+{
+    select_cmd_t *select_cmd = (select_cmd_t *)rx_buf;
+    int ret = 0;
+
+    if (select_cmd->chip_num >= CHIP_NUM_LAST)
+        ret = -1;
+    else
+        selected_chip = select_cmd->chip_num;
+
+    return make_status(tx_buf, tx_buf_size, !ret);
+}
+
 static int cmd_handler(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
     size_t tx_buf_size)
 {
@@ -368,6 +411,9 @@ static int cmd_handler(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
     case CMD_NAND_WRITE_D:
     case CMD_NAND_WRITE_E:
         ret = nand_write(rx_buf, rx_buf_size, tx_buf, tx_buf_size);
+        break;
+    case CMD_NAND_SELECT:
+        ret = nand_select(rx_buf, rx_buf_size, tx_buf, tx_buf_size);
         break;
     default:
         break;

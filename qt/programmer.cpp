@@ -11,8 +11,22 @@
 
 #define READ_WRITE_TIMEOUT_MS 10
 
+enum
+{
+    CHIP_NUM_NONE       = 0,
+    CHIP_NUM_K9F2G08U0C = 1,
+    CHIP_NUM_LAST       = 2,
+};
+
+ChipInfo chipDB[] =
+{
+    { CHIP_NUM_NONE,       "No Chip" },
+    { CHIP_NUM_K9F2G08U0C, "K9F2G08U0C" },
+};
+
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
+    selectedChipNum = 0;
 }
 
 Programmer::~Programmer()
@@ -110,7 +124,7 @@ int Programmer::handleStatus(RespHeader *respHead)
         qCritical() << "Programmer command failed";
         return -1;
     default:
-        qCritical() << "Programmer returned unknown status code";
+        qCritical() << "Programmer returned unknown status code" << respHead->info;
         return -1;
     }
 
@@ -421,6 +435,44 @@ int Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len)
     {
         qCritical() << "Programmer failed to handle write end command.";
         return -1;
+    }
+
+    return 0;
+}
+
+uint32_t Programmer::getChipDB(ChipInfo **db)
+{
+    *db = chipDB;
+
+    return CHIP_NUM_LAST;
+}
+
+int Programmer::selectChip(uint32_t chipNum)
+{
+    RespHeader resp;
+    Cmd cmd = { .code = CMD_NAND_SELECT };
+    SelectCmd selectCmd = { .cmd = cmd, .chipNum = chipNum };
+
+    if (chipNum >= CHIP_NUM_LAST)
+    {
+        qDebug() << "Wrong selected chip number:" << chipNum;
+        return -1;
+    }
+
+    selectedChipNum = chipNum;
+
+    if (sendCmd(&selectCmd.cmd, sizeof(SelectCmd)))
+        return -1;
+
+    if (readRespHead(&resp))
+        return -1;
+
+    switch (resp.code)
+    {
+    case RESP_STATUS:
+        return handleStatus(&resp);
+    default:
+        return handleWrongResp();
     }
 
     return 0;
