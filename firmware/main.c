@@ -92,14 +92,14 @@ enum
 typedef struct __attribute__((__packed__))
 {
     resp_t header;
-    NAND_IDTypeDef nand_id;
+    nand_id_t nand_id;
 } resp_id_t;
 
 typedef struct
 {
-    NAND_ADDRESS addr;
+    nand_addr_t addr;
     int is_valid;
-} nand_addr_t;
+} prog_addr_t;
 
 typedef struct
 {
@@ -126,7 +126,7 @@ chip_info_t chip_db[] =
     { CHIP_NUM_K9F2G08U0C, "K9F2G08U0C" },
 };
 
-NAND_ADDRESS nand_write_read_addr = { 0x00, 0x00, 0x00 };
+nand_addr_t nand_write_read_addr = { 0x00, 0x00, 0x00 };
 uint8_t nand_write_buf[NAND_BUFFER_SIZE], nand_read_buf[NAND_BUFFER_SIZE];
 
 extern __IO uint8_t Receive_Buffer[USB_BUF_SIZE];
@@ -150,11 +150,11 @@ static void usb_init()
     USB_Init();
 }
 
-static void nand_init()
+static void fsmc_init()
 {
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_FSMC, ENABLE);
 
-    NAND_Init();
+    nand_init();
 }
 
 static int make_status(uint8_t *buf, size_t buf_size, int is_ok)
@@ -170,7 +170,7 @@ static int make_status(uint8_t *buf, size_t buf_size, int is_ok)
     return len;
 }
 
-static int nand_read_id(uint8_t *buf, size_t buf_size)
+static int prog_nand_read_id(uint8_t *buf, size_t buf_size)
 {
     resp_id_t resp;
     size_t resp_len = sizeof(resp);
@@ -180,7 +180,7 @@ static int nand_read_id(uint8_t *buf, size_t buf_size)
 
     resp.header.code = RESP_DATA;
     resp.header.info = resp_len - sizeof(resp.header);
-    NAND_ReadID(&resp.nand_id);
+    nand_read_id(&resp.nand_id);
 
     memcpy(buf, &resp, resp_len);
 
@@ -190,27 +190,27 @@ Error:
     return make_status(usb_send_buf, buf_size, 0);
 }
 
-static int nand_erase(uint8_t *buf, size_t buf_size)
+static int prog_nand_erase(uint8_t *buf, size_t buf_size)
 {
     uint32_t status;
 
     /* Erase the NAND first Block */
-    status = NAND_EraseBlock(nand_write_read_addr);
+    status = nand_erase_block(nand_write_read_addr);
 
     return make_status(buf, buf_size, status == NAND_READY);
 }
 
-static int nand_write_start(uint8_t *rx_buf, nand_addr_t *nand_addr,
+static int nand_write_start(uint8_t *rx_buf, prog_addr_t *prog_addr,
     page_t *page)
 {
     write_start_cmd_t *write_start_cmd = (write_start_cmd_t *)rx_buf;
 
-    if (NAND_RawAddressToNandAddress(write_start_cmd->addr, &nand_addr->addr)
+    if (nand_raw_addr_to_nand_addr(write_start_cmd->addr, &prog_addr->addr)
         != NAND_VALID_ADDRESS)
     {
         return -1;
     }
-    nand_addr->is_valid = 1;
+    prog_addr->is_valid = 1;
 
     page->offset = write_start_cmd->addr % sizeof(page->buf);
     memset(page->buf, 0, sizeof(page->buf));
@@ -219,7 +219,7 @@ static int nand_write_start(uint8_t *rx_buf, nand_addr_t *nand_addr,
 }
 
 static int nand_write_data(uint8_t *rx_buf, size_t rx_buf_size,
-    nand_addr_t *nand_addr, page_t *page)
+    prog_addr_t *prog_addr, page_t *page)
 {
     uint32_t status, write_len, bytes_left;
     uint32_t page_size = sizeof(page->buf);    
@@ -228,7 +228,7 @@ static int nand_write_data(uint8_t *rx_buf, size_t rx_buf_size,
     if (write_data_cmd->len + offsetof(write_data_cmd_t, data) > rx_buf_size)
         return -1;
 
-    if (!nand_addr->is_valid)
+    if (!prog_addr->is_valid)
         return -1;
 
     if (page->offset + write_data_cmd->len > page_size)
@@ -241,13 +241,13 @@ static int nand_write_data(uint8_t *rx_buf, size_t rx_buf_size,
 
     if (page->offset == page_size)
     {
-        status = NAND_WriteSmallPage(page->buf, nand_addr->addr, 1);
+        status = nand_write_small_page(page->buf, prog_addr->addr, 1);
         if (!(status & NAND_READY))
             return -1;
 
-        status = NAND_AddressIncrement(&nand_addr->addr);
+        status = nand_addr_inc(&prog_addr->addr);
         if (!(status & NAND_VALID_ADDRESS))
-            nand_addr->is_valid = 0;
+            prog_addr->is_valid = 0;
 
         page->offset = 0;
         memset(page->buf, 0, page_size);
@@ -263,29 +263,29 @@ static int nand_write_data(uint8_t *rx_buf, size_t rx_buf_size,
     return 0;
 }
 
-static int nand_write_end(nand_addr_t *nand_addr, page_t *page)
+static int nand_write_end(prog_addr_t *prog_addr, page_t *page)
 {
     uint32_t status;
 
-    if (!nand_addr->is_valid)
+    if (!prog_addr->is_valid)
         return 0;
 
-    nand_addr->is_valid = 0;
+    prog_addr->is_valid = 0;
 
     if (!page->offset)
         return 0;
 
-    status = NAND_WriteSmallPage(page->buf, nand_addr->addr, 1);
+    status = nand_write_small_page(page->buf, prog_addr->addr, 1);
     if (!(status & NAND_READY))
        return -1;
 
     return 0;
 }
 
-static int nand_write(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
+static int prog_nand_write(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
     size_t tx_buf_size)
 {
-    static nand_addr_t nand_addr;
+    static prog_addr_t prog_addr;
     static page_t page;
     cmd_t *cmd = (cmd_t *)rx_buf;
     int ret = 0;
@@ -293,15 +293,15 @@ static int nand_write(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
     switch (cmd->code)
     {
     case CMD_NAND_WRITE_S:
-        ret = nand_write_start(rx_buf, &nand_addr, &page);
+        ret = nand_write_start(rx_buf, &prog_addr, &page);
         break;
     case CMD_NAND_WRITE_D:
-        ret = nand_write_data(rx_buf, rx_buf_size, &nand_addr, &page);
+        ret = nand_write_data(rx_buf, rx_buf_size, &prog_addr, &page);
         if (!ret)
             return 0;
         break;
     case CMD_NAND_WRITE_E:
-        ret = nand_write_end(&nand_addr, &page);
+        ret = nand_write_end(&prog_addr, &page);
         break;
     default:
         ret = -1;
@@ -311,10 +311,10 @@ static int nand_write(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
     return make_status(tx_buf, tx_buf_size, !ret);
 }
 
-static int nand_read(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
+static int prog_nand_read(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
     size_t tx_buf_size)
 {
-    nand_addr_t nand_addr;
+    prog_addr_t prog_addr;
     static page_t page;
     uint32_t status, write_len;
     uint32_t page_size = sizeof(page.buf);
@@ -323,7 +323,7 @@ static int nand_read(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
     read_cmd_t *read_cmd = (read_cmd_t *)rx_buf;
     resp_t *resp = (resp_t *)tx_buf;
 
-    if (NAND_RawAddressToNandAddress(read_cmd->addr, &nand_addr.addr)
+    if (nand_raw_addr_to_nand_addr(read_cmd->addr, &prog_addr.addr)
         != NAND_VALID_ADDRESS)
     {
         goto Error;
@@ -335,7 +335,7 @@ static int nand_read(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
 
     while (read_cmd->len)
     {
-        status = NAND_ReadSmallPage(page.buf, nand_addr.addr, 1);
+        status = nand_read_small_page(page.buf, prog_addr.addr, 1);
         if (!(status & NAND_READY))
             goto Error;
 
@@ -364,7 +364,7 @@ static int nand_read(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
 
         if (read_cmd->len)
         {
-            status = NAND_AddressIncrement(&nand_addr.addr);
+            status = nand_addr_inc(&prog_addr.addr);
             if (!(status & NAND_VALID_ADDRESS))
                 goto Error;
         }
@@ -376,8 +376,8 @@ Error:
     return make_status(tx_buf, tx_buf_size, 0);
 }
 
-static int nand_select(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
-    size_t tx_buf_size)
+static int prog_nand_select(uint8_t *rx_buf, size_t rx_buf_size,
+    uint8_t *tx_buf, size_t tx_buf_size)
 {
     select_cmd_t *select_cmd = (select_cmd_t *)rx_buf;
     int ret = 0;
@@ -399,21 +399,21 @@ static int cmd_handler(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
     switch (cmd->code)
     {
     case CMD_NAND_READ_ID:
-        ret = nand_read_id(tx_buf, tx_buf_size);
+        ret = prog_nand_read_id(tx_buf, tx_buf_size);
         break;
     case CMD_NAND_ERASE:
-        ret = nand_erase(tx_buf, tx_buf_size);
+        ret = prog_nand_erase(tx_buf, tx_buf_size);
         break;
     case CMD_NAND_READ:
-        ret = nand_read(rx_buf, rx_buf_size, tx_buf, tx_buf_size);
+        ret = prog_nand_read(rx_buf, rx_buf_size, tx_buf, tx_buf_size);
         break;
     case CMD_NAND_WRITE_S:
     case CMD_NAND_WRITE_D:
     case CMD_NAND_WRITE_E:
-        ret = nand_write(rx_buf, rx_buf_size, tx_buf, tx_buf_size);
+        ret = prog_nand_write(rx_buf, rx_buf_size, tx_buf, tx_buf_size);
         break;
     case CMD_NAND_SELECT:
-        ret = nand_select(rx_buf, rx_buf_size, tx_buf, tx_buf_size);
+        ret = prog_nand_select(rx_buf, rx_buf_size, tx_buf, tx_buf_size);
         break;
     default:
         break;
@@ -451,7 +451,7 @@ int main()
 
     usb_init();
 
-    nand_init();
+    fsmc_init();
 
     while (1)
         usb_handler();

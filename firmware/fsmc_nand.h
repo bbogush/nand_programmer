@@ -1,87 +1,34 @@
-/**
-  ******************************************************************************
-  * @file    stm3210e_eval_fsmc_nand.h
-  * @author  MCD Application Team
-  * @version V4.5.0
-  * @date    07-March-2011
-  * @brief   This file contains all the functions prototypes for the 
-  *          stm3210e_eval_fsmc_nand firmware driver.
-  ******************************************************************************
-  * @attention
-  *
-  * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
-  * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
-  * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
-  * DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
-  * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
-  * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
-  *
-  * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
-  ******************************************************************************  
-  */
-   
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM3210E_EVAL_FSMC_NAND_H
-#define __STM3210E_EVAL_FSMC_NAND_H
+/*  Copyright (C) 2017 Bogdan Bogush <bogdan.s.bogush@gmail.com>
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License version 3.
+ */
 
-#ifdef __cplusplus
- extern "C" {
-#endif
+#ifndef _FSMC_NAND_H_
+#define _FSMC_NAND_H_
 
-/* Includes ------------------------------------------------------------------*/
 #include "stm32f10x.h"
 
-/** @addtogroup Utilities
-  * @{
-  */
-  
-/** @addtogroup STM32_EVAL
-  * @{
-  */ 
-
-/** @addtogroup STM3210E_EVAL
-  * @{
-  */
-  
-/** @addtogroup STM3210E_EVAL_FSMC_NAND
-  * @{
-  */  
-
-/** @defgroup STM3210E_EVAL_FSMC_NAND_Exported_Types
-  * @{
-  */
 typedef struct
 {
-  uint8_t Maker_ID;
-  uint8_t Device_ID;
-  uint8_t Third_ID;
-  uint8_t Fourth_ID;
-}NAND_IDTypeDef;
+    uint8_t maker_id;
+    uint8_t device_id;
+    uint8_t third_id;
+    uint8_t fourth_id;
+} nand_id_t;
 
 typedef struct 
 {
-  uint16_t Zone;
-  uint16_t Block;
-  uint16_t Page;
-} NAND_ADDRESS;  
-/**
-  * @}
-  */
-  
-/** @defgroup STM3210E_EVAL_FSMC_NAND_Exported_Constants
-  * @{
-  */
-/** 
-  * @brief  NAND Area definition  for STM3210E-EVAL Board RevD  
-  */  
+    uint16_t zone;
+    uint16_t block;
+    uint16_t page;
+} nand_addr_t;
+
 #define CMD_AREA                   (uint32_t)(1<<16)  /* A16 = CLE  high */
 #define ADDR_AREA                  (uint32_t)(1<<17)  /* A17 = ALE high */
 
 #define DATA_AREA                  ((uint32_t)0x00000000) 
 
-/** 
-  * @brief  FSMC NAND memory command  
-  */  
+/* FSMC NAND memory command */  
 #define NAND_CMD_AREA_A            ((uint8_t)0x00)
 #define NAND_CMD_AREA_B            ((uint8_t)0x01)
 #define NAND_CMD_AREA_C            ((uint8_t)0x50)
@@ -100,9 +47,7 @@ typedef struct
 #define NAND_CMD_LOCK_STATUS       ((uint8_t)0x7A)
 #define NAND_CMD_RESET             ((uint8_t)0xFF)
 
-/** 
-  * @brief  NAND memory status  
-  */  
+/* NAND memory status */  
 #define NAND_VALID_ADDRESS         ((uint32_t)0x00000100)
 #define NAND_INVALID_ADDRESS       ((uint32_t)0x00000200)
 #define NAND_TIMEOUT_ERROR         ((uint32_t)0x00000400)
@@ -110,72 +55,34 @@ typedef struct
 #define NAND_ERROR                 ((uint32_t)0x00000001)
 #define NAND_READY                 ((uint32_t)0x00000040)
 
-/** 
-  * @brief  FSMC NAND memory parameters  
-  */  
+/* FSMC NAND memory parameters */  
 #define NAND_PAGE_SIZE             ((uint16_t)0x0800) /* 2048 bytes per page w/o Spare Area */
 #define NAND_BLOCK_SIZE            ((uint16_t)0x0040) /* 64 pages per block */
 #define NAND_ZONE_SIZE             ((uint16_t)0x0800) /* 2048 Block per zone (plane) */
 #define NAND_SPARE_AREA_SIZE       ((uint16_t)0x0040) /* last 64 bytes as spare area */
 #define NAND_MAX_ZONE              ((uint16_t)0x0001) /* 1 zones of 2048 block */
 
-/** 
-  * @brief  FSMC NAND memory address computation  
-  */  
+/* FSMC NAND memory address computation */  
 #define ADDR_1st_CYCLE(ADDR)       (uint8_t)((ADDR)& 0xFF)               /* 1st addressing cycle */
 #define ADDR_2nd_CYCLE(ADDR)       (uint8_t)(((ADDR)& 0xFF00) >> 8)      /* 2nd addressing cycle */
 #define ADDR_3rd_CYCLE(ADDR)       (uint8_t)(((ADDR)& 0xFF0000) >> 16)   /* 3rd addressing cycle */
 #define ADDR_4th_CYCLE(ADDR)       (uint8_t)(((ADDR)& 0xFF000000) >> 24) /* 4th addressing cycle */   
-/**
-  * @}
-  */ 
-  
-/** @defgroup STM3210E_EVAL_FSMC_NAND_Exported_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
 
-/** @defgroup STM3210E_EVAL_FSMC_NAND_Exported_Functions
-  * @{
-  */ 
-void NAND_Init(void);
-void NAND_ReadID(NAND_IDTypeDef* NAND_ID);
-uint32_t NAND_WriteSmallPage(uint8_t *pBuffer, NAND_ADDRESS Address, uint32_t NumPageToWrite);
-uint32_t NAND_ReadSmallPage (uint8_t *pBuffer, NAND_ADDRESS Address, uint32_t NumPageToRead);
-uint32_t NAND_WriteSpareArea(uint8_t *pBuffer, NAND_ADDRESS Address, uint32_t NumSpareAreaTowrite);
-uint32_t NAND_ReadSpareArea(uint8_t *pBuffer, NAND_ADDRESS Address, uint32_t NumSpareAreaToRead);
-uint32_t NAND_EraseBlock(NAND_ADDRESS Address);
-uint32_t NAND_Reset(void);
-uint32_t NAND_GetStatus(void);
-uint32_t NAND_ReadStatus(void);
-uint32_t NAND_AddressIncrement(NAND_ADDRESS* Address);
-uint32_t NAND_RawAddressToNandAddress(uint32_t RawAddress, NAND_ADDRESS* Address);
+void nand_init(void);
+void nand_read_id(nand_id_t *nand_id);
+uint32_t nand_write_small_page(uint8_t *buf, nand_addr_t addr,
+    uint32_t num_pages_to_write);
+uint32_t nand_read_small_page(uint8_t *buf, nand_addr_t addr,
+    uint32_t num_page_to_read);
+uint32_t nand_write_spare_area(uint8_t *buf, nand_addr_t addr,
+    uint32_t num_spare_area_to_write);
+uint32_t nand_read_spare_area(uint8_t *buf, nand_addr_t addr,
+    uint32_t num_spare_area_to_read);
+uint32_t nand_erase_block(nand_addr_t addr);
+uint32_t nand_reset(void);
+uint32_t nand_get_status(void);
+uint32_t nand_read_status(void);
+uint32_t nand_addr_inc(nand_addr_t *addr);
+uint32_t nand_raw_addr_to_nand_addr(uint32_t raw_addr, nand_addr_t *addr);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __STM3210E_EVAL_FSMC_NAND_H */
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */ 
-
-/******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/
+#endif /* _FSMC_NAND_H_ */
