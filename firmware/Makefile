@@ -5,6 +5,7 @@
 PROG_NAME=prog
 
 SRC_DIR=./
+USB_DIR=usb_cdc/
 OBJ_DIR=obj/
 EXTRA_DIR=../extra/
 PROG=$(OBJ_DIR)$(PROG_NAME)
@@ -32,6 +33,7 @@ INCLUDES+=-I$(SPL_PATH)
 INCLUDES+=-I$(SPL_PERIPH_PATH)inc
 INCLUDES+=-I$(SPL_USB_PATH)inc
 INCLUDES+=-I$(SRC_DIR)
+INCLUDES+=-I$(USB_DIR)
 
 CFLAGS=-g -Wall -Werror
 CFLAGS+=$(INCLUDES) -MMD -MP
@@ -41,7 +43,7 @@ CFLAGS+=$(SPL_FLAGS)
 
 LDFLAGS=-mcpu=cortex-m3 -mthumb -Wl,--gc-sections -Wl,-Map=$(PROG).map
 
-vpath %.c $(SRC_DIR) $(SPL_DEVICE_SUPPORT_PATH) $(SRC_BSP_DIR)
+vpath %.c $(SRC_DIR) $(SPL_DEVICE_SUPPORT_PATH) $(SRC_BSP_DIR) $(USB_DIR)
 vpath %.s $(SRC_DIR)
 
 STARTUP=startup_stm32f10x_hd.s
