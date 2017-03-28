@@ -26,3 +26,5 @@ In general the sorce code, PCB and schematic are under GPLv3 license but with li
 firmware/libs/spl/CMSIS/License.doc
 
 firmware/libs/spl/STM32_USB-FS-Device_Driver/ - http://www.st.com/software_license_agreement_liberty_v2
+
+firmware/usb_cdc - http://www.st.com/software_license_agreement_liberty_v2
