@@ -18,6 +18,7 @@
 #include <stddef.h>
 
 #define USB_BUF_SIZE 60
+#define MAX_PAGE_SIZE 0x0800
 
 enum
 {
@@ -100,13 +101,14 @@ typedef struct __attribute__((__packed__))
 
 typedef struct
 {
-    nand_addr_t addr;
+    uint32_t addr;
     int is_valid;
 } prog_addr_t;
 
 typedef struct
 {
-    uint8_t buf[NAND_PAGE_SIZE];
+    uint8_t buf[MAX_PAGE_SIZE];
+    uint32_t page;
     uint32_t offset;
 } page_t;
 
@@ -179,9 +181,7 @@ Error:
 
 static int cmd_nand_erase(usb_t *usb)
 {
-    nand_addr_t nand_addr;
-    uint32_t ret = -1;
-    uint32_t addr;
+    uint32_t addr, page, pages_in_block, ret = -1;
     erase_cmd_t *erase_cmd = (erase_cmd_t *)usb->rx_buf;
     chip_info_t *chip_info = chip_info_get(selected_chip);
 
@@ -191,12 +191,15 @@ static int cmd_nand_erase(usb_t *usb)
     addr = erase_cmd->addr & ~(chip_info->block_size - 1);
     erase_cmd->len += erase_cmd->addr - addr;
 
+    page = addr / chip_info->page_size;
+    pages_in_block = chip_info->block_size / chip_info->page_size;
+
     while (erase_cmd->len)
     {
-        if (nand_raw_addr_to_nand_addr(addr, &nand_addr) != NAND_VALID_ADDRESS)
+        if (addr >= chip_info->size)
             goto Exit;
 
-        if (nand_erase_block(nand_addr) != NAND_READY)
+        if (nand_erase_block(page) != NAND_READY)
             goto Exit;
 
         if (erase_cmd->len >= chip_info->block_size)
@@ -204,6 +207,7 @@ static int cmd_nand_erase(usb_t *usb)
         else
             erase_cmd->len = 0;
         addr += chip_info->block_size;
+        page += pages_in_block;
     }
 
     ret = 0;
@@ -215,15 +219,16 @@ static int cmd_nand_write_start(usb_t *usb, prog_addr_t *prog_addr,
     page_t *page)
 {
     write_start_cmd_t *write_start_cmd = (write_start_cmd_t *)usb->rx_buf;
+    chip_info_t *chip_info = chip_info_get(selected_chip);
 
-    if (nand_raw_addr_to_nand_addr(write_start_cmd->addr, &prog_addr->addr)
-        != NAND_VALID_ADDRESS)
-    {
+    if (write_start_cmd->addr >= chip_info->size)
         return -1;
-    }
+
+    prog_addr->addr = write_start_cmd->addr;
     prog_addr->is_valid = 1;
 
-    page->offset = write_start_cmd->addr % sizeof(page->buf);
+    page->page = write_start_cmd->addr / chip_info->page_size;
+    page->offset = write_start_cmd->addr % chip_info->page_size;
     memset(page->buf, 0, sizeof(page->buf));
 
     return 0;
@@ -232,8 +237,8 @@ static int cmd_nand_write_start(usb_t *usb, prog_addr_t *prog_addr,
 static int cmd_nand_write_data(usb_t *usb, prog_addr_t *prog_addr, page_t *page)
 {
     uint32_t status, write_len, bytes_left;
-    uint32_t page_size = sizeof(page->buf);    
     write_data_cmd_t *write_data_cmd = (write_data_cmd_t *)usb->rx_buf;
+    chip_info_t *chip_info = chip_info_get(selected_chip);
 
     if (write_data_cmd->len + offsetof(write_data_cmd_t, data) >
         usb->rx_buf_size)
@@ -244,26 +249,29 @@ static int cmd_nand_write_data(usb_t *usb, prog_addr_t *prog_addr, page_t *page)
     if (!prog_addr->is_valid)
         return -1;
 
-    if (page->offset + write_data_cmd->len > page_size)
-        write_len = page_size - page->offset;
+    if (page->offset + write_data_cmd->len > chip_info->page_size)
+        write_len = chip_info->page_size - page->offset;
     else
         write_len = write_data_cmd->len;
 
     memcpy(page->buf + page->offset, write_data_cmd->data, write_len);
     page->offset += write_len;
 
-    if (page->offset == page_size)
+    if (page->offset == chip_info->page_size)
     {
-        status = nand_write_small_page(page->buf, prog_addr->addr, 1);
-        if (!(status & NAND_READY))
+        if ((status = nand_write_page(page->buf, page->page,
+            chip_info->page_size)) != NAND_READY)
+        {
             return -1;
+        }
 
-        status = nand_addr_inc(&prog_addr->addr);
-        if (!(status & NAND_VALID_ADDRESS))
+        prog_addr->addr += chip_info->page_size;
+        if (prog_addr->addr >= chip_info->size)
             prog_addr->is_valid = 0;
 
+        page->page++;
         page->offset = 0;
-        memset(page->buf, 0, page_size);
+        memset(page->buf, 0, chip_info->page_size);
     }
 
     bytes_left = write_data_cmd->len - write_len;
@@ -279,6 +287,7 @@ static int cmd_nand_write_data(usb_t *usb, prog_addr_t *prog_addr, page_t *page)
 static int cmd_nand_write_end(prog_addr_t *prog_addr, page_t *page)
 {
     uint32_t status;
+    chip_info_t *chip_info = chip_info_get(selected_chip);
 
     if (!prog_addr->is_valid)
         return 0;
@@ -288,8 +297,8 @@ static int cmd_nand_write_end(prog_addr_t *prog_addr, page_t *page)
     if (!page->offset)
         return 0;
 
-    status = nand_write_small_page(page->buf, prog_addr->addr, 1);
-    if (!(status & NAND_READY))
+    status = nand_write_page(page->buf, page->page, chip_info->page_size);
+    if (status != NAND_READY)
        return -1;
 
     return 0;
@@ -331,37 +340,35 @@ static int cmd_nand_read(usb_t *usb)
     prog_addr_t prog_addr;
     static page_t page;
     uint32_t status, write_len;
-    uint32_t page_size = sizeof(page.buf);
     uint32_t resp_header_size = offsetof(resp_t, data);
     uint32_t tx_data_len = usb->tx_buf_size - resp_header_size;
     read_cmd_t *read_cmd = (read_cmd_t *)usb->rx_buf;
     resp_t *resp = (resp_t *)usb->tx_buf;
+    chip_info_t *chip_info = chip_info_get(selected_chip);
 
     if (selected_chip == CHIP_ID_NONE)
         goto Error;
 
-    if (nand_raw_addr_to_nand_addr(read_cmd->addr, &prog_addr.addr)
-        != NAND_VALID_ADDRESS)
-    {
+    if (read_cmd->addr >= chip_info->size)
         goto Error;
-    }
 
-    page.offset = read_cmd->addr % page_size;
+    page.page = read_cmd->addr / chip_info->page_size;
+    page.offset = read_cmd->addr % chip_info->page_size;
 
     resp->code = RESP_DATA;
 
     while (read_cmd->len)
     {
-        status = nand_read_small_page(page.buf, prog_addr.addr, 1);
-        if (!(status & NAND_READY))
+        status = nand_read_page(page.buf, page.page, chip_info->page_size);
+        if (status != NAND_READY)
             goto Error;
 
-        while (page.offset < page_size && read_cmd->len)
+        while (page.offset < chip_info->page_size && read_cmd->len)
         {
-            if (page_size - page.offset >= tx_data_len)
+            if (chip_info->page_size - page.offset >= tx_data_len)
                 write_len = tx_data_len;
             else
-                write_len = page_size - page.offset;
+                write_len = chip_info->page_size - page.offset;
 
             if (write_len > read_cmd->len)
                 write_len = read_cmd->len;
@@ -374,16 +381,17 @@ static int cmd_nand_read(usb_t *usb)
             CDC_Send_DATA(usb->tx_buf, resp_header_size + write_len);
 
             page.offset += write_len;
-            if (page.offset == page_size)
+            if (page.offset == chip_info->page_size)
                 page.offset = 0;
             read_cmd->len -= write_len;
         }
 
         if (read_cmd->len)
         {
-            status = nand_addr_inc(&prog_addr.addr);
-            if (!(status & NAND_VALID_ADDRESS))
+            prog_addr.addr += chip_info->page_size;
+            if (prog_addr.addr >= chip_info->size)
                 goto Error;
+            page.page++;
         }
     }
 

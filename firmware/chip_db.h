@@ -12,7 +12,9 @@ typedef struct
 {
     uint32_t id;
     char name[CHIP_NAME_LEN];
+    uint32_t page_size;
     uint32_t block_size;
+    uint32_t size;
     uint32_t setup_time;
     uint32_t wait_setup_time;
     uint32_t hold_setup_time;

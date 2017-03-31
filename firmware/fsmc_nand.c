@@ -147,122 +147,44 @@ void nand_read_id(nand_id_t *nand_id)
     nand_id->fourth_id  = ADDR_4th_CYCLE (data);
 }
 
-/**
-  * @brief  This routine is for writing one or several 512 Bytes Page size.
-  * @param  buf: pointer on the Buffer containing data to be written 
-  * @param  addr: First page address
-  * @param  num_pages_to_write: Number of page to write  
-  * @retval New status of the NAND operation. This parameter can be:
-  *          - NAND_TIMEOUT_ERROR: when the previous operation generate 
-  *            a Timeout error
-  *          - NAND_READY: when memory is ready for the next operation 
-  *            And the new status of the increment address operation. It can be:
-  *          - NAND_VALID_ADDRESS: When the new address is valid address
-  *          - NAND_INVALID_ADDRESS: When the new address is invalid address  
-  */
-uint32_t nand_write_small_page(uint8_t *buf, nand_addr_t addr,
-    uint32_t num_pages_to_write)
+uint32_t nand_write_page(uint8_t *buf, uint32_t page, uint32_t page_size)
 {
-    uint32_t index = 0x00, num_pages_written = 0x00,
-        address_status = NAND_VALID_ADDRESS;
-    uint32_t status = NAND_READY, size = 0x00;
+    uint32_t i;
 
-    while ((num_pages_to_write != 0x00) &&
-        (address_status == NAND_VALID_ADDRESS) && (status == NAND_READY))
-    {
-        /* Page write command and address */
-        *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_WRITE0;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_WRITE0;
 
-        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
-        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
-        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
-            ADDR_1st_CYCLE(ROW_ADDRESS);
-        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
-            ADDR_2nd_CYCLE(ROW_ADDRESS);
-        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
-            ADDR_3rd_CYCLE(ROW_ADDRESS);
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
 
-        /* Calculate the size */
-        size = NAND_PAGE_SIZE + (NAND_PAGE_SIZE * num_pages_written);
+    for(i = 0; i < page_size; i++)
+        *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = buf[i];
 
-        /* Write data */
-        for(; index < size; index++)
-            *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = buf[index];
-    
-        *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_WRITE_TRUE1;
-
-        /* Check status for successful operation */
-        status = nand_get_status();
-    
-        if (status == NAND_READY)
-        {
-            num_pages_written++;
-
-            num_pages_to_write--;
-
-            /* Calculate Next small page Address */
-            address_status = nand_addr_inc(&addr);
-        }
-    }
-  
-    return status | address_status;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_WRITE_TRUE1;
+ 
+    return nand_get_status();
 }
 
-/**
-  * @brief  This routine is for sequential read from one or several 512 Bytes
-  *         Page size.
-  * @param  buf: pointer on the Buffer to fill
-  * @param  addr: First page address
-  * @param  num_pages_to_read: Number of page to read  
-  * @retval New status of the NAND operation. This parameter can be:
-  *          - NAND_TIMEOUT_ERROR: when the previous operation generate 
-  *            a Timeout error
-  *          - NAND_READY: when memory is ready for the next operation 
-  *            And the new status of the increment address operation. It can be:
-  *          - NAND_VALID_ADDRESS: When the new address is valid address
-  *          - NAND_INVALID_ADDRESS: When the new address is invalid address
-  */
-uint32_t nand_read_small_page(uint8_t *buf, nand_addr_t addr,
-    uint32_t num_pages_to_read)
+uint32_t nand_read_page(uint8_t *buf, uint32_t page, uint32_t page_size)
 {
-    uint32_t index = 0x00, num_pages_read = 0x00,
-        address_status = NAND_VALID_ADDRESS;
-    uint32_t status = NAND_READY, size = 0x00;
+    uint32_t i;
 
-    while ((num_pages_to_read != 0x0) && (address_status == NAND_VALID_ADDRESS))
-    {
-        /* Page Read command and page address */
-        *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ0;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ0;
    
-        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00; 
-        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
-        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
-            ADDR_1st_CYCLE(ROW_ADDRESS);
-        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
-            ADDR_2nd_CYCLE(ROW_ADDRESS);
-        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
-            ADDR_3rd_CYCLE(ROW_ADDRESS);
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00; 
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
 
-        *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ1;
-    
-        /* Calculate the size */
-        size = NAND_PAGE_SIZE + (NAND_PAGE_SIZE * num_pages_read);
-    
-        /* Get Data into Buffer */    
-        for (; index < size; index++)
-            buf[index]= *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA);
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ1;
 
-        num_pages_read++;
+    for (i = 0; i < page_size; i++)
+        buf[i]= *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA);
 
-        num_pages_to_read--;
-
-        /* Calculate page address */
-        address_status = nand_addr_inc(&addr);
-    }
-
-    status = nand_get_status();
-  
-    return status | address_status;
+    return nand_get_status();
 }
 
 /**
@@ -384,21 +306,13 @@ uint32_t nand_read_spare_area(uint8_t *buf, nand_addr_t addr,
     return status | address_status;
 }
 
-/**
-  * @brief  This routine erase complete block from NAND FLASH
-  * @param  addr: Any address into block to be erased
-  * @retval New status of the NAND operation. This parameter can be:
-  *          - NAND_TIMEOUT_ERROR: when the previous operation generate 
-  *            a Timeout error
-  *          - NAND_READY: when memory is ready for the next operation 
-  */
-uint32_t nand_erase_block(nand_addr_t addr)
+uint32_t nand_erase_block(uint32_t page)
 {
     *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_ERASE0;
 
-    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(ROW_ADDRESS);
-    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(ROW_ADDRESS);
-    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(ROW_ADDRESS);
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
 
     *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_ERASE1; 
 
