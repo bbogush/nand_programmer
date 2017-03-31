@@ -6,7 +6,7 @@
 #ifndef _CHIP_DB_H_
 #define _CHIP_DB_H_
 
-#define CHIP_NAME_LEN 15
+#define CHIP_NAME_LEN 16
 
 typedef struct
 {
