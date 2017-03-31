@@ -7,6 +7,14 @@
 
 chip_info_t chip_db[] =
 {
-    { CHIP_NUM_NONE, "No Chip" },
-    { CHIP_NUM_K9F2G08U0C, "K9F2G08U0C" },
+    { CHIP_ID_NONE, "No Chip" },
+    { CHIP_ID_K9F2G08U0C, "K9F2G08U0C", 1, 3, 1, 1, 1, 1 },
 };
+
+chip_info_t *chip_info_get(uint32_t chip_id)
+{
+    if (chip_id >= CHIP_ID_LAST)
+        return 0;
+
+    return &chip_db[chip_id];
+}

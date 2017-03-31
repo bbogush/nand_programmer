@@ -10,17 +10,23 @@
 
 typedef struct
 {
-    uint32_t num;
+    uint32_t id;
     char name[CHIP_NAME_LEN];
+    uint32_t setup_time;
+    uint32_t wait_setup_time;
+    uint32_t hold_setup_time;
+    uint32_t hi_z_setup_time;
+    uint32_t clr_setup_time;
+    uint32_t ar_setup_time;
 } chip_info_t;
 
 enum
 {
-    CHIP_NUM_NONE = 0,
-    CHIP_NUM_K9F2G08U0C = 1,
-    CHIP_NUM_LAST = 2,
+    CHIP_ID_NONE = 0,
+    CHIP_ID_K9F2G08U0C = 1,
+    CHIP_ID_LAST = 2,
 };
 
-extern chip_info_t chip_db[];
+chip_info_t *chip_info_get(uint32_t chip_id);
 
 #endif /* _CHIP_DB_H_ */

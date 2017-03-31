@@ -4,6 +4,7 @@
  */
 
 #include "fsmc_nand.h"
+#include "chip_db.h"
 
 #define FSMC_Bank_NAND     FSMC_Bank2_NAND
 #define Bank_NAND_ADDR     Bank2_NAND_ADDR 
@@ -11,11 +12,9 @@
 #define ROW_ADDRESS (addr.page + (addr.block + (addr.zone * NAND_ZONE_SIZE)) * \
     NAND_BLOCK_SIZE)
 
-void nand_init(void)
+static void nand_gpio_init(void)
 {
     GPIO_InitTypeDef gpio_init;
-    FSMC_NANDInitTypeDef fsmc_init;
-    FSMC_NAND_PCCARDTimingInitTypeDef timing_init;
   
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD | RCC_APB2Periph_GPIOE | 
         RCC_APB2Periph_GPIOF | RCC_APB2Periph_GPIOG, ENABLE);
@@ -42,6 +41,18 @@ void nand_init(void)
     gpio_init.GPIO_Pin = GPIO_Pin_6;
     GPIO_Init(GPIOG, &gpio_init);
 #endif
+
+}
+
+void nand_init(uint32_t chip_id)
+{
+    FSMC_NANDInitTypeDef fsmc_init;
+    FSMC_NAND_PCCARDTimingInitTypeDef timing_init;
+    chip_info_t *chip_info = chip_info_get(chip_id);
+
+    nand_gpio_init();
+
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_FSMC, ENABLE);    
 
     /*-- FSMC Configuration --------------------------------------------------*/
 
@@ -92,23 +103,22 @@ void nand_init(void)
      * tREA = 20ns
      */
 
-    timing_init.FSMC_SetupTime = 0x1;
-    timing_init.FSMC_WaitSetupTime = 0x3;
-    timing_init.FSMC_HoldSetupTime = 0x1;
-    timing_init.FSMC_HiZSetupTime = 0x1;
+    timing_init.FSMC_SetupTime = chip_info->setup_time;
+    timing_init.FSMC_WaitSetupTime = chip_info->wait_setup_time;
+    timing_init.FSMC_HoldSetupTime = chip_info->hold_setup_time;
+    timing_init.FSMC_HiZSetupTime = chip_info->hi_z_setup_time;
 
     fsmc_init.FSMC_Bank = FSMC_Bank2_NAND;
     fsmc_init.FSMC_Waitfeature = FSMC_Waitfeature_Enable;
     fsmc_init.FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_8b;
     fsmc_init.FSMC_ECC = FSMC_ECC_Enable;
     fsmc_init.FSMC_ECCPageSize = FSMC_ECCPageSize_2048Bytes;
-    fsmc_init.FSMC_TCLRSetupTime = 0x01;
-    fsmc_init.FSMC_TARSetupTime = 0x01;
+    fsmc_init.FSMC_TCLRSetupTime = chip_info->clr_setup_time;
+    fsmc_init.FSMC_TARSetupTime = chip_info->ar_setup_time;
     fsmc_init.FSMC_CommonSpaceTimingStruct = &timing_init;
     fsmc_init.FSMC_AttributeSpaceTimingStruct = &timing_init;
     FSMC_NANDInit(&fsmc_init);
 
-    /* FSMC NAND Bank Cmd Test */
     FSMC_NANDCmd(FSMC_Bank2_NAND, ENABLE);
 }
 

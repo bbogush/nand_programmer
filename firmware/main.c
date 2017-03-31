@@ -130,13 +130,6 @@ static void usb_init()
     USB_Init();
 }
 
-static void fsmc_init()
-{
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_FSMC, ENABLE);
-
-    nand_init();
-}
-
 static int make_status(uint8_t *buf, size_t buf_size, int is_ok)
 {
     resp_t status = { RESP_STATUS,  is_ok ? STATUS_OK : STATUS_ERROR };
@@ -362,7 +355,7 @@ static int prog_nand_select(uint8_t *rx_buf, size_t rx_buf_size,
     select_cmd_t *select_cmd = (select_cmd_t *)rx_buf;
     int ret = 0;
 
-    if (select_cmd->chip_num >= CHIP_NUM_LAST)
+    if (select_cmd->chip_num >= CHIP_ID_LAST)
         ret = -1;
     else
         selected_chip = select_cmd->chip_num;
@@ -431,7 +424,7 @@ int main()
 
     usb_init();
 
-    fsmc_init();
+    nand_init(CHIP_ID_K9F2G08U0C);
 
     while (1)
         usb_handler();
