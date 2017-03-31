@@ -165,7 +165,7 @@ void MainWindow::slotProgReadDeviceId()
 
 void MainWindow::slotProgErase()
 {
-    if (prog->eraseChip())
+    if (prog->eraseChip(0x00, 2 * 128 * 1024))
         log(tr("Failed to erase chip\n"));
     else
         log(tr("Chip has been erased successfully\n"));

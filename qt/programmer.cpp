@@ -192,12 +192,13 @@ int Programmer::readChipId(ChipId *id)
     return 0;
 }
 
-int Programmer::eraseChip()
+int Programmer::eraseChip(uint32_t addr, uint32_t len)
 {
     RespHeader resp;
     Cmd cmd = { .code = CMD_NAND_ERASE };
+    EraseCmd eraseCmd = { .cmd = cmd, .addr = addr, .len = len };
 
-    if (sendCmd(&cmd, sizeof(cmd)))
+    if (sendCmd(&eraseCmd.cmd, sizeof(eraseCmd)))
         return -1;
 
     if (readRespHead(&resp))

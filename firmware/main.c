@@ -17,9 +17,6 @@
 #include <string.h>
 #include <stddef.h>
 
-#define NAND_PAGE_NUM      2
-#define NAND_BUFFER_SIZE   (NAND_PAGE_NUM * NAND_PAGE_SIZE)
-
 #define USB_BUF_SIZE 60
 
 enum
@@ -37,6 +34,13 @@ typedef struct __attribute__((__packed__))
 {
     uint8_t code;
 } cmd_t;
+
+typedef struct __attribute__((__packed__))
+{
+    cmd_t cmd;
+    uint32_t addr;
+    uint32_t len;
+} erase_cmd_t;
 
 typedef struct __attribute__((__packed__))
 {
@@ -114,9 +118,6 @@ typedef struct
     uint8_t tx_buf_size;
 } usb_t;
 
-nand_addr_t nand_write_read_addr = { 0x00, 0x00, 0x00 };
-uint8_t nand_write_buf[NAND_BUFFER_SIZE], nand_read_buf[NAND_BUFFER_SIZE];
-
 extern __IO uint8_t Receive_Buffer[USB_BUF_SIZE];
 uint8_t usb_send_buf[USB_BUF_SIZE];
 static uint32_t selected_chip = CHIP_ID_NONE;
@@ -178,14 +179,32 @@ Error:
 
 static int cmd_nand_erase(usb_t *usb)
 {
+    nand_addr_t nand_addr;
     uint32_t ret = -1;
+    uint32_t addr;
+    erase_cmd_t *erase_cmd = (erase_cmd_t *)usb->rx_buf;
+    chip_info_t *chip_info = chip_info_get(selected_chip);
 
     if (selected_chip == CHIP_ID_NONE)
         goto Exit;
 
-    /* Erase the NAND first Block */
-    if (nand_erase_block(nand_write_read_addr) != NAND_READY)
-        goto Exit;
+    addr = erase_cmd->addr & ~(chip_info->block_size - 1);
+    erase_cmd->len += erase_cmd->addr - addr;
+
+    while (erase_cmd->len)
+    {
+        if (nand_raw_addr_to_nand_addr(addr, &nand_addr) != NAND_VALID_ADDRESS)
+            goto Exit;
+
+        if (nand_erase_block(nand_addr) != NAND_READY)
+            goto Exit;
+
+        if (erase_cmd->len >= chip_info->block_size)
+            erase_cmd->len -= chip_info->block_size;
+        else
+            erase_cmd->len = 0;
+        addr += chip_info->block_size;
+    }
 
     ret = 0;
 Exit:

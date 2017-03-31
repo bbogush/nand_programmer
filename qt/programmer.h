@@ -35,6 +35,13 @@ typedef struct __attribute__((__packed__))
     Cmd cmd;
     uint32_t addr;
     uint32_t len;
+} EraseCmd;
+
+typedef struct __attribute__((__packed__))
+{
+    Cmd cmd;
+    uint32_t addr;
+    uint32_t len;
 } ReadCmd;
 
 typedef struct __attribute__((__packed__))
@@ -121,7 +128,7 @@ public:
     void disconnect();
     bool isConnected();
     int readChipId(ChipId *id);
-    int eraseChip();
+    int eraseChip(uint32_t addr, uint32_t len);
     int readChip(uint8_t *buf, uint32_t addr, uint32_t len);
     int writeChip(uint8_t *buf, uint32_t addr, uint32_t len);
     uint32_t getChipDB(ChipInfo **db);
