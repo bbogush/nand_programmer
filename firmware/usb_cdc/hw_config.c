@@ -40,9 +40,9 @@
 /* Private variables ---------------------------------------------------------*/
 ErrorStatus HSEStartUpStatus;
 EXTI_InitTypeDef EXTI_InitStructure;
-extern __IO uint32_t packet_sent;
+__IO uint32_t packet_sent = 1;
 extern __IO uint8_t Send_Buffer[VIRTUAL_COM_PORT_DATA_SIZE] ;
-extern __IO  uint32_t packet_receive;
+__IO uint32_t packet_receive = 1;
 extern __IO uint8_t Receive_length;
 
 uint8_t Receive_Buffer[64];
@@ -296,6 +296,18 @@ void USB_Cable_Config (FunctionalState NewState)
 }
 
 /*******************************************************************************
+* Function Name  : USB_IsDeviceConfigured.
+* Description    : Returns 1 if USB device is configured.
+* Input          : None.
+* Output         : None.
+* Return         : 1/0.
+*******************************************************************************/
+int USB_IsDeviceConfigured(void)
+{
+  return bDeviceState == CONFIGURED;
+}
+
+/*******************************************************************************
 * Function Name  : Get_SerialNum.
 * Description    : Create the serial number string descriptor.
 * Input          : None.
@@ -386,6 +398,42 @@ uint32_t CDC_Receive_DATA(void)
   packet_receive = 0;
   SetEPRxValid(ENDP3); 
   return 1 ;
+}
+
+/*******************************************************************************
+* Function Name  : CDC_ReceiveDataLen.
+* Description    : Returns number of bytes in receive buffer.
+* Input          : None.
+* Output         : None.
+* Return         : Number of bytes.
+*******************************************************************************/
+uint32_t CDC_ReceiveDataLen(void)
+{
+  return Receive_length;
+}
+
+/*******************************************************************************
+* Function Name  : CDC_ReceiveDataAck.
+* Description    : Acknowledges received data has been handled.
+* Input          : None.
+* Output         : None.
+* Return         : None.
+*******************************************************************************/
+void CDC_ReceiveDataAck(void)
+{
+  Receive_length = 0;
+}
+
+/*******************************************************************************
+* Function Name  : CDC_IsPacketSent.
+* Description    : Returns 1 if packet has been sent.
+* Input          : None.
+* Output         : None.
+* Return         : 1/0.
+*******************************************************************************/
+int CDC_IsPacketSent(void)
+{
+  return packet_sent;
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

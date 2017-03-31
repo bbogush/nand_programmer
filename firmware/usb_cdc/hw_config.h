@@ -54,10 +54,14 @@ void Enter_LowPowerMode(void);
 void Leave_LowPowerMode(void);
 void USB_Interrupts_Config(void);
 void USB_Cable_Config (FunctionalState NewState);
+int USB_IsDeviceConfigured(void);
 void Get_SerialNum(void);
 void LCD_Control(void);
 uint32_t CDC_Send_DATA (uint8_t *ptrBuffer, uint8_t Send_length);
 uint32_t CDC_Receive_DATA(void);
+uint32_t CDC_ReceiveDataLen(void);
+void CDC_ReceiveDataAck(void);
+int CDC_IsPacketSent(void);
 /* External variables --------------------------------------------------------*/
 
 #endif  /*__HW_CONFIG_H*/

@@ -118,9 +118,6 @@ nand_addr_t nand_write_read_addr = { 0x00, 0x00, 0x00 };
 uint8_t nand_write_buf[NAND_BUFFER_SIZE], nand_read_buf[NAND_BUFFER_SIZE];
 
 extern __IO uint8_t Receive_Buffer[USB_BUF_SIZE];
-extern __IO uint32_t Receive_length;
-uint32_t packet_sent = 1;
-uint32_t packet_receive = 1;
 uint8_t usb_send_buf[USB_BUF_SIZE];
 static uint32_t selected_chip = CHIP_ID_NONE;
 
@@ -352,7 +349,7 @@ static int cmd_nand_read(usb_t *usb)
  
             memcpy(resp->data, page.buf + page.offset, write_len);
 
-            while (!packet_sent);
+            while (!CDC_IsPacketSent());
 
             resp->info = write_len;
             CDC_Send_DATA(usb->tx_buf, resp_header_size + write_len);
@@ -428,22 +425,22 @@ static void usb_handler(usb_t *usb)
 {
     int len;
 
-    if (bDeviceState != CONFIGURED)
+    if (!USB_IsDeviceConfigured())
         return;
 
     CDC_Receive_DATA();
-    if (!Receive_length)
+    if (!CDC_ReceiveDataLen())
         return;
 
     len = usb_cmd_handler(usb);
     if (len <= 0)
         goto Exit;
 
-    if (packet_sent)
-        CDC_Send_DATA(usb_send_buf, len);
+    if (CDC_IsPacketSent())
+        CDC_Send_DATA(usb->tx_buf, len);
 
 Exit:
-    Receive_length = 0;
+    CDC_ReceiveDataAck();
 }
 
 int main()
