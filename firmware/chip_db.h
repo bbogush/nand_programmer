@@ -30,6 +30,8 @@ enum
     CHIP_ID_LAST = 2,
 };
 
-chip_info_t *chip_info_get(uint32_t chip_id);
+chip_info_t *chip_info_selected_get();
+int chip_select(uint32_t chip_id);
+int chip_is_selected();
 
 #endif /* _CHIP_DB_H_ */

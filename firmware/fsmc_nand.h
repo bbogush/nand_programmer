@@ -68,7 +68,7 @@ typedef struct
 #define ADDR_3rd_CYCLE(ADDR)       (uint8_t)(((ADDR)& 0xFF0000) >> 16)   /* 3rd addressing cycle */
 #define ADDR_4th_CYCLE(ADDR)       (uint8_t)(((ADDR)& 0xFF000000) >> 24) /* 4th addressing cycle */   
 
-void nand_init(uint32_t chip_id);
+void nand_init(void);
 void nand_read_id(nand_id_t *nand_id);
 uint32_t nand_write_page(uint8_t *buf, uint32_t page, uint32_t page_size);
 uint32_t nand_read_page(uint8_t *buf, uint32_t page, uint32_t page_size);

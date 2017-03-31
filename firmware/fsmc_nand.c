@@ -119,12 +119,13 @@ static void nand_fsmc_init(chip_info_t *chip_info)
     FSMC_NANDCmd(FSMC_Bank2_NAND, ENABLE);
 }
 
-void nand_init(uint32_t chip_id)
+void nand_init(void)
 {
-    chip_info_t *chip_info = chip_info_get(chip_id);
+    chip_info_t *chip_info;
 
-    if (!chip_info || chip_id == CHIP_ID_NONE)
+    if (!chip_is_selected())
         return;
+    chip_info = chip_info_selected_get();
 
     nand_gpio_init();
     nand_fsmc_init(chip_info);

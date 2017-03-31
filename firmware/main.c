@@ -122,7 +122,6 @@ typedef struct
 
 extern __IO uint8_t Receive_Buffer[USB_BUF_SIZE];
 uint8_t usb_send_buf[USB_BUF_SIZE];
-static uint32_t selected_chip = CHIP_ID_NONE;
 
 static void jtag_init()
 {
@@ -161,7 +160,7 @@ static int cmd_nand_read_id(usb_t *usb)
     resp_id_t resp;
     size_t resp_len = sizeof(resp);
 
-    if (selected_chip == CHIP_ID_NONE)
+    if (!chip_is_selected())
         goto Error;
 
     if (usb->tx_buf_size < resp_len)
@@ -181,12 +180,13 @@ Error:
 
 static int cmd_nand_erase(usb_t *usb)
 {
+    chip_info_t *chip_info;
     uint32_t addr, page, pages_in_block, ret = -1;
     erase_cmd_t *erase_cmd = (erase_cmd_t *)usb->rx_buf;
-    chip_info_t *chip_info = chip_info_get(selected_chip);
 
-    if (selected_chip == CHIP_ID_NONE)
+    if (!chip_is_selected())
         goto Exit;
+    chip_info = chip_info_selected_get();
 
     addr = erase_cmd->addr & ~(chip_info->block_size - 1);
     erase_cmd->len += erase_cmd->addr - addr;
@@ -219,7 +219,7 @@ static int cmd_nand_write_start(usb_t *usb, prog_addr_t *prog_addr,
     page_t *page)
 {
     write_start_cmd_t *write_start_cmd = (write_start_cmd_t *)usb->rx_buf;
-    chip_info_t *chip_info = chip_info_get(selected_chip);
+    chip_info_t *chip_info = chip_info_selected_get();
 
     if (write_start_cmd->addr >= chip_info->size)
         return -1;
@@ -238,7 +238,7 @@ static int cmd_nand_write_data(usb_t *usb, prog_addr_t *prog_addr, page_t *page)
 {
     uint32_t status, write_len, bytes_left;
     write_data_cmd_t *write_data_cmd = (write_data_cmd_t *)usb->rx_buf;
-    chip_info_t *chip_info = chip_info_get(selected_chip);
+    chip_info_t *chip_info = chip_info_selected_get();
 
     if (write_data_cmd->len + offsetof(write_data_cmd_t, data) >
         usb->rx_buf_size)
@@ -287,7 +287,7 @@ static int cmd_nand_write_data(usb_t *usb, prog_addr_t *prog_addr, page_t *page)
 static int cmd_nand_write_end(prog_addr_t *prog_addr, page_t *page)
 {
     uint32_t status;
-    chip_info_t *chip_info = chip_info_get(selected_chip);
+    chip_info_t *chip_info = chip_info_selected_get();
 
     if (!prog_addr->is_valid)
         return 0;
@@ -311,7 +311,7 @@ static int cmd_nand_write(usb_t *usb)
     cmd_t *cmd = (cmd_t *)usb->rx_buf;
     int ret = -1;
 
-    if (selected_chip == CHIP_ID_NONE)
+    if (!chip_is_selected())
         goto Exit;
 
     switch (cmd->code)
@@ -337,6 +337,7 @@ Exit:
 
 static int cmd_nand_read(usb_t *usb)
 {
+    chip_info_t *chip_info;
     prog_addr_t prog_addr;
     static page_t page;
     uint32_t status, write_len;
@@ -344,10 +345,10 @@ static int cmd_nand_read(usb_t *usb)
     uint32_t tx_data_len = usb->tx_buf_size - resp_header_size;
     read_cmd_t *read_cmd = (read_cmd_t *)usb->rx_buf;
     resp_t *resp = (resp_t *)usb->tx_buf;
-    chip_info_t *chip_info = chip_info_get(selected_chip);
 
-    if (selected_chip == CHIP_ID_NONE)
+    if (!chip_is_selected())
         goto Error;
+    chip_info = chip_info_selected_get();
 
     if (read_cmd->addr >= chip_info->size)
         goto Error;
@@ -406,11 +407,8 @@ static int cmd_nand_select(usb_t *usb)
     select_cmd_t *select_cmd = (select_cmd_t *)usb->rx_buf;
     int ret = 0;
 
-    if (select_cmd->chip_num < CHIP_ID_LAST)
-    {
-        selected_chip = select_cmd->chip_num;
-        nand_init(selected_chip);
-    }
+    if (!chip_select(select_cmd->chip_num))
+        nand_init();
     else
         ret = -1;
 
