@@ -44,16 +44,10 @@ static void nand_gpio_init(void)
 
 }
 
-void nand_init(uint32_t chip_id)
+static void nand_fsmc_init(chip_info_t *chip_info)
 {
     FSMC_NANDInitTypeDef fsmc_init;
     FSMC_NAND_PCCARDTimingInitTypeDef timing_init;
-    chip_info_t *chip_info;
-
-    if (chip_id == CHIP_ID_NONE)
-        return;
-
-    nand_gpio_init();
 
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_FSMC, ENABLE);    
 
@@ -105,7 +99,6 @@ void nand_init(uint32_t chip_id)
      * tRC = 25ns
      * tREA = 20ns
      */
-    chip_info = chip_info_get(chip_id);
 
     timing_init.FSMC_SetupTime = chip_info->setup_time;
     timing_init.FSMC_WaitSetupTime = chip_info->wait_setup_time;
@@ -124,6 +117,17 @@ void nand_init(uint32_t chip_id)
     FSMC_NANDInit(&fsmc_init);
 
     FSMC_NANDCmd(FSMC_Bank2_NAND, ENABLE);
+}
+
+void nand_init(uint32_t chip_id)
+{
+    chip_info_t *chip_info = chip_info_get(chip_id);
+
+    if (!chip_info || chip_id == CHIP_ID_NONE)
+        return;
+
+    nand_gpio_init();
+    nand_fsmc_init(chip_info);
 }
 
 void nand_read_id(nand_id_t *nand_id)
