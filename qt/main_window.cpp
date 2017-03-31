@@ -6,6 +6,7 @@
 #include "main_window.h"
 #include "ui_main_window.h"
 #include "programmer.h"
+#include "chip_db.h"
 #include <QDebug>
 #include <QFileDialog>
 #include <QFile>
@@ -32,10 +33,10 @@ static void initBufferTable(QTableWidget *bufTable)
     anciiHeaderItem->setTextAlignment(Qt::AlignCenter);
 }
 
-static void addChipDB(Programmer *prog, QComboBox *chipSelectComboBox)
+static void addChipDB(QComboBox *chipSelectComboBox)
 {
     ChipInfo *db;
-    uint32_t size = prog->getChipDB(&db);
+    uint32_t size = getChipDB(db);
 
     for (uint32_t i = 0; i < size; i++)
         chipSelectComboBox->addItem(db[i].name);
@@ -50,7 +51,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     prog = new Programmer(this);
 
-    addChipDB(prog, ui->chipSelectComboBox);
+    addChipDB(ui->chipSelectComboBox);
     connect(ui->chipSelectComboBox, SIGNAL(currentIndexChanged(int)),
         this, SLOT(slotSelectChip(int)));
 

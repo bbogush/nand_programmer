@@ -19,10 +19,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         main_window.cpp \
-    programmer.cpp
+    programmer.cpp \
+    chip_db.cpp
 
 HEADERS  += main_window.h \
-    programmer.h
+    programmer.h \
+    chip_db.h
 
 FORMS    += main_window.ui
 
