@@ -114,7 +114,7 @@ extern __IO uint32_t Receive_length;
 uint32_t packet_sent = 1;
 uint32_t packet_receive = 1;
 uint8_t usb_send_buf[USB_BUF_SIZE];
-static uint32_t selected_chip;
+static uint32_t selected_chip = CHIP_ID_NONE;
 
 static void jtag_init()
 {
@@ -148,6 +148,9 @@ static int prog_nand_read_id(uint8_t *buf, size_t buf_size)
     resp_id_t resp;
     size_t resp_len = sizeof(resp);
 
+    if (selected_chip == CHIP_ID_NONE)
+        goto Error;
+
     if (buf_size < resp_len)
         goto Error;
 
@@ -165,12 +168,18 @@ Error:
 
 static int prog_nand_erase(uint8_t *buf, size_t buf_size)
 {
-    uint32_t status;
+    uint32_t ret = -1;
+
+    if (selected_chip == CHIP_ID_NONE)
+        goto Exit;
 
     /* Erase the NAND first Block */
-    status = nand_erase_block(nand_write_read_addr);
+    if (nand_erase_block(nand_write_read_addr) != NAND_READY)
+        goto Exit;
 
-    return make_status(buf, buf_size, status == NAND_READY);
+    ret = 0;
+Exit:
+    return make_status(buf, buf_size, !ret);
 }
 
 static int nand_write_start(uint8_t *rx_buf, prog_addr_t *prog_addr,
@@ -261,7 +270,10 @@ static int prog_nand_write(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
     static prog_addr_t prog_addr;
     static page_t page;
     cmd_t *cmd = (cmd_t *)rx_buf;
-    int ret = 0;
+    int ret = -1;
+
+    if (selected_chip == CHIP_ID_NONE)
+        goto Exit;
 
     switch (cmd->code)
     {
@@ -277,10 +289,10 @@ static int prog_nand_write(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
         ret = nand_write_end(&prog_addr, &page);
         break;
     default:
-        ret = -1;
         break;
     }
 
+Exit:
     return make_status(tx_buf, tx_buf_size, !ret);
 }
 
@@ -295,6 +307,9 @@ static int prog_nand_read(uint8_t *rx_buf, size_t rx_buf_size, uint8_t *tx_buf,
     uint32_t tx_data_len = tx_buf_size - resp_header_size;
     read_cmd_t *read_cmd = (read_cmd_t *)rx_buf;
     resp_t *resp = (resp_t *)tx_buf;
+
+    if (selected_chip == CHIP_ID_NONE)
+        goto Error;
 
     if (nand_raw_addr_to_nand_addr(read_cmd->addr, &prog_addr.addr)
         != NAND_VALID_ADDRESS)
@@ -355,10 +370,13 @@ static int prog_nand_select(uint8_t *rx_buf, size_t rx_buf_size,
     select_cmd_t *select_cmd = (select_cmd_t *)rx_buf;
     int ret = 0;
 
-    if (select_cmd->chip_num >= CHIP_ID_LAST)
-        ret = -1;
-    else
+    if (select_cmd->chip_num < CHIP_ID_LAST)
+    {
         selected_chip = select_cmd->chip_num;
+        nand_init(selected_chip);
+    }
+    else
+        ret = -1;
 
     return make_status(tx_buf, tx_buf_size, !ret);
 }
@@ -423,8 +441,6 @@ int main()
     jtag_init();
 
     usb_init();
-
-    nand_init(CHIP_ID_K9F2G08U0C);
 
     while (1)
         usb_handler();

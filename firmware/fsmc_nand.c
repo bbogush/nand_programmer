@@ -48,7 +48,10 @@ void nand_init(uint32_t chip_id)
 {
     FSMC_NANDInitTypeDef fsmc_init;
     FSMC_NAND_PCCARDTimingInitTypeDef timing_init;
-    chip_info_t *chip_info = chip_info_get(chip_id);
+    chip_info_t *chip_info;
+
+    if (chip_id == CHIP_ID_NONE)
+        return;
 
     nand_gpio_init();
 
@@ -102,6 +105,7 @@ void nand_init(uint32_t chip_id)
      * tRC = 25ns
      * tREA = 20ns
      */
+    chip_info = chip_info_get(chip_id);
 
     timing_init.FSMC_SetupTime = chip_info->setup_time;
     timing_init.FSMC_WaitSetupTime = chip_info->wait_setup_time;
