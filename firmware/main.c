@@ -5,6 +5,7 @@
 
 /* NAND */
 #include "fsmc_nand.h"
+#include "chip_db.h"
 /* SPL */
 #include <stm32f10x.h>
 /* USB */
@@ -20,8 +21,6 @@
 #define NAND_BUFFER_SIZE   (NAND_PAGE_NUM * NAND_PAGE_SIZE)
 
 #define USB_BUF_SIZE 60
-
-#define MAX_CHIP_NAME_LEN 15
 
 enum
 {
@@ -106,25 +105,6 @@ typedef struct
     uint8_t buf[NAND_PAGE_SIZE];
     uint32_t offset;
 } page_t;
-
-typedef struct
-{
-    uint32_t num;
-    char name[MAX_CHIP_NAME_LEN];
-} chip_info_t;
-
-enum
-{
-    CHIP_NUM_NONE = 0,
-    CHIP_NUM_K9F2G08U0C = 1,
-    CHIP_NUM_LAST = 2,
-};
-
-chip_info_t chip_db[] =
-{
-    { CHIP_NUM_NONE, "No Chip" },
-    { CHIP_NUM_K9F2G08U0C, "K9F2G08U0C" },
-};
 
 nand_addr_t nand_write_read_addr = { 0x00, 0x00, 0x00 };
 uint8_t nand_write_buf[NAND_BUFFER_SIZE], nand_read_buf[NAND_BUFFER_SIZE];
