@@ -9,7 +9,7 @@
 #define CDC_DEV_NAME "/dev/ttyACM0"
 #define CDC_BUF_SIZE 60
 
-#define READ_WRITE_TIMEOUT_MS 10
+#define READ_WRITE_TIMEOUT_MS 30000
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
@@ -100,6 +100,30 @@ int Programmer::readRespHead(RespHeader *respHead)
     return 0;
 }
 
+int Programmer::readRespBadBlockAddress(RespBadBlock *resp)
+{
+    qint64 ret;
+    size_t len = sizeof(resp->addr);
+
+    serialPort.waitForReadyRead(READ_WRITE_TIMEOUT_MS);
+    ret = serialPort.read((char *)&resp->addr, len);
+    if (ret < 0)
+    {
+        qCritical() << "Failed to read bad block address: " <<
+            serialPort.errorString();
+        return -1;
+    }
+
+    if (ret != len)
+    {
+        qCritical() << "Failed to read bad block address: data was partially "
+            "received, length: " << ret;
+        return -1;
+    }
+
+    return 0;
+}
+
 int Programmer::handleStatus(RespHeader *respHead)
 {
     switch (respHead->info)
@@ -181,21 +205,34 @@ int Programmer::readChipId(ChipId *id)
 int Programmer::eraseChip(uint32_t addr, uint32_t len)
 {
     RespHeader resp;
+    RespBadBlock badBlock;
     Cmd cmd = { .code = CMD_NAND_ERASE };
     EraseCmd eraseCmd = { .cmd = cmd, .addr = addr, .len = len };
 
     if (sendCmd(&eraseCmd.cmd, sizeof(eraseCmd)))
         return -1;
 
-    if (readRespHead(&resp))
-        return -1;
-
-    switch (resp.code)
+    while (true)
     {
-    case RESP_STATUS:
-        return handleStatus(&resp);
-    default:
-        return handleWrongResp(resp.code);
+        if (readRespHead(&resp))
+            return -1;
+
+        if (resp.code == RESP_STATUS && resp.info == STATUS_BAD_BLOCK)
+        {
+            if (readRespBadBlockAddress(&badBlock))
+                return -1;
+            qInfo() << "Bad block at" << QString("0x%1").arg(badBlock.addr, 8,
+                16, QLatin1Char( '0' ));
+            continue;
+        }
+
+        switch (resp.code)
+        {
+        case RESP_STATUS:
+            return handleStatus(&resp);
+        default:
+            return handleWrongResp(resp.code);
+        }
     }
 
     return 0;

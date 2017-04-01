@@ -74,8 +74,9 @@ enum
 
 typedef enum
 {
-    STATUS_OK    = 0x00,
-    STATUS_ERROR = 0x01,
+    STATUS_OK        = 0x00,
+    STATUS_ERROR     = 0x01,
+    STATUS_BAD_BLOCK = 0x02,
 } StatusData;
 
 typedef struct __attribute__((__packed__))
@@ -99,6 +100,12 @@ typedef struct __attribute__((__packed__))
     ChipId nandId;
 } RespId;
 
+typedef struct __attribute__((__packed__))
+{
+    RespHeader header;
+    uint32_t addr;
+} RespBadBlock;
+
 class Programmer : public QObject
 {
     Q_OBJECT
@@ -109,6 +116,7 @@ class Programmer : public QObject
 
     int sendCmd(Cmd *cmd, size_t size);
     int readRespHead(RespHeader *respHead);
+    int readRespBadBlockAddress(RespBadBlock *badBlock);
     int handleStatus(RespHeader *respHead);
     int handleWrongResp(uint8_t code);
     int handleRespChipId(RespId *respId, ChipId *id);
