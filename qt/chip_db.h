@@ -14,11 +14,13 @@ enum
 
 typedef struct
 {
-    uint32_t num;
+    uint32_t id;
     char name[MAX_CHIP_NAME_LEN];
+    uint32_t size;
 } ChipInfo;
 
 uint32_t getChipDB(ChipInfo *&db);
+ChipInfo *getChiInfo(uint32_t id);
 
 #endif // CHIP_DB_H
 

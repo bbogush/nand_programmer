@@ -166,7 +166,10 @@ void MainWindow::slotProgReadDeviceId()
 
 void MainWindow::slotProgErase()
 {
-    if (prog->eraseChip(0x00, 2 * 128 * 1024))
+    const uint32_t addr = 0x00000000;
+    ChipInfo *chipInfo = getChiInfo(ui->chipSelectComboBox->currentIndex());
+
+    if (prog->eraseChip(addr, chipInfo->size))
         log(tr("Failed to erase chip\n"));
     else
         log(tr("Chip has been erased successfully\n"));
