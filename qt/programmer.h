@@ -110,7 +110,7 @@ class Programmer : public QObject
     int sendCmd(Cmd *cmd, size_t size);
     int readRespHead(RespHeader *respHead);
     int handleStatus(RespHeader *respHead);
-    int handleWrongResp();
+    int handleWrongResp(uint8_t code);
     int handleRespChipId(RespId *respId, ChipId *id);
 public:
     explicit Programmer(QObject *parent = 0);

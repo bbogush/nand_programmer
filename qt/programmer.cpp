@@ -117,9 +117,9 @@ int Programmer::handleStatus(RespHeader *respHead)
     return 0;
 }
 
-int Programmer::handleWrongResp()
+int Programmer::handleWrongResp(uint8_t code)
 {
-    qCritical() << "Programmer returned wrong responce: ";
+    qCritical() << "Programmer returned wrong response code: " << code;
     return -1;
 }
 
@@ -172,7 +172,7 @@ int Programmer::readChipId(ChipId *id)
     case RESP_STATUS:
         return handleStatus(&respId.header);
      default:
-        return handleWrongResp();
+        return handleWrongResp(respId.header.code);
     }
 
     return 0;
@@ -195,7 +195,7 @@ int Programmer::eraseChip(uint32_t addr, uint32_t len)
     case RESP_STATUS:
         return handleStatus(&resp);
     default:
-        return handleWrongResp();
+        return handleWrongResp(resp.code);
     }
 
     return 0;
@@ -233,14 +233,7 @@ int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
 
         dataResp = (RespHeader *)rx_buf;
         if (dataResp->code == RESP_STATUS)
-        {
-            if (dataResp->info == STATUS_ERROR)
-            {
-                qCritical() << "Programmer failed to read data";
-                return -1;
-            }
-            return handleWrongResp();
-        }
+            return handleStatus(dataResp);
 
         if (dataResp->code == RESP_DATA)
         {
@@ -444,7 +437,7 @@ int Programmer::selectChip(uint32_t chipNum)
     case RESP_STATUS:
         return handleStatus(&resp);
     default:
-        return handleWrongResp();
+        return handleWrongResp(resp.code);
     }
 
     return 0;
