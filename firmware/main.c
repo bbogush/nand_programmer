@@ -89,8 +89,9 @@ typedef struct __attribute__((__packed__))
 
 enum
 {
-    STATUS_OK    = 0x00,
-    STATUS_ERROR = 0x01,
+    STATUS_OK        = 0x00,
+    STATUS_ERROR     = 0x01,
+    STATUS_BAD_BLOCK = 0x02,
 };
 
 typedef struct __attribute__((__packed__))
@@ -98,6 +99,12 @@ typedef struct __attribute__((__packed__))
     resp_t header;
     nand_id_t nand_id;
 } resp_id_t;
+
+typedef struct __attribute__((__packed__))
+{
+    resp_t header;
+    uint32_t addr;
+} resp_bad_block_t;
 
 typedef struct
 {
@@ -155,6 +162,17 @@ static int make_status(usb_t *usb, int is_ok)
     return len;
 }
 
+static int send_bad_block_info(uint32_t addr)
+{
+    resp_t resp_header = { RESP_STATUS, STATUS_BAD_BLOCK };
+    resp_bad_block_t bad_block = { resp_header, addr };
+
+    if (!CDC_Send_DATA((uint8_t *)&bad_block, sizeof(bad_block)))
+        return -1;
+
+    return 0;
+}
+
 static int cmd_nand_read_id(usb_t *usb)
 {
     resp_id_t resp;
@@ -200,7 +218,15 @@ static int cmd_nand_erase(usb_t *usb)
             goto Exit;
 
         if (nand_erase_block(page) != NAND_READY)
-            goto Exit;
+        {
+            if (nand_read_status() == NAND_ERROR)
+            {
+                if (send_bad_block_info(addr))
+                    goto Exit;
+            }
+            else
+                goto Exit;
+        }
 
         if (erase_cmd->len >= chip_info->block_size)
             erase_cmd->len -= chip_info->block_size;
