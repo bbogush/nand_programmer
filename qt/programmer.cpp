@@ -244,7 +244,7 @@ int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
     int ret;
     uint8_t rx_buf[CDC_BUF_SIZE];
     RespHeader *dataResp;
-    RespBadBlock *badBlock;
+    RespBadBlock badBlock;
     uint32_t offset = 0;
     Cmd cmd = { .code = CMD_NAND_READ };
     ReadCmd readCmd = { .cmd = cmd, .addr = addr, .len = len };
@@ -255,7 +255,7 @@ int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
     while (len)
     {
         serialPort.waitForReadyRead(READ_WRITE_TIMEOUT_MS);
-        ret = serialPort.read((char *)rx_buf, sizeof(rx_buf));
+        ret = serialPort.read((char *)rx_buf, sizeof(RespHeader));
         if (ret < 0)
         {
             qCritical() << "Failed to read data " << serialPort.error()
@@ -275,9 +275,10 @@ int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
         {
             if (dataResp->info == STATUS_BAD_BLOCK)
             {
-                badBlock = (RespBadBlock *)dataResp;
+                if (readRespBadBlockAddress(&badBlock))
+                    return -1;
                 qInfo() << "Bad block at" << QString("0x%1").
-                    arg(badBlock->addr, 8, 16, QLatin1Char('0'));
+                    arg(badBlock.addr, 8, 16, QLatin1Char('0'));
             }
             else
                 return handleStatus(dataResp);
@@ -291,11 +292,21 @@ int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
                 return -1;
             }
 
-            ret -= sizeof(RespHeader);
+            serialPort.waitForReadyRead(READ_WRITE_TIMEOUT_MS);
+            ret = serialPort.read((char *)dataResp->data, dataResp->info);
+            if (ret < 0)
+            {
+                qCritical() << "Failed to read data " << serialPort.error()
+                    << serialPort.errorString();
+                return -1;
+            }
+
             if (dataResp->info != ret)
             {
                 qCritical() << "Programmer error: expected to receive " <<
                     dataResp->info << "but received" << ret << "Bytes";
+                for (int i = 0; i < ret; i++)
+                    qInfo() << dataResp->data[i];
                 return -1;
             }
 
