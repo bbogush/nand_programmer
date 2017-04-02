@@ -294,8 +294,8 @@ int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
             ret -= sizeof(RespHeader);
             if (dataResp->info != ret)
             {
-                qCritical() << "Programmer returns only part of data: " << ret
-                    << "Bytes";
+                qCritical() << "Programmer error: expected to receive " <<
+                    dataResp->info << "but received" << ret << "Bytes";
                 return -1;
             }
 
