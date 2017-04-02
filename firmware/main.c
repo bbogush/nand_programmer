@@ -394,7 +394,15 @@ static int cmd_nand_read(usb_t *usb)
     {
         status = nand_read_page(page.buf, page.page, chip_info->page_size);
         if (status != NAND_READY)
-            goto Error;
+        {
+            if (nand_read_status() == NAND_ERROR)
+            {
+                if (send_bad_block_info(prog_addr.addr))
+                    goto Error;
+            }
+            else
+                goto Error;
+        }
 
         while (page.offset < chip_info->page_size && read_cmd->len)
         {
