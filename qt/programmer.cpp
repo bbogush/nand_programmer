@@ -244,6 +244,7 @@ int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
     int ret;
     uint8_t rx_buf[CDC_BUF_SIZE];
     RespHeader *dataResp;
+    RespBadBlock *badBlock;
     uint32_t offset = 0;
     Cmd cmd = { .code = CMD_NAND_READ };
     ReadCmd readCmd = { .cmd = cmd, .addr = addr, .len = len };
@@ -271,7 +272,16 @@ int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
 
         dataResp = (RespHeader *)rx_buf;
         if (dataResp->code == RESP_STATUS)
-            return handleStatus(dataResp);
+        {
+            if (dataResp->info == STATUS_BAD_BLOCK)
+            {
+                badBlock = (RespBadBlock *)dataResp;
+                qInfo() << "Bad block at" << QString("0x%1").
+                    arg(badBlock->addr, 8, 16, QLatin1Char('0'));
+            }
+            else
+                return handleStatus(dataResp);
+        }
 
         if (dataResp->code == RESP_DATA)
         {
