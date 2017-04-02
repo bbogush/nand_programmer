@@ -15,25 +15,32 @@
 
 #define ROW_DATA_SIZE 16
 #define HEADER_ROW_NUM 1
+
+#define HEADER_ROW 0
+#define HEADER_ADDRESS_COL 0
 #define HEADER_HEX_COL 1
+#define HEADER_ANCII_COL 2
+
+#define HEADER_ADDRESS_WIDTH 80
+#define HEADER_HEX_WIDTH 340
 
 static void initBufferTable(QTableWidget *bufTable)
 {
     QTableWidgetItem *addressHeaderItem, *hexHeaderItem, *anciiHeaderItem;
 
     addressHeaderItem = new QTableWidgetItem(QObject::tr("ADDRESS"));
-    bufTable->setColumnWidth(0, 80);
-    bufTable->setItem(0, 0, addressHeaderItem);
+    bufTable->setColumnWidth(HEADER_ADDRESS_COL, HEADER_ADDRESS_WIDTH);
+    bufTable->setItem(HEADER_ROW, HEADER_ADDRESS_COL, addressHeaderItem);
     addressHeaderItem->setTextAlignment(Qt::AlignCenter);
 
     hexHeaderItem = new QTableWidgetItem(QObject::tr("HEX"));
-    bufTable->setColumnWidth(1, 340);
-    bufTable->setItem(0, 1, hexHeaderItem);
+    bufTable->setColumnWidth(HEADER_HEX_COL, HEADER_HEX_WIDTH);
+    bufTable->setItem(HEADER_ROW, HEADER_HEX_COL, hexHeaderItem);
     hexHeaderItem->setTextAlignment(Qt::AlignCenter);
 
     anciiHeaderItem = new QTableWidgetItem(QObject::tr("ANCII"));
     bufTable->horizontalHeader()->setStretchLastSection(true);
-    bufTable->setItem(0, 2, anciiHeaderItem);
+    bufTable->setItem(HEADER_ROW, HEADER_ANCII_COL, anciiHeaderItem);
     anciiHeaderItem->setTextAlignment(Qt::AlignCenter);
 }
 
@@ -114,11 +121,11 @@ void MainWindow::slotFileOpen()
         addressString.sprintf("0x%08X", address);
         address += ret;
 
-        ui->bufferTableWidget->setItem(rowNum, 0,
+        ui->bufferTableWidget->setItem(rowNum, HEADER_ADDRESS_COL,
             new QTableWidgetItem(addressString));
-        ui->bufferTableWidget->setItem(rowNum, 1,
+        ui->bufferTableWidget->setItem(rowNum, HEADER_HEX_COL,
             new QTableWidgetItem(hexString));
-        ui->bufferTableWidget->setItem(rowNum, 2,
+        ui->bufferTableWidget->setItem(rowNum, HEADER_ANCII_COL,
             new QTableWidgetItem("................"));
         rowNum++;
     }
