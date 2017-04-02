@@ -288,7 +288,13 @@ static int cmd_nand_write_data(usb_t *usb, prog_addr_t *prog_addr, page_t *page)
         if ((status = nand_write_page(page->buf, page->page,
             chip_info->page_size)) != NAND_READY)
         {
-            return -1;
+            if (nand_read_status() == NAND_ERROR)
+            {
+                if (send_bad_block_info(prog_addr->addr))
+                    return -1;
+            }
+            else
+                return -1;
         }
 
         prog_addr->addr += chip_info->page_size;
