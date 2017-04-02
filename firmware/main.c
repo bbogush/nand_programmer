@@ -422,8 +422,6 @@ static int cmd_nand_read(usb_t *usb)
             CDC_Send_DATA(usb->tx_buf, resp_header_size + write_len);
 
             page.offset += write_len;
-            if (page.offset == chip_info->page_size)
-                page.offset = 0;
             read_cmd->len -= write_len;
         }
 
@@ -433,6 +431,7 @@ static int cmd_nand_read(usb_t *usb)
             if (prog_addr.addr >= chip_info->size)
                 goto Error;
             page.page++;
+            page.offset = 0;
         }
     }
 
