@@ -9,7 +9,8 @@
 #define CDC_DEV_NAME "/dev/ttyACM0"
 #define CDC_BUF_SIZE 60
 
-#define READ_WRITE_TIMEOUT_MS 30000
+#define READ_WRITE_TIMEOUT_MS 10
+#define READ_RESP_TIMEOUT_MS 30000
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
@@ -81,7 +82,7 @@ int Programmer::readRespHead(RespHeader *respHead)
 {
     qint64 ret;
 
-    serialPort.waitForReadyRead(READ_WRITE_TIMEOUT_MS);
+    serialPort.waitForReadyRead(READ_RESP_TIMEOUT_MS);
     ret = serialPort.read((char *)respHead, sizeof(RespHeader));
     if (ret < 0)
     {
