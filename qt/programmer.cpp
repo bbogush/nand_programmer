@@ -305,6 +305,7 @@ int Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len)
     WriteDataCmd *writeDataCmd;
     WriteEndCmd *writeEndCmd;
     RespHeader *status;
+    RespBadBlock *badBlock;
     int ret;
 
     writeStartCmd = (WriteStartCmd *)cdc_buf;
@@ -400,11 +401,15 @@ int Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len)
                 return -1;
             }
 
-            if (status->info == STATUS_ERROR)
+            if (status->info == STATUS_BAD_BLOCK)
             {
-                qCritical() << "Programmer failed to write data.";
-                return -1;
+                badBlock = (RespBadBlock *)cdc_buf;
+                qInfo() << "Bad block at" << QString("0x%1").
+                    arg(badBlock->addr, 8, 16, QLatin1Char( '0' ));
             }
+            else
+                return handleStatus(status);
+
         }
     }
 
