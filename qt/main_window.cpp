@@ -24,6 +24,8 @@
 #define HEADER_ADDRESS_WIDTH 80
 #define HEADER_HEX_WIDTH 340
 
+#define START_ADDRESS 0x00000000
+
 static void initBufferTable(QTableWidget *bufTable)
 {
     QTableWidgetItem *addressHeaderItem, *hexHeaderItem, *anciiHeaderItem;
@@ -90,12 +92,31 @@ void MainWindow::log(QString logMsg)
     ui->logTextEdit->insertPlainText(logMsg);
 }
 
+void MainWindow::insertBufferRow(quint8 *readBuf, quint32 size, quint32 rowNum,
+    quint32 address)
+{
+    QString addressString, hexString;
+
+    ui->bufferTableWidget->insertRow(rowNum);
+
+    for (uint32_t i = 0; i < size; i++)
+        hexString.append(QString().sprintf("%02X ", readBuf[i]));
+
+    addressString.sprintf("0x%08X", address);
+
+    ui->bufferTableWidget->setItem(rowNum, HEADER_ADDRESS_COL,
+        new QTableWidgetItem(addressString));
+    ui->bufferTableWidget->setItem(rowNum, HEADER_HEX_COL,
+        new QTableWidgetItem(hexString));
+    ui->bufferTableWidget->setItem(rowNum, HEADER_ANCII_COL,
+        new QTableWidgetItem("................"));
+}
+
 void MainWindow::slotFileOpen()
 {
     qint64 ret;
-    QString addressString, hexString;
     quint8 readBuf[ROW_DATA_SIZE] = {};
-    quint32 rowNum = 1, address = 0;
+    quint32 rowNum = HEADER_ROW_NUM, address = START_ADDRESS;
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), ".",
         tr("Binary Files (*)"));
 
@@ -110,23 +131,13 @@ void MainWindow::slotFileOpen()
         return;
     }
 
+    /* Reset buffer table */
+    ui->bufferTableWidget->setRowCount(HEADER_ROW_NUM);
+
     while ((ret = file.read((char *)readBuf, ROW_DATA_SIZE)) > 0)
     {
-        ui->bufferTableWidget->insertRow(rowNum);
-
-        hexString.clear();
-        for (int i = 0; i < ret; i++)
-            hexString.append(QString().sprintf("%02X ", readBuf[i]));
-
-        addressString.sprintf("0x%08X", address);
+        insertBufferRow(readBuf, ret, rowNum, address);
         address += ret;
-
-        ui->bufferTableWidget->setItem(rowNum, HEADER_ADDRESS_COL,
-            new QTableWidgetItem(addressString));
-        ui->bufferTableWidget->setItem(rowNum, HEADER_HEX_COL,
-            new QTableWidgetItem(hexString));
-        ui->bufferTableWidget->setItem(rowNum, HEADER_ANCII_COL,
-            new QTableWidgetItem("................"));
         rowNum++;
     }
 
@@ -180,7 +191,7 @@ void MainWindow::slotProgErase()
     QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
     ChipInfo *chipInfo = getChipInfoByName(ba.data());
 
-    if (prog->eraseChip(0x00000000, chipInfo->size))
+    if (prog->eraseChip(START_ADDRESS, chipInfo->size))
         log(tr("Failed to erase chip\n"));
     else
         log(tr("Chip has been erased successfully\n"));
@@ -188,12 +199,35 @@ void MainWindow::slotProgErase()
 
 void MainWindow::slotProgRead()
 {
-    uint8_t buf[2048];
+    uint32_t rowNum = HEADER_ROW_NUM, address = START_ADDRESS;
+    QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
+    ChipInfo *chipInfo = getChipInfoByName(ba.data());
+    std::unique_ptr< uint8_t[] > buf = std::unique_ptr< uint8_t[] >
+        (new (std::nothrow) uint8_t[chipInfo->size]);
 
-    if (prog->readChip(buf, 0x00000000, sizeof(buf)))
+    if (!buf.get())
+    {
+        qCritical() << "Failed to allocate momory for read buffer";
+        return;
+    }
+
+    /* Reset buffer table */
+    ui->bufferTableWidget->setRowCount(HEADER_ROW_NUM);
+
+    if (prog->readChip(buf.get(), START_ADDRESS, chipInfo->size))
+    {
         log(tr("Failed to read chip\n"));
+        return;
+    }
     else
         log(tr("Data has been successfully read\n"));
+
+    for (uint32_t i = 0; i < chipInfo->size; i += ROW_DATA_SIZE)
+    {
+        insertBufferRow(buf.get() + i, ROW_DATA_SIZE, rowNum, address);
+        rowNum++;
+        address += ROW_DATA_SIZE;
+    }
 }
 
 void MainWindow::slotProgWrite()
@@ -234,7 +268,7 @@ void MainWindow::slotProgWrite()
         }
     }
 
-    if (prog->writeChip(buf.get(), 0x00000000, bufIter))
+    if (prog->writeChip(buf.get(), START_ADDRESS, bufIter))
         log(tr("Failed to write chip\n"));
     else
         log(tr("Data has been successfully written\n"));

@@ -27,6 +27,9 @@ public:
 private:
     Ui::MainWindow *ui;
 
+    void insertBufferRow(quint8 *readBuf, quint32 size, quint32 rowNum,
+        quint32 address);
+
 public slots:
     void slotFileOpen();
     void slotProgConnect();
