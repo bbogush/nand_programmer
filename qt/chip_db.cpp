@@ -1,4 +1,5 @@
 #include "chip_db.h"
+#include <cstring>
 
 static ChipInfo chipDB[] =
 {
@@ -13,10 +14,13 @@ uint32_t getChipDB(ChipInfo *&db)
     return CHIP_ID_LAST;
 }
 
-ChipInfo *getChiInfo(uint32_t id)
+ChipInfo *getChipInfoByName(char *name)
 {
-    if (id >= CHIP_ID_LAST)
-        return 0;
+    for (int id = 0; id < CHIP_ID_LAST; id++)
+    {
+        if (!strcmp(name, chipDB[id].name))
+            return &chipDB[id];
+    }
 
-    return &chipDB[id];
+    return 0;
 }

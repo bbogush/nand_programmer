@@ -20,7 +20,7 @@ typedef struct
 } ChipInfo;
 
 uint32_t getChipDB(ChipInfo *&db);
-ChipInfo *getChiInfo(uint32_t id);
+ChipInfo *getChipInfoByName(char *name);
 
 #endif // CHIP_DB_H
 
