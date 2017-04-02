@@ -10,8 +10,12 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QFile>
+#include <QStringList>
+#include <memory>
 
 #define ROW_DATA_SIZE 16
+#define HEADER_ROW_NUM 1
+#define HEADER_HEX_COL 1
 
 static void initBufferTable(QTableWidget *bufTable)
 {
@@ -187,13 +191,43 @@ void MainWindow::slotProgRead()
 
 void MainWindow::slotProgWrite()
 {
-    uint32_t i;
-    uint8_t buf[2048];
+    bool convIsOk;
+    QStringList sl;
+    std::unique_ptr< uint8_t[] > buf;
+    uint32_t bufSize, bufIter = 0;
+    uint32_t rowCount = ui->bufferTableWidget->rowCount() - HEADER_ROW_NUM;
 
-    for (i = 0; i < sizeof(buf); i++)
-        buf[i] = i;
+    if (!rowCount)
+    {
+        qInfo() << "Buffer is empty";
+        return;
+    }
 
-    if (prog->writeChip(buf, 0x00000000, sizeof(buf)))
+    bufSize = rowCount * ROW_DATA_SIZE;
+    buf = std::unique_ptr< uint8_t[] >(new (std::nothrow) uint8_t[bufSize]);
+    if (!buf.get())
+    {
+        qCritical() << "Failed to allocate memory for write buffer";
+        return;
+    }
+
+    for (uint32_t i = HEADER_ROW_NUM; i <= rowCount; i++)
+    {
+        sl = ui->bufferTableWidget->item(i, HEADER_HEX_COL)->
+            text().split(QChar(' '), QString::SkipEmptyParts);
+
+        for (int j = 0; j < sl.size(); j++)
+        {
+            buf[bufIter++] = sl.at(j).toUInt(&convIsOk, 16);
+            if (!convIsOk)
+            {
+                qCritical() << "Failed to convert row item to byte";
+                return;
+            }
+        }
+    }
+
+    if (prog->writeChip(buf.get(), 0x00000000, bufIter))
         log(tr("Failed to write chip\n"));
     else
         log(tr("Data has been successfully written\n"));
