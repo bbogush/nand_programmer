@@ -366,22 +366,27 @@ static void IntToUnicode (uint32_t value , uint8_t *pbuf , uint8_t len)
 * Output         : None.
 * Return         : None.
 *******************************************************************************/
-uint32_t CDC_Send_DATA (uint8_t *ptrBuffer, uint8_t Send_length)
+uint32_t CDC_Send_DATA(uint8_t *ptrBuffer, uint8_t Send_length)
 {
-  /*if max buffer is Not reached*/
-  if(Send_length < VIRTUAL_COM_PORT_DATA_SIZE)     
+  if (Send_length > VIRTUAL_COM_PORT_DATA_SIZE)
+    return 0;
+
+  /* Sent flag */
+  packet_sent = 0;
+
+  if (!(GetENDPOINT(ENDP1) & EP_DTOG_RX))
   {
-    /*Sent flag*/
-    packet_sent = 0;
-    /* send  packet to PMA*/
-    UserToPMABufferCopy((unsigned char*)ptrBuffer, ENDP1_TXADDR, Send_length);
-    SetEPTxCount(ENDP1, Send_length);
-    SetEPTxValid(ENDP1);
+    UserToPMABufferCopy(ptrBuffer, ENDP1_BUF0_ADDR, Send_length);
+    SetEPDblBuf0Count(ENDP1, EP_DBUF_IN, Send_length);
   }
   else
   {
-    return 0;
-  } 
+    UserToPMABufferCopy(ptrBuffer, ENDP1_BUF1_ADDR, Send_length);
+    SetEPDblBuf1Count(ENDP1, EP_DBUF_IN, Send_length);
+  }
+ 
+  FreeUserBuffer(ENDP1, EP_DBUF_IN);
+
   return 1;
 }
 
