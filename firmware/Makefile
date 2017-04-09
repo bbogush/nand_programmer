@@ -35,7 +35,7 @@ INCLUDES+=-I$(SPL_USB_PATH)inc
 INCLUDES+=-I$(SRC_DIR)
 INCLUDES+=-I$(USB_DIR)
 
-CFLAGS=-g -Wall -Werror
+CFLAGS=-g -Wall -Werror -O3
 CFLAGS+=$(INCLUDES) -MMD -MP
 CFLAGS+=-ffunction-sections -fdata-sections
 CFLAGS+=-mcpu=cortex-m3 -mthumb

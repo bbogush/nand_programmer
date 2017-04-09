@@ -19,7 +19,7 @@ INCLUDES+=-ISTM32_USB-FS-Device_Driver/inc/
 INCLUDES+=-ICMSIS/CM3/DeviceSupport/ST/STM32F10x/
 INCLUDES+=-ICMSIS/CM3/CoreSupport/
 
-CFLAGS=-g -Wall -Werror
+CFLAGS=-g -Wall -Werror -O3
 CFLAGS+=-D$(CHIP) $(INCLUDES) -MMD -MP
 CFLAGS+=-mcpu=cortex-m3 -mthumb
 CFLAGS+=-ffreestanding -nostdlib
