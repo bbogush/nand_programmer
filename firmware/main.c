@@ -370,7 +370,7 @@ Exit:
 static int cmd_nand_read(usb_t *usb)
 {
     chip_info_t *chip_info;
-    prog_addr_t prog_addr;
+    uint32_t addr;
     static page_t page;
     uint32_t status, write_len;
     uint32_t resp_header_size = offsetof(resp_t, data);
@@ -385,8 +385,9 @@ static int cmd_nand_read(usb_t *usb)
     if (read_cmd->addr >= chip_info->size)
         goto Error;
 
-    page.page = read_cmd->addr / chip_info->page_size;
-    page.offset = read_cmd->addr % chip_info->page_size;
+    addr = read_cmd->addr;
+    page.page = addr / chip_info->page_size;
+    page.offset = addr % chip_info->page_size;
 
     resp->code = RESP_DATA;
 
@@ -397,7 +398,7 @@ static int cmd_nand_read(usb_t *usb)
         {
             if (nand_read_status() == NAND_ERROR)
             {
-                if (send_bad_block_info(prog_addr.addr))
+                if (send_bad_block_info(addr))
                     goto Error;
             }
             else
@@ -427,8 +428,8 @@ static int cmd_nand_read(usb_t *usb)
 
         if (read_cmd->len)
         {
-            prog_addr.addr += chip_info->page_size;
-            if (prog_addr.addr >= chip_info->size)
+            addr += chip_info->page_size;
+            if (addr >= chip_info->size)
                 goto Error;
             page.page++;
             page.offset = 0;
