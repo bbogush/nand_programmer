@@ -11,6 +11,7 @@
 
 #define READ_WRITE_TIMEOUT_MS 10
 #define READ_RESP_TIMEOUT_MS 30000
+#define SERIAL_PORT_SPEED 4000000
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
@@ -25,7 +26,7 @@ Programmer::~Programmer()
 int Programmer::connect()
 {
     serialPort.setPortName(CDC_DEV_NAME);
-    serialPort.setBaudRate(QSerialPort::Baud9600);
+    serialPort.setBaudRate(SERIAL_PORT_SPEED);
 
     if (!serialPort.open(QIODevice::ReadWrite))
     {
