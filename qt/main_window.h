@@ -6,13 +6,12 @@
 #ifndef MAIN_WINDOW_H
 #define MAIN_WINDOW_H
 
+#include "programmer.h"
 #include <QMainWindow>
 
 namespace Ui {
 class MainWindow;
 }
-
-class Programmer;
 
 class MainWindow : public QMainWindow
 {
@@ -29,6 +28,7 @@ private:
 
     void insertBufferRow(quint8 *readBuf, quint32 size, quint32 rowNum,
         quint32 address);
+    void readChipIdCb(ChipId id);
 
 public slots:
     void slotFileOpen();

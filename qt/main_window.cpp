@@ -5,7 +5,6 @@
 
 #include "main_window.h"
 #include "ui_main_window.h"
-#include "programmer.h"
 #include "chip_db.h"
 #include <QDebug>
 #include <QFileDialog>
@@ -171,19 +170,19 @@ void MainWindow::slotProgConnect()
     }
 }
 
-void MainWindow::slotProgReadDeviceId()
+void MainWindow::readChipIdCb(ChipId id)
 {
-    ChipId id;
     QString idStr;
 
-    if (prog->readChipId(&id))
-        log(tr("Failed to read chip ID\n"));
-    else
-    {
-        idStr.sprintf("0x%02X 0x%02X 0x%02X 0x%02X", id.makerId, id.deviceId,
-            id.thirdId, id.fourthId);
-        ui->deviceValueLabel->setText(idStr);
-    }
+    idStr.sprintf("0x%02X 0x%02X 0x%02X 0x%02X", id.makerId, id.deviceId,
+        id.thirdId, id.fourthId);
+    ui->deviceValueLabel->setText(idStr);
+}
+
+void MainWindow::slotProgReadDeviceId()
+{
+    prog->readChipId(std::bind(&MainWindow::readChipIdCb, this,
+        std::placeholders::_1));
 }
 
 void MainWindow::slotProgErase()

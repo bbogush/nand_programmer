@@ -8,7 +8,11 @@
 
 #include <QObject>
 #include <QtSerialPort/QSerialPort>
+#include <QByteArray>
 #include <cstdint>
+#include <functional>
+#include "serial_port_writer.h"
+#include "serial_port_reader.h"
 
 using namespace std;
 
@@ -111,22 +115,28 @@ class Programmer : public QObject
     Q_OBJECT
 
     QSerialPort serialPort;
-
     bool isConn;
+    std::function<void(ChipId)> readChipIdCb;
 
     int sendCmd(Cmd *cmd, size_t size);
+    void sendCmdCb(int status);
     int readRespHead(RespHeader *respHead);
     int readRespBadBlockAddress(RespBadBlock *badBlock);
+    void readRespChipIdCb(int status);
     int handleStatus(RespHeader *respHead);
     int handleWrongResp(uint8_t code);
-    int handleRespChipId(RespId *respId, ChipId *id);
 public:
+    QByteArray readData;
+    QByteArray writeData;
+    SerialPortWriter *serialPortWriter;
+    SerialPortReader *serialPortReader;
+
     explicit Programmer(QObject *parent = 0);
     ~Programmer();
     int connect();
     void disconnect();
     bool isConnected();
-    int readChipId(ChipId *id);
+    void readChipId(std::function<void(ChipId)> callback);
     int eraseChip(uint32_t addr, uint32_t len);
     int readChip(uint8_t *buf, uint32_t addr, uint32_t len);
     int writeChip(uint8_t *buf, uint32_t addr, uint32_t len);

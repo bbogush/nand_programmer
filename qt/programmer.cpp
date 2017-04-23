@@ -15,6 +15,8 @@
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
+    serialPortReader = new SerialPortReader(&serialPort, this);
+    serialPortWriter = new SerialPortWriter(&serialPort, this);
 }
 
 Programmer::~Programmer()
@@ -149,59 +151,59 @@ int Programmer::handleWrongResp(uint8_t code)
     return -1;
 }
 
-int Programmer::handleRespChipId(RespId *respId, ChipId *id)
+void Programmer::readRespChipIdCb(int status)
 {
-    qint64 ret;
+    uint size;
+    RespId *respId;
 
-    if (respId->header.info != sizeof(respId->nandId))
+    if (status == SerialPortReader::READ_ERROR)
+        return;
+
+    size = readData.size();
+    if (size < sizeof(RespHeader))
     {
-        qCritical() << "Wrong chip ID responce length";
-        return -1;
+        qCritical() << "Header size of chip ID response is wrong:" << size;
+        return;
     }
 
-    serialPort.waitForReadyRead(1);
-    ret = serialPort.read((char *)&respId->nandId, sizeof(respId->nandId));
-    if (ret < 0)
-    {
-        qCritical() << "Failed to read response data: " << serialPort.error()
-            << serialPort.errorString();
-        return -1;
-    }
-
-    if (ret != sizeof(respId->nandId))
-    {
-        qCritical() << "Failed to read responce data: data was partially "
-            "received";
-        return -1;
-    }
-
-    *id = respId->nandId;
-
-    return 0;
-}
-
-int Programmer::readChipId(ChipId *id)
-{
-    RespId respId;
-    Cmd cmd = { .code = CMD_NAND_READ_ID };
-
-    if (sendCmd(&cmd, sizeof(cmd)))
-        return -1;
-
-    if (readRespHead(&respId.header))
-        return -1;
-
-    switch (respId.header.code)
+    respId = (RespId *)readData.data();
+    switch (respId->header.code)
     {
     case RESP_DATA:
-        return handleRespChipId(&respId, id);
+        if (size < sizeof(RespId))
+        {
+            qCritical() << "Size of chip ID response is wrong:" << size;
+            return;
+        }
+        readChipIdCb(respId->nandId);
+        break;
     case RESP_STATUS:
-        return handleStatus(&respId.header);
-     default:
-        return handleWrongResp(respId.header.code);
+        handleStatus(&respId->header);
+        break;
+    default:
+        handleWrongResp(respId->header.code);
+        break;
     }
+}
 
-    return 0;
+void Programmer::sendCmdCb(int status)
+{
+    if (status == SerialPortWriter::WRITE_ERROR)
+        return;
+}
+
+void Programmer::readChipId(std::function<void(ChipId)> callback)
+{
+    Cmd cmd = { .code = CMD_NAND_READ_ID };
+
+    serialPortReader->read(std::bind(&Programmer::readRespChipIdCb, this,
+        std::placeholders::_1), &readData);
+
+    readChipIdCb = callback;
+    writeData.clear();
+    writeData.append((const char *)&cmd, sizeof(cmd));
+    serialPortWriter->write(std::bind(&Programmer::sendCmdCb,
+        this, std::placeholders::_1), &writeData);
 }
 
 int Programmer::eraseChip(uint32_t addr, uint32_t len)

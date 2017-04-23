@@ -20,11 +20,15 @@ TEMPLATE = app
 SOURCES += main.cpp\
         main_window.cpp \
     programmer.cpp \
-    chip_db.cpp
+    chip_db.cpp \
+    serial_port_writer.cpp \
+    serial_port_reader.cpp
 
 HEADERS  += main_window.h \
     programmer.h \
-    chip_db.h
+    chip_db.h \
+    serial_port_writer.h \
+    serial_port_reader.h
 
 FORMS    += main_window.ui
 
