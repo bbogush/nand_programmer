@@ -6,6 +6,7 @@
 #include "main_window.h"
 #include "ui_main_window.h"
 #include "chip_db.h"
+#include "logger.h"
 #include <QDebug>
 #include <QFileDialog>
 #include <QFile>
@@ -57,7 +58,11 @@ static void addChipDB(QComboBox *chipSelectComboBox)
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    Logger *logger = Logger::getInstance();
+
     ui->setupUi(this);
+
+    logger->setTextEdit(ui->logTextEdit);
 
     initBufferTable(ui->bufferTableWidget);
 
@@ -83,12 +88,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
 MainWindow::~MainWindow()
 {
+    Logger::putInstance();
     delete ui;
-}
-
-void MainWindow::log(QString logMsg)
-{
-    ui->logTextEdit->insertPlainText(logMsg);
 }
 
 void MainWindow::insertBufferRow(quint8 *readBuf, quint32 size, quint32 rowNum,
@@ -153,20 +154,18 @@ void MainWindow::slotProgConnect()
 {
     if (!prog->isConnected())
     {
-        if (prog->connect())
-        {
-            log(tr("Failed to connect to programmer\n"));
-            return;
-        }
+        if (!prog->connect())
+            qInfo() << "Connected to programmer";
         else
-            log(tr("Connected to programmer\n"));
+            return;
+
         ui->actionConnect->setText(tr("Disconnect"));
     }
     else
     {
         prog->disconnect();
         ui->actionConnect->setText(tr("Connect"));
-        log(tr("Disconnected from programmer\n"));
+        qInfo() << "Disconnected from programmer";
     }
 }
 
@@ -190,10 +189,8 @@ void MainWindow::slotProgErase()
     QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
     ChipInfo *chipInfo = getChipInfoByName(ba.data());
 
-    if (prog->eraseChip(START_ADDRESS, chipInfo->size))
-        log(tr("Failed to erase chip\n"));
-    else
-        log(tr("Chip has been erased successfully\n"));
+    if (!prog->eraseChip(START_ADDRESS, chipInfo->size))
+        qInfo() << "Chip has been erased successfully";
 }
 
 void MainWindow::slotProgRead()
@@ -214,12 +211,9 @@ void MainWindow::slotProgRead()
     ui->bufferTableWidget->setRowCount(HEADER_ROW_NUM);
 
     if (prog->readChip(buf.get(), START_ADDRESS, chipInfo->size))
-    {
-        log(tr("Failed to read chip\n"));
         return;
-    }
     else
-        log(tr("Data has been successfully read\n"));
+        qInfo() << "Data has been successfully read";
 
     for (uint32_t i = 0; i < chipInfo->size; i += ROW_DATA_SIZE)
     {
@@ -267,14 +261,12 @@ void MainWindow::slotProgWrite()
         }
     }
 
-    if (prog->writeChip(buf.get(), START_ADDRESS, bufIter))
-        log(tr("Failed to write chip\n"));
-    else
-        log(tr("Data has been successfully written\n"));
+    if (!prog->writeChip(buf.get(), START_ADDRESS, bufIter))
+        qInfo() << "Data has been successfully written";
 }
 
 void MainWindow::slotSelectChip(int selectedChipNum)
 {
-    if (prog->selectChip(selectedChipNum))
-        log(tr("Failed to select chip"));
+    if (!prog->selectChip(selectedChipNum))
+        qInfo() << "Chip successfully set";
 }

@@ -22,13 +22,15 @@ SOURCES += main.cpp\
     programmer.cpp \
     chip_db.cpp \
     serial_port_writer.cpp \
-    serial_port_reader.cpp
+    serial_port_reader.cpp \
+    logger.cpp
 
 HEADERS  += main_window.h \
     programmer.h \
     chip_db.h \
     serial_port_writer.h \
-    serial_port_reader.h
+    serial_port_reader.h \
+    logger.h
 
 FORMS    += main_window.ui
 
