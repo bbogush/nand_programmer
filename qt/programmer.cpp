@@ -488,27 +488,51 @@ int Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len)
     return 0;
 }
 
-int Programmer::selectChip(uint32_t chipNum)
+void Programmer::readRespSelectChipCb(int status)
 {
-    RespHeader resp;
+    uint size;
+    RespHeader *header;
+
+    if (status == SerialPortReader::READ_ERROR)
+        return;
+
+    size = readData.size();
+    if (size < sizeof(RespHeader))
+    {
+        qCritical() << "Header size of chip ID response is wrong:" << size;
+        return;
+    }
+
+    header = (RespHeader *)readData.data();
+    switch (header->code)
+    {
+    case RESP_STATUS:
+        if (header->info == STATUS_OK)
+            selectChipCb();
+        else
+            qCritical() << "Programmer error: failed to select chip";
+        break;
+    default:
+        handleWrongResp(header->code);
+        break;
+    }
+}
+
+void Programmer::selectChip(std::function<void(void)> callback,
+    uint32_t chipNum)
+{
     Cmd cmd = { .code = CMD_NAND_SELECT };
     SelectCmd selectCmd = { .cmd = cmd, .chipNum = chipNum };
 
-    if (sendCmd(&selectCmd.cmd, sizeof(SelectCmd)))
-        return -1;
+    readData.clear();
+    serialPortReader->read(std::bind(&Programmer::readRespSelectChipCb, this,
+        std::placeholders::_1), &readData);
 
-    if (readRespHead(&resp))
-        return -1;
-
-    switch (resp.code)
-    {
-    case RESP_STATUS:
-        return handleStatus(&resp);
-    default:
-        return handleWrongResp(resp.code);
-    }
-
-    return 0;
+    selectChipCb = callback;
+    writeData.clear();
+    writeData.append((const char *)&selectCmd, sizeof(selectCmd));
+    serialPortWriter->write(std::bind(&Programmer::sendCmdCb, this,
+        std::placeholders::_1), &writeData);
 }
 
 

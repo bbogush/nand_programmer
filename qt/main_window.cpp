@@ -265,8 +265,13 @@ void MainWindow::slotProgWrite()
         qInfo() << "Data has been successfully written";
 }
 
+void MainWindow::selectChipCb()
+{
+    qInfo() << "Chip has been selected successfully";
+}
+
 void MainWindow::slotSelectChip(int selectedChipNum)
 {
-    if (!prog->selectChip(selectedChipNum))
-        qInfo() << "Chip successfully set";
+    prog->selectChip(std::bind(&MainWindow::selectChipCb, this),
+        selectedChipNum);
 }

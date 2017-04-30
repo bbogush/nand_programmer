@@ -28,6 +28,7 @@ private:
     void insertBufferRow(quint8 *readBuf, quint32 size, quint32 rowNum,
         quint32 address);
     void readChipIdCb(ChipId id);
+    void selectChipCb();
 
 public slots:
     void slotFileOpen();

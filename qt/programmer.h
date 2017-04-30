@@ -117,12 +117,14 @@ class Programmer : public QObject
     QSerialPort serialPort;
     bool isConn;
     std::function<void(ChipId)> readChipIdCb;
+    std::function<void(void)> selectChipCb;
 
     int sendCmd(Cmd *cmd, size_t size);
     void sendCmdCb(int status);
     int readRespHead(RespHeader *respHead);
     int readRespBadBlockAddress(RespBadBlock *badBlock);
     void readRespChipIdCb(int status);
+    void readRespSelectChipCb(int status);
     int handleStatus(RespHeader *respHead);
     int handleWrongResp(uint8_t code);
 public:
@@ -140,7 +142,7 @@ public:
     int eraseChip(uint32_t addr, uint32_t len);
     int readChip(uint8_t *buf, uint32_t addr, uint32_t len);
     int writeChip(uint8_t *buf, uint32_t addr, uint32_t len);
-    int selectChip(uint32_t chipNum);
+    void selectChip(std::function<void(void)> callback, uint32_t chipNum);
 };
 
 #endif // PROGRAMMER_H
