@@ -249,12 +249,10 @@ void Programmer::readRespEraseChipCb(int status)
     if (status == SerialPortReader::READ_ERROR)
         return;
 
-    if (readRespHeader(&readData, header))
-        return;
-
     while (readData.size())
     {
-        header = (RespHeader *)readData.data();
+        if (readRespHeader(&readData, header))
+            return;
         switch (header->code)
         {
         case RESP_STATUS:
