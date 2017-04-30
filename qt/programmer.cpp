@@ -196,6 +196,7 @@ void Programmer::readChipId(std::function<void(ChipId)> callback)
 {
     Cmd cmd = { .code = CMD_NAND_READ_ID };
 
+    readData.clear();
     serialPortReader->read(std::bind(&Programmer::readRespChipIdCb, this,
         std::placeholders::_1), &readData);
 
