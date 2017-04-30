@@ -32,7 +32,7 @@ int Programmer::connect()
 
     if (!serialPort.open(QIODevice::ReadWrite))
     {
-        qCritical() << "Failed to open serial port: " << serialPort.error()
+        qCritical() << "Failed to open serial port:"
             << serialPort.errorString();
         return -1;
     }
