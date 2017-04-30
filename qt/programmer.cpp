@@ -296,84 +296,82 @@ void Programmer::eraseChip(std::function<void(void)> callback, uint32_t addr,
         this, std::placeholders::_1), &writeData);
 }
 
-int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
+void Programmer::readRespReadChipCb(int status)
 {
-    int ret;
-    uint8_t rx_buf[CDC_BUF_SIZE];
-    RespHeader *dataResp;
-    RespBadBlock badBlock;
+    uint size;
+    RespHeader *header;
     uint32_t offset = 0;
-    Cmd cmd = { .code = CMD_NAND_READ };
-    ReadCmd readCmd = { .cmd = cmd, .addr = addr, .len = len };
 
-    if (sendCmd(&readCmd.cmd, sizeof(readCmd)))
-        return -1;
+    if (status == SerialPortReader::READ_ERROR)
+        goto Error;
 
-    while (len)
+    while ((size = readData.size()))
     {
-        serialPort.waitForReadyRead(READ_WRITE_TIMEOUT_MS);
-        ret = serialPort.read((char *)rx_buf, sizeof(RespHeader));
-        if (ret < 0)
-        {
-            qCritical() << "Failed to read data " << serialPort.error()
-                << serialPort.errorString();
-            return -1;
-        }
+        if (readRespHeader(&readData, header))
+            goto Error;
 
-        if (ret < (int)sizeof(RespHeader))
+        switch (header->code)
         {
-            qCritical() << "Failed to read response header: data was partially"
-                " received, length: " << ret;
-            return -1;
-        }
-
-        dataResp = (RespHeader *)rx_buf;
-        if (dataResp->code == RESP_STATUS)
-        {
-            if (dataResp->info == STATUS_BAD_BLOCK)
+        case RESP_STATUS:
+            if (header->info == STATUS_OK && header->info == STATUS_BAD_BLOCK)
             {
-                if (readRespBadBlockAddress(&badBlock))
-                    return -1;
-                qInfo() << "Bad block at" << QString("0x%1").
-                    arg(badBlock.addr, 8, 16, QLatin1Char('0'));
+                if (handleBadBlock(&readData))
+                    goto Error;
+                readData.remove(0, sizeof(RespBadBlock));
             }
             else
-                return handleStatus(dataResp);
-        }
-
-        if (dataResp->code == RESP_DATA)
-        {
-            if (dataResp->info > sizeof(rx_buf) - sizeof(RespHeader))
             {
-                qCritical() << "Programmer returns wrong data length";
-                return -1;
+                qCritical() << "Programmer error: failed to read chip";
+                goto Error;
             }
-
-            serialPort.waitForReadyRead(READ_WRITE_TIMEOUT_MS);
-            ret = serialPort.read((char *)dataResp->data, dataResp->info);
-            if (ret < 0)
+            break;
+        case RESP_DATA:
+            if (header->info > CDC_BUF_SIZE - sizeof(RespHeader) || header->info > size)
             {
-                qCritical() << "Failed to read data " << serialPort.error()
-                    << serialPort.errorString();
-                return -1;
+                qCritical() << "Wrong data length in response header:" << header->info;
+                goto Error;
             }
-
-            if (dataResp->info != ret)
-            {
-                qCritical() << "Programmer error: expected to receive " <<
-                    dataResp->info << "but received" << ret << "Bytes";
-                for (int i = 0; i < ret; i++)
-                    qInfo() << dataResp->data[i];
-                return -1;
-            }
-
-            memcpy(buf + offset, dataResp->data, ret);
-            offset += ret;
-            len -= ret;
+            memcpy(readChipBuf + offset, header->data, header->info);
+            offset += header->info;
+            readData.remove(0, sizeof(RespHeader) + header->info);
+           break;
+        default:
+            handleWrongResp(header->code);
+            goto Error;
         }
     }
 
-    return 0;
+    if (readChipLen == offset)
+        readChipCb(0);
+    else
+    {
+        qCritical() << "Data was partialy received, size:" << offset;
+        goto Error;
+    }
+
+    return;
+
+Error:
+    readChipCb(-1);
+}
+
+void Programmer::readChip(std::function<void(int)> callback, uint8_t *buf,
+    uint32_t addr, uint32_t len)
+{
+    Cmd cmd = { .code = CMD_NAND_READ };
+    ReadCmd readCmd = { .cmd = cmd, .addr = addr, .len = len };
+
+    readData.clear();
+    serialPortReader->read(std::bind(&Programmer::readRespReadChipCb, this,
+        std::placeholders::_1), &readData, READ_TIMEOUT_MS);
+
+    readChipCb = callback;
+    readChipBuf = buf;
+    readChipLen = len;
+    writeData.clear();
+    writeData.append((const char *)&readCmd, sizeof(readCmd));
+    serialPortWriter->write(std::bind(&Programmer::sendCmdCb,
+        this, std::placeholders::_1), &writeData);
 }
 
 int Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len)

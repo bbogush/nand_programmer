@@ -198,34 +198,43 @@ void MainWindow::slotProgErase()
         chipInfo->size);
 }
 
-void MainWindow::slotProgRead()
+void MainWindow::readChipCb(int status)
 {
     uint32_t rowNum = HEADER_ROW_NUM, address = START_ADDRESS;
-    QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
-    ChipInfo *chipInfo = getChipInfoByName(ba.data());
-    std::unique_ptr< uint8_t[] > buf = std::unique_ptr< uint8_t[] >
-        (new (std::nothrow) uint8_t[chipInfo->size]);
 
-    if (!buf.get())
+    if (!status)
     {
-        qCritical() << "Failed to allocate momory for read buffer";
-        return;
-    }
-
-    /* Reset buffer table */
-    ui->bufferTableWidget->setRowCount(HEADER_ROW_NUM);
-
-    if (prog->readChip(buf.get(), START_ADDRESS, chipInfo->size))
-        return;
-    else
         qInfo() << "Data has been successfully read";
 
-    for (uint32_t i = 0; i < chipInfo->size; i += ROW_DATA_SIZE)
-    {
-        insertBufferRow(buf.get() + i, ROW_DATA_SIZE, rowNum, address);
-        rowNum++;
-        address += ROW_DATA_SIZE;
+        /* Reset buffer table */
+        ui->bufferTableWidget->setRowCount(HEADER_ROW_NUM);
+
+        for (uint32_t i = 0; i < readBufSize; i += ROW_DATA_SIZE)
+        {
+            insertBufferRow(readBuf + i, ROW_DATA_SIZE, rowNum, address);
+            rowNum++;
+            address += ROW_DATA_SIZE;
+        }
     }
+
+    delete readBuf;
+}
+
+void MainWindow::slotProgRead()
+{
+    QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
+    ChipInfo *chipInfo = getChipInfoByName(ba.data());
+
+    readBufSize = chipInfo->size;
+    readBuf = new (std::nothrow) uint8_t[readBufSize];
+    if (!readBuf)
+    {
+        qCritical() << "Failed to allocate memory for read buffer";
+        return;
+    }
+
+    prog->readChip(std::bind(&MainWindow::readChipCb, this,
+        std::placeholders::_1), readBuf, START_ADDRESS, readBufSize);
 }
 
 void MainWindow::slotProgWrite()

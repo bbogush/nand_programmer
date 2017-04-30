@@ -24,12 +24,15 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    uint8_t *readBuf;
+    uint32_t readBufSize;
 
     void insertBufferRow(quint8 *readBuf, quint32 size, quint32 rowNum,
         quint32 address);
     void readChipIdCb(ChipId id);
     void selectChipCb();
     void eraseChipCb();
+    void readChipCb(int status);
 
 public slots:
     void slotFileOpen();
