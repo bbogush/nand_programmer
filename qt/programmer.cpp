@@ -12,6 +12,8 @@
 #define READ_WRITE_TIMEOUT_MS 10
 #define READ_RESP_TIMEOUT_MS 30000
 #define SERIAL_PORT_SPEED 4000000
+#define READ_TIMEOUT_MS 100
+#define ERASE_TIMEOUT_MS 10000
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
@@ -151,37 +153,51 @@ int Programmer::handleWrongResp(uint8_t code)
     return -1;
 }
 
+int Programmer::readRespHeader(const QByteArray *data, RespHeader *&header)
+{
+    uint size = data->size();
+
+    if (size < sizeof(RespHeader))
+    {
+        qCritical() << "Programmer error: response header size is wrong:"
+            << size;
+        return -1;
+    }
+
+    header = (RespHeader *)data->data();
+
+    return 0;
+}
+
 void Programmer::readRespChipIdCb(int status)
 {
     uint size;
+    RespHeader *header;
     RespId *respId;
 
     if (status == SerialPortReader::READ_ERROR)
         return;
 
-    size = readData.size();
-    if (size < sizeof(RespHeader))
-    {
-        qCritical() << "Header size of chip ID response is wrong:" << size;
+    if (readRespHeader(&readData, header))
         return;
-    }
 
-    respId = (RespId *)readData.data();
-    switch (respId->header.code)
+    switch (header->code)
     {
     case RESP_DATA:
-        if (size < sizeof(RespId))
+        size = readData.size();
+        if (size < (int)sizeof(RespId))
         {
             qCritical() << "Size of chip ID response is wrong:" << size;
             return;
         }
+        respId = (RespId *)readData.data();
         readChipIdCb(respId->nandId);
         break;
     case RESP_STATUS:
-        handleStatus(&respId->header);
+        handleStatus(header);
         break;
     default:
-        handleWrongResp(respId->header.code);
+        handleWrongResp(header->code);
         break;
     }
 }
@@ -198,7 +214,7 @@ void Programmer::readChipId(std::function<void(ChipId)> callback)
 
     readData.clear();
     serialPortReader->read(std::bind(&Programmer::readRespChipIdCb, this,
-        std::placeholders::_1), &readData);
+        std::placeholders::_1), &readData, READ_TIMEOUT_MS);
 
     readChipIdCb = callback;
     writeData.clear();
@@ -207,40 +223,77 @@ void Programmer::readChipId(std::function<void(ChipId)> callback)
         this, std::placeholders::_1), &writeData);
 }
 
-int Programmer::eraseChip(uint32_t addr, uint32_t len)
+int Programmer::handleBadBlock(QByteArray *data)
 {
-    RespHeader resp;
-    RespBadBlock badBlock;
+    RespBadBlock *badBlock;
+    uint size = data->size();
+
+    if (size < sizeof(RespBadBlock))
+    {
+        qCritical() << "Header size of bad block response is wrong:"
+            << size;
+        return -1;
+    }
+
+    badBlock = (RespBadBlock *)data->data();
+    qInfo() << QString("Bad block at 0x%1").arg(badBlock->addr, 8,
+        16, QLatin1Char( '0' ));
+
+    return 0;
+}
+
+void Programmer::readRespEraseChipCb(int status)
+{
+    RespHeader *header;
+
+    if (status == SerialPortReader::READ_ERROR)
+        return;
+
+    if (readRespHeader(&readData, header))
+        return;
+
+    while (readData.size())
+    {
+        header = (RespHeader *)readData.data();
+        switch (header->code)
+        {
+        case RESP_STATUS:
+            if (header->info == STATUS_OK)
+                eraseChipCb();
+            else if (header->info == STATUS_BAD_BLOCK)
+            {
+                if (!handleBadBlock(&readData))
+                {
+                    readData.remove(0, sizeof(RespBadBlock));
+                    continue;
+                }
+            }
+            else
+                qCritical() << "Programmer error: failed to erase chip";
+            break;
+        default:
+            handleWrongResp(header->code);
+            break;
+        }
+        readData.clear();
+    }
+}
+
+void Programmer::eraseChip(std::function<void(void)> callback, uint32_t addr,
+    uint32_t len)
+{
     Cmd cmd = { .code = CMD_NAND_ERASE };
     EraseCmd eraseCmd = { .cmd = cmd, .addr = addr, .len = len };
 
-    if (sendCmd(&eraseCmd.cmd, sizeof(eraseCmd)))
-        return -1;
+    readData.clear();
+    serialPortReader->read(std::bind(&Programmer::readRespEraseChipCb, this,
+        std::placeholders::_1), &readData, ERASE_TIMEOUT_MS);
 
-    while (true)
-    {
-        if (readRespHead(&resp))
-            return -1;
-
-        if (resp.code == RESP_STATUS && resp.info == STATUS_BAD_BLOCK)
-        {
-            if (readRespBadBlockAddress(&badBlock))
-                return -1;
-            qInfo() << "Bad block at" << QString("0x%1").arg(badBlock.addr, 8,
-                16, QLatin1Char( '0' ));
-            continue;
-        }
-
-        switch (resp.code)
-        {
-        case RESP_STATUS:
-            return handleStatus(&resp);
-        default:
-            return handleWrongResp(resp.code);
-        }
-    }
-
-    return 0;
+    eraseChipCb = callback;
+    writeData.clear();
+    writeData.append((const char *)&eraseCmd, sizeof(eraseCmd));
+    serialPortWriter->write(std::bind(&Programmer::sendCmdCb,
+        this, std::placeholders::_1), &writeData);
 }
 
 int Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
@@ -490,20 +543,14 @@ int Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len)
 
 void Programmer::readRespSelectChipCb(int status)
 {
-    uint size;
     RespHeader *header;
 
     if (status == SerialPortReader::READ_ERROR)
         return;
 
-    size = readData.size();
-    if (size < sizeof(RespHeader))
-    {
-        qCritical() << "Header size of chip ID response is wrong:" << size;
+    if (readRespHeader(&readData, header))
         return;
-    }
 
-    header = (RespHeader *)readData.data();
     switch (header->code)
     {
     case RESP_STATUS:
@@ -526,7 +573,7 @@ void Programmer::selectChip(std::function<void(void)> callback,
 
     readData.clear();
     serialPortReader->read(std::bind(&Programmer::readRespSelectChipCb, this,
-        std::placeholders::_1), &readData);
+        std::placeholders::_1), &readData, READ_TIMEOUT_MS);
 
     selectChipCb = callback;
     writeData.clear();

@@ -7,8 +7,6 @@
 #include <QDebug>
 #include <QString>
 
-#define READ_TIMEOUT_MS 100
-
 SerialPortReader::SerialPortReader(QSerialPort *serialPort, QObject *parent):
     QObject(parent), serialPort(serialPort)
 {
@@ -32,12 +30,13 @@ void SerialPortReader::signalDisconnect()
 }
 
 void SerialPortReader::read(std::function<void(int)> callback,
-    QByteArray *data)
+    QByteArray *data, int timeout)
 {
     signalConnect();
     readData = data;
     this->callback = callback;
-    timer.start(READ_TIMEOUT_MS);
+    this->timeout = timeout;
+    timer.start(timeout);
 }
 
 void SerialPortReader::readEnd(int status)
@@ -50,7 +49,7 @@ void SerialPortReader::readEnd(int status)
 void SerialPortReader::handleReadyRead()
 {
     readData->append(serialPort->readAll());
-    timer.start(READ_TIMEOUT_MS);
+    timer.start(timeout);
 }
 
 void SerialPortReader::handleTimeout()

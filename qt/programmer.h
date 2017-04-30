@@ -118,15 +118,19 @@ class Programmer : public QObject
     bool isConn;
     std::function<void(ChipId)> readChipIdCb;
     std::function<void(void)> selectChipCb;
+    std::function<void(void)> eraseChipCb;
 
     int sendCmd(Cmd *cmd, size_t size);
     void sendCmdCb(int status);
     int readRespHead(RespHeader *respHead);
+    int readRespHeader(const QByteArray *data, RespHeader *&header);
     int readRespBadBlockAddress(RespBadBlock *badBlock);
     void readRespChipIdCb(int status);
     void readRespSelectChipCb(int status);
+    void readRespEraseChipCb(int status);
     int handleStatus(RespHeader *respHead);
     int handleWrongResp(uint8_t code);
+    int handleBadBlock(QByteArray *data);
 public:
     QByteArray readData;
     QByteArray writeData;
@@ -139,7 +143,8 @@ public:
     void disconnect();
     bool isConnected();
     void readChipId(std::function<void(ChipId)> callback);
-    int eraseChip(uint32_t addr, uint32_t len);
+    void eraseChip(std::function<void(void)> callback, uint32_t addr,
+        uint32_t len);
     int readChip(uint8_t *buf, uint32_t addr, uint32_t len);
     int writeChip(uint8_t *buf, uint32_t addr, uint32_t len);
     void selectChip(std::function<void(void)> callback, uint32_t chipNum);

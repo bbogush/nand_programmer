@@ -29,6 +29,7 @@ private:
         quint32 address);
     void readChipIdCb(ChipId id);
     void selectChipCb();
+    void eraseChipCb();
 
 public slots:
     void slotFileOpen();

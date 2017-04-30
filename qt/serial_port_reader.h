@@ -20,6 +20,7 @@ class SerialPortReader: public QObject
     QByteArray *readData;
     QTimer timer;
     std::function<void(int)> callback;
+    int timeout;
 
     void signalConnect();
     void signalDisconnect();
@@ -35,7 +36,8 @@ public:
     explicit SerialPortReader(QSerialPort *serialPort,
         QObject *parent = 0);
 
-    void read(std::function<void(int)> callback, QByteArray *data);
+    void read(std::function<void(int)> callback, QByteArray *data,
+        int timeout);
 
 public slots:
     void handleReadyRead();
