@@ -26,6 +26,7 @@ private:
     Ui::MainWindow *ui;
     uint8_t *readBuf;
     uint32_t readBufSize;
+    uint8_t *writeBuf;
 
     void insertBufferRow(quint8 *readBuf, quint32 size, quint32 rowNum,
         quint32 address);
@@ -33,6 +34,7 @@ private:
     void selectChipCb();
     void eraseChipCb();
     void readChipCb(int status);
+    void writeChipCb(int status);
 
 public slots:
     void slotFileOpen();

@@ -35,8 +35,11 @@ void SerialPortReader::read(std::function<void(int)> callback,
     signalConnect();
     readData = data;
     this->callback = callback;
-    this->timeout = timeout;
-    timer.start(timeout);
+    if (timeout >= 0)
+    {
+        this->timeout = timeout;
+        timer.start(timeout);
+    }
 }
 
 void SerialPortReader::readEnd(int status)
@@ -44,6 +47,11 @@ void SerialPortReader::readEnd(int status)
     callback(status);
     signalDisconnect();
     timer.stop();
+}
+
+void SerialPortReader::readCancel()
+{
+    readEnd(READ_OK);
 }
 
 void SerialPortReader::handleReadyRead()

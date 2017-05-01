@@ -38,6 +38,7 @@ public:
 
     void read(std::function<void(int)> callback, QByteArray *data,
         int timeout);
+    void readCancel();
 
 public slots:
     void handleReadyRead();

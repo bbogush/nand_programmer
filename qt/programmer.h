@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QtSerialPort/QSerialPort>
 #include <QByteArray>
+#include <QTimer>
 #include <cstdint>
 #include <functional>
 #include "serial_port_writer.h"
@@ -120,21 +121,31 @@ class Programmer : public QObject
     std::function<void(void)> selectChipCb;
     std::function<void(void)> eraseChipCb;
     std::function<void(int)> readChipCb;
+    std::function<void(int)> writeChipCb;
     uint8_t *readChipBuf;
     uint32_t readChipLen;
+    uint8_t *writeChipBuf;
+    uint32_t writeChipOffset;
+    uint32_t writeChipLen;
+    bool isReadError;
+    QTimer writeSchedTimer;
 
-    int sendCmd(Cmd *cmd, size_t size);
     void sendCmdCb(int status);
-    int readRespHead(RespHeader *respHead);
     int readRespHeader(const QByteArray *data, RespHeader *&header);
-    int readRespBadBlockAddress(RespBadBlock *badBlock);
     void readRespChipIdCb(int status);
     void readRespSelectChipCb(int status);
     void readRespEraseChipCb(int status);
     void readRespReadChipCb(int status);
+    void readRespWriteEndChipCb(int status);
+    void sendWriteCmdCb(int status);
+    void readRespWriteErrorChipCb(int status);
+    void readRespWriteStartChipCb(int status);
+    void sendWriteStartCmdCb(int status);
     int handleStatus(RespHeader *respHead);
     int handleWrongResp(uint8_t code);
     int handleBadBlock(QByteArray *data);
+    int handleWriteError(QByteArray *data);
+
 public:
     QByteArray readData;
     QByteArray writeData;
@@ -151,8 +162,12 @@ public:
         uint32_t len);
     void readChip(std::function<void(int)> callback, uint8_t *buf,
         uint32_t addr, uint32_t len);
-    int writeChip(uint8_t *buf, uint32_t addr, uint32_t len);
+    void writeChip(std::function<void(int)> callback, uint8_t *buf,
+        uint32_t addr, uint32_t len);
     void selectChip(std::function<void(void)> callback, uint32_t chipNum);
+
+private slots:
+    void sendWriteCmd();
 };
 
 #endif // PROGRAMMER_H

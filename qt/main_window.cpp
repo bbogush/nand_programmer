@@ -237,11 +237,17 @@ void MainWindow::slotProgRead()
         std::placeholders::_1), readBuf, START_ADDRESS, readBufSize);
 }
 
+void MainWindow::writeChipCb(int status)
+{
+    if (!status)
+        qInfo() << "Data has been successfully written";
+    delete writeBuf;
+}
+
 void MainWindow::slotProgWrite()
 {
     bool convIsOk;
     QStringList sl;
-    std::unique_ptr< uint8_t[] > buf;
     uint32_t bufSize, bufIter = 0;
     uint32_t rowCount = ui->bufferTableWidget->rowCount() - HEADER_ROW_NUM;
 
@@ -252,8 +258,8 @@ void MainWindow::slotProgWrite()
     }
 
     bufSize = rowCount * ROW_DATA_SIZE;
-    buf = std::unique_ptr< uint8_t[] >(new (std::nothrow) uint8_t[bufSize]);
-    if (!buf.get())
+    writeBuf = new (std::nothrow) uint8_t[bufSize];
+    if (!writeBuf)
     {
         qCritical() << "Failed to allocate memory for write buffer";
         return;
@@ -266,7 +272,7 @@ void MainWindow::slotProgWrite()
 
         for (int j = 0; j < sl.size(); j++)
         {
-            buf[bufIter++] = sl.at(j).toUInt(&convIsOk, 16);
+            writeBuf[bufIter++] = sl.at(j).toUInt(&convIsOk, 16);
             if (!convIsOk)
             {
                 qCritical() << "Failed to convert row item to byte";
@@ -275,8 +281,8 @@ void MainWindow::slotProgWrite()
         }
     }
 
-    if (!prog->writeChip(buf.get(), START_ADDRESS, bufIter))
-        qInfo() << "Data has been successfully written";
+    prog->writeChip(std::bind(&MainWindow::writeChipCb, this,
+        std::placeholders::_1), writeBuf, START_ADDRESS, bufIter);
 }
 
 void MainWindow::selectChipCb()
