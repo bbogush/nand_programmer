@@ -131,7 +131,8 @@ class Programmer : public QObject
     QTimer writeSchedTimer;
 
     void sendCmdCb(int status);
-    int readRespHeader(const QByteArray *data, RespHeader *&header);
+    int readRespHeader(const QByteArray *data, uint32_t offset,
+        RespHeader *&header);
     void readRespChipIdCb(int status);
     void readRespSelectChipCb(int status);
     void readRespEraseChipCb(int status);
@@ -143,7 +144,7 @@ class Programmer : public QObject
     void sendWriteStartCmdCb(int status);
     int handleStatus(RespHeader *respHead);
     int handleWrongResp(uint8_t code);
-    int handleBadBlock(QByteArray *data);
+    int handleBadBlock(QByteArray *data, uint32_t offset);
     int handleWriteError(QByteArray *data);
 
 public:

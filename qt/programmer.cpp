@@ -81,18 +81,20 @@ int Programmer::handleWrongResp(uint8_t code)
     return -1;
 }
 
-int Programmer::readRespHeader(const QByteArray *data, RespHeader *&header)
+int Programmer::readRespHeader(const QByteArray *data, uint32_t offset,
+    RespHeader *&header)
 {
     uint size = data->size();
+    uint bytes_left = size - offset;
 
-    if (size < sizeof(RespHeader))
+    if (bytes_left < sizeof(RespHeader))
     {
         qCritical() << "Programmer error: response header size is wrong:"
-            << size;
+            << bytes_left;
         return -1;
     }
 
-    header = (RespHeader *)data->data();
+    header = (RespHeader *)(data->data() + offset);
 
     return 0;
 }
@@ -106,7 +108,7 @@ void Programmer::readRespChipIdCb(int status)
     if (status == SerialPortReader::READ_ERROR)
         return;
 
-    if (readRespHeader(&readData, header))
+    if (readRespHeader(&readData, 0, header))
         return;
 
     switch (header->code)
@@ -154,19 +156,20 @@ void Programmer::readChipId(std::function<void(ChipId)> callback)
         this, std::placeholders::_1), &writeData);
 }
 
-int Programmer::handleBadBlock(QByteArray *data)
+int Programmer::handleBadBlock(QByteArray *data, uint32_t offset)
 {
     RespBadBlock *badBlock;
     uint size = data->size();
+    uint bytes_left = size - offset;
 
-    if (size < sizeof(RespBadBlock))
+    if (bytes_left < sizeof(RespBadBlock))
     {
         qCritical() << "Header size of bad block response is wrong:"
-            << size;
+            << bytes_left;
         return -1;
     }
 
-    badBlock = (RespBadBlock *)data->data();
+    badBlock = (RespBadBlock *)(data->data() + offset);
     qInfo() << QString("Bad block at 0x%1").arg(badBlock->addr, 8,
         16, QLatin1Char( '0' ));
 
@@ -182,7 +185,7 @@ void Programmer::readRespEraseChipCb(int status)
 
     while (readData.size())
     {
-        if (readRespHeader(&readData, header))
+        if (readRespHeader(&readData, 0, header))
             return;
         switch (header->code)
         {
@@ -191,7 +194,7 @@ void Programmer::readRespEraseChipCb(int status)
                 eraseChipCb();
             else if (header->info == STATUS_BAD_BLOCK)
             {
-                if (!handleBadBlock(&readData))
+                if (!handleBadBlock(&readData, 0))
                 {
                     readData.remove(0, sizeof(RespBadBlock));
                     continue;
@@ -229,14 +232,15 @@ void Programmer::readRespReadChipCb(int status)
 {
     uint size;
     RespHeader *header;
-    uint32_t offset = 0;
+    uint32_t writeOffset = 0, readOffset = 0, bytes_left = 0;
 
     if (status == SerialPortReader::READ_ERROR)
         goto Error;
 
-    while ((size = readData.size()))
+    size = readData.size();
+    while ((bytes_left = size - readOffset))
     {
-        if (readRespHeader(&readData, header))
+        if (readRespHeader(&readData, readOffset, header))
             goto Error;
 
         switch (header->code)
@@ -244,9 +248,9 @@ void Programmer::readRespReadChipCb(int status)
         case RESP_STATUS:
             if (header->info == STATUS_OK && header->info == STATUS_BAD_BLOCK)
             {
-                if (handleBadBlock(&readData))
+                if (handleBadBlock(&readData, readOffset))
                     goto Error;
-                readData.remove(0, sizeof(RespBadBlock));
+                readOffset += sizeof(RespBadBlock);
             }
             else
             {
@@ -255,14 +259,14 @@ void Programmer::readRespReadChipCb(int status)
             }
             break;
         case RESP_DATA:
-            if (header->info > CDC_BUF_SIZE - sizeof(RespHeader) || header->info > size)
+            if (header->info > CDC_BUF_SIZE - sizeof(RespHeader) || header->info > bytes_left)
             {
                 qCritical() << "Wrong data length in response header:" << header->info;
                 goto Error;
             }
-            memcpy(readChipBuf + offset, header->data, header->info);
-            offset += header->info;
-            readData.remove(0, sizeof(RespHeader) + header->info);
+            memcpy(readChipBuf + writeOffset, header->data, header->info);
+            writeOffset += header->info;
+            readOffset += sizeof(RespHeader) + header->info;
            break;
         default:
             handleWrongResp(header->code);
@@ -270,11 +274,11 @@ void Programmer::readRespReadChipCb(int status)
         }
     }
 
-    if (readChipLen == offset)
+    if (readChipLen == writeOffset)
         readChipCb(0);
     else
     {
-        qCritical() << "Data was partialy received, size:" << offset;
+        qCritical() << "Data was partialy received, size:" << writeOffset;
         goto Error;
     }
 
@@ -311,7 +315,7 @@ void Programmer::readRespWriteEndChipCb(int status)
     if (status == SerialPortReader::READ_ERROR)
         goto Exit;
 
-    if (readRespHeader(&readData, header))
+    if (readRespHeader(&readData, 0, header))
         goto Exit;
 
     switch (header->code)
@@ -340,14 +344,14 @@ int Programmer::handleWriteError(QByteArray *data)
 
     while (data->size())
     {
-        if (readRespHeader(data, header))
+        if (readRespHeader(data, 0, header))
             return -1;
         switch (header->code)
         {
         case RESP_STATUS:
             if (header->info == STATUS_BAD_BLOCK)
             {
-                if (!handleBadBlock(data))
+                if (!handleBadBlock(data, 0))
                 {
                     data->remove(0, sizeof(RespBadBlock));
                     continue;
@@ -441,7 +445,7 @@ void Programmer::readRespWriteStartChipCb(int status)
     if (status != SerialPortReader::READ_OK)
         goto Error;
 
-    if (readRespHeader(&readData, header))
+    if (readRespHeader(&readData, 0, header))
         goto Error;
 
     switch (header->code)
@@ -513,7 +517,7 @@ void Programmer::readRespSelectChipCb(int status)
     if (status == SerialPortReader::READ_ERROR)
         return;
 
-    if (readRespHeader(&readData, header))
+    if (readRespHeader(&readData, 0, header))
         return;
 
     switch (header->code)
