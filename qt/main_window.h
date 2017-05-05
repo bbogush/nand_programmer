@@ -7,6 +7,7 @@
 #define MAIN_WINDOW_H
 
 #include "programmer.h"
+#include "buffer_table_model.h"
 #include <QMainWindow>
 
 namespace Ui {
@@ -24,12 +25,13 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    uint8_t *readBuf;
-    uint32_t readBufSize;
-    uint8_t *writeBuf;
+    uint8_t *buffer;
+    uint32_t bufferSize;
+    BufferTableModel bufferTableModel;
 
-    void insertBufferRow(quint8 *readBuf, quint32 size, quint32 rowNum,
-        quint32 address);
+    void initBufTable();
+    void resetBufTable();
+
     void readChipIdCb(ChipId id);
     void selectChipCb();
     void eraseChipCb();

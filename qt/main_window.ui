@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>570</width>
-    <height>501</height>
+    <height>532</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -131,7 +131,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QTableWidget" name="bufferTableWidget">
+       <widget class="QTableView" name="bufferTableView">
         <property name="minimumSize">
          <size>
           <width>550</width>
@@ -144,64 +144,12 @@
           <pointsize>8</pointsize>
          </font>
         </property>
-        <property name="editTriggers">
-         <set>QAbstractItemView::NoEditTriggers</set>
-        </property>
-        <property name="cornerButtonEnabled">
-         <bool>true</bool>
-        </property>
-        <property name="rowCount">
-         <number>1</number>
-        </property>
-        <property name="columnCount">
-         <number>3</number>
-        </property>
-        <attribute name="horizontalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
-        <attribute name="horizontalHeaderCascadingSectionResizes">
-         <bool>false</bool>
-        </attribute>
-        <attribute name="horizontalHeaderDefaultSectionSize">
-         <number>100</number>
-        </attribute>
-        <attribute name="horizontalHeaderHighlightSections">
-         <bool>true</bool>
-        </attribute>
-        <attribute name="horizontalHeaderMinimumSectionSize">
-         <number>20</number>
-        </attribute>
-        <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
-         <bool>false</bool>
-        </attribute>
         <attribute name="horizontalHeaderStretchLastSection">
-         <bool>false</bool>
-        </attribute>
-        <attribute name="verticalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
-        <attribute name="verticalHeaderCascadingSectionResizes">
-         <bool>false</bool>
-        </attribute>
-        <attribute name="verticalHeaderDefaultSectionSize">
-         <number>20</number>
-        </attribute>
-        <attribute name="verticalHeaderHighlightSections">
          <bool>true</bool>
-        </attribute>
-        <attribute name="verticalHeaderMinimumSectionSize">
-         <number>20</number>
-        </attribute>
-        <attribute name="verticalHeaderShowSortIndicator" stdset="0">
-         <bool>false</bool>
         </attribute>
         <attribute name="verticalHeaderStretchLastSection">
          <bool>false</bool>
         </attribute>
-        <row/>
-        <column/>
-        <column/>
-        <column/>
        </widget>
       </item>
       <item>

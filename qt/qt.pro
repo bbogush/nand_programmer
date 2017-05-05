@@ -23,14 +23,16 @@ SOURCES += main.cpp\
     chip_db.cpp \
     serial_port_writer.cpp \
     serial_port_reader.cpp \
-    logger.cpp
+    logger.cpp \
+    buffer_table_model.cpp
 
 HEADERS  += main_window.h \
     programmer.h \
     chip_db.h \
     serial_port_writer.h \
     serial_port_reader.h \
-    logger.h
+    logger.h \
+    buffer_table_model.h
 
 FORMS    += main_window.ui
 

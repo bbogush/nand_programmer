@@ -13,38 +13,11 @@
 #include <QStringList>
 #include <memory>
 
-#define ROW_DATA_SIZE 16
-#define HEADER_ROW_NUM 1
-
-#define HEADER_ROW 0
-#define HEADER_ADDRESS_COL 0
-#define HEADER_HEX_COL 1
-#define HEADER_ANCII_COL 2
-
 #define HEADER_ADDRESS_WIDTH 80
 #define HEADER_HEX_WIDTH 340
+#define BUFFER_ROW_HEIGHT 20
 
 #define START_ADDRESS 0x00000000
-
-static void initBufferTable(QTableWidget *bufTable)
-{
-    QTableWidgetItem *addressHeaderItem, *hexHeaderItem, *anciiHeaderItem;
-
-    addressHeaderItem = new QTableWidgetItem(QObject::tr("ADDRESS"));
-    bufTable->setColumnWidth(HEADER_ADDRESS_COL, HEADER_ADDRESS_WIDTH);
-    bufTable->setItem(HEADER_ROW, HEADER_ADDRESS_COL, addressHeaderItem);
-    addressHeaderItem->setTextAlignment(Qt::AlignCenter);
-
-    hexHeaderItem = new QTableWidgetItem(QObject::tr("HEX"));
-    bufTable->setColumnWidth(HEADER_HEX_COL, HEADER_HEX_WIDTH);
-    bufTable->setItem(HEADER_ROW, HEADER_HEX_COL, hexHeaderItem);
-    hexHeaderItem->setTextAlignment(Qt::AlignCenter);
-
-    anciiHeaderItem = new QTableWidgetItem(QObject::tr("ANCII"));
-    bufTable->horizontalHeader()->setStretchLastSection(true);
-    bufTable->setItem(HEADER_ROW, HEADER_ANCII_COL, anciiHeaderItem);
-    anciiHeaderItem->setTextAlignment(Qt::AlignCenter);
-}
 
 static void addChipDB(QComboBox *chipSelectComboBox)
 {
@@ -53,6 +26,27 @@ static void addChipDB(QComboBox *chipSelectComboBox)
 
     for (uint32_t i = 0; i < size; i++)
         chipSelectComboBox->addItem(db[i].name);
+}
+
+void MainWindow::initBufTable()
+{
+    buffer = nullptr;
+    bufferSize = 0;
+
+    ui->bufferTableView->setModel(&bufferTableModel);
+    QHeaderView *verticalHeader = ui->bufferTableView->verticalHeader();
+    verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
+    verticalHeader->setDefaultSectionSize(BUFFER_ROW_HEIGHT);
+    ui->bufferTableView->setColumnWidth(HEADER_ADDRESS_COL,
+        HEADER_ADDRESS_WIDTH);
+    ui->bufferTableView->setColumnWidth(HEADER_HEX_COL, HEADER_HEX_WIDTH);
+}
+
+void MainWindow::resetBufTable()
+{
+    bufferTableModel.setBuffer(nullptr, 0);
+    bufferSize = 0;
+    delete buffer;
 }
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
@@ -64,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     logger->setTextEdit(ui->logTextEdit);
 
-    initBufferTable(ui->bufferTableWidget);
+    initBufTable();
 
     prog = new Programmer(this);
 
@@ -88,35 +82,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
 MainWindow::~MainWindow()
 {
+    delete buffer;
     Logger::putInstance();
     delete ui;
 }
 
-void MainWindow::insertBufferRow(quint8 *readBuf, quint32 size, quint32 rowNum,
-    quint32 address)
-{
-    QString addressString, hexString;
-
-    ui->bufferTableWidget->insertRow(rowNum);
-
-    for (uint32_t i = 0; i < size; i++)
-        hexString.append(QString().sprintf("%02X ", readBuf[i]));
-
-    addressString.sprintf("0x%08X", address);
-
-    ui->bufferTableWidget->setItem(rowNum, HEADER_ADDRESS_COL,
-        new QTableWidgetItem(addressString));
-    ui->bufferTableWidget->setItem(rowNum, HEADER_HEX_COL,
-        new QTableWidgetItem(hexString));
-    ui->bufferTableWidget->setItem(rowNum, HEADER_ANCII_COL,
-        new QTableWidgetItem("................"));
-}
-
 void MainWindow::slotFileOpen()
 {
-    qint64 ret;
-    quint8 readBuf[ROW_DATA_SIZE] = {};
-    quint32 rowNum = HEADER_ROW_NUM, address = START_ADDRESS;
+    qint64 ret, fileSize;
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), ".",
         tr("Binary Files (*)"));
 
@@ -131,22 +104,33 @@ void MainWindow::slotFileOpen()
         return;
     }
 
-    /* Reset buffer table */
-    ui->bufferTableWidget->setRowCount(HEADER_ROW_NUM);
-
-    while ((ret = file.read((char *)readBuf, ROW_DATA_SIZE)) > 0)
+    resetBufTable();
+    fileSize = file.size();
+    buffer = new (std::nothrow) uint8_t[fileSize];
+    if (!buffer)
     {
-        insertBufferRow(readBuf, ret, rowNum, address);
-        address += ret;
-        rowNum++;
+        qCritical() << "Failed to allocate memory for read buffer";
+        goto Exit;
     }
 
+    ret = file.read((char *)buffer, fileSize);
     if (ret < 0)
     {
         qCritical() << "Failed to read file:" << fileName << ", error:" <<
             file.errorString();
+        goto Exit;
     }
 
+    if (ret != fileSize)
+    {
+        qCritical() << "File was partially read, length" << ret;
+        goto Exit;
+    }
+
+    bufferSize = fileSize;
+    bufferTableModel.setBuffer(buffer, fileSize);
+
+Exit:
     file.close();
 }
 
@@ -200,89 +184,54 @@ void MainWindow::slotProgErase()
 
 void MainWindow::readChipCb(int status)
 {
-    uint32_t rowNum = HEADER_ROW_NUM, address = START_ADDRESS;
+    QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
+    ChipInfo *chipInfo = getChipInfoByName(ba.data());
+    uint32_t readSize = chipInfo->size;
 
-    if (!status)
+    if (status)
     {
-        qInfo() << "Data has been successfully read";
-
-        /* Reset buffer table */
-        ui->bufferTableWidget->setRowCount(HEADER_ROW_NUM);
-
-        for (uint32_t i = 0; i < readBufSize; i += ROW_DATA_SIZE)
-        {
-            insertBufferRow(readBuf + i, ROW_DATA_SIZE, rowNum, address);
-            rowNum++;
-            address += ROW_DATA_SIZE;
-        }
+        delete buffer;
+        return;
     }
 
-    delete readBuf;
+    qInfo() << "Data has been successfully read";
+    bufferTableModel.setBuffer(buffer, readSize);
 }
 
 void MainWindow::slotProgRead()
 {
     QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
     ChipInfo *chipInfo = getChipInfoByName(ba.data());
+    uint32_t readSize = chipInfo->size;
 
-    readBufSize = chipInfo->size;
-    readBuf = new (std::nothrow) uint8_t[readBufSize];
-    if (!readBuf)
+    resetBufTable();
+    buffer = new (std::nothrow) uint8_t[readSize];
+    if (!buffer)
     {
         qCritical() << "Failed to allocate memory for read buffer";
         return;
     }
 
     prog->readChip(std::bind(&MainWindow::readChipCb, this,
-        std::placeholders::_1), readBuf, START_ADDRESS, readBufSize);
+        std::placeholders::_1), buffer, START_ADDRESS, readSize);
 }
 
 void MainWindow::writeChipCb(int status)
 {
     if (!status)
         qInfo() << "Data has been successfully written";
-    delete writeBuf;
 }
 
 void MainWindow::slotProgWrite()
 {
-    bool convIsOk;
-    QStringList sl;
-    uint32_t bufSize, bufIter = 0;
-    uint32_t rowCount = ui->bufferTableWidget->rowCount() - HEADER_ROW_NUM;
-
-    if (!rowCount)
+    if (!bufferSize)
     {
-        qInfo() << "Buffer is empty";
+        qInfo() << "Write buffer is empty";
         return;
-    }
-
-    bufSize = rowCount * ROW_DATA_SIZE;
-    writeBuf = new (std::nothrow) uint8_t[bufSize];
-    if (!writeBuf)
-    {
-        qCritical() << "Failed to allocate memory for write buffer";
-        return;
-    }
-
-    for (uint32_t i = HEADER_ROW_NUM; i <= rowCount; i++)
-    {
-        sl = ui->bufferTableWidget->item(i, HEADER_HEX_COL)->
-            text().split(QChar(' '), QString::SkipEmptyParts);
-
-        for (int j = 0; j < sl.size(); j++)
-        {
-            writeBuf[bufIter++] = sl.at(j).toUInt(&convIsOk, 16);
-            if (!convIsOk)
-            {
-                qCritical() << "Failed to convert row item to byte";
-                return;
-            }
-        }
     }
 
     prog->writeChip(std::bind(&MainWindow::writeChipCb, this,
-        std::placeholders::_1), writeBuf, START_ADDRESS, bufIter);
+        std::placeholders::_1), buffer, START_ADDRESS, bufferSize);
 }
 
 void MainWindow::selectChipCb()
