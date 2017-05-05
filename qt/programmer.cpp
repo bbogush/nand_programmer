@@ -7,7 +7,7 @@
 #include <QDebug>
 
 #define CDC_DEV_NAME "/dev/ttyACM0"
-#define CDC_BUF_SIZE 60
+#define CDC_BUF_SIZE 64
 
 #define SERIAL_PORT_SPEED 4000000
 #define READ_TIMEOUT_MS 100
@@ -335,6 +335,7 @@ void Programmer::readRespWriteEndChipCb(int status)
     }
 
 Exit:
+    fprintf(stderr, "stop=%d", (int)time(NULL));
     writeChipCb(ret);
 }
 
@@ -506,6 +507,8 @@ void Programmer::writeChip(std::function<void(int)> callback, uint8_t *buf,
     writeChipCb = callback;
     writeData.clear();
     writeData.append((const char *)&writeStartCmd, sizeof(writeStartCmd));
+
+    fprintf(stderr, "start=%d", (int)time(NULL));
     serialPortWriter->write(std::bind(&Programmer::sendWriteStartCmdCb,
         this, std::placeholders::_1), &writeData);
 }

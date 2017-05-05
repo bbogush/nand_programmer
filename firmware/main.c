@@ -17,7 +17,7 @@
 #include <string.h>
 #include <stddef.h>
 
-#define USB_BUF_SIZE 60
+#define USB_BUF_SIZE 64
 #define MAX_PAGE_SIZE 0x0800
 
 enum
