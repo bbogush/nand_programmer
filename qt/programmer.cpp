@@ -12,7 +12,7 @@
 #define SERIAL_PORT_SPEED 4000000
 #define READ_TIMEOUT_MS 100
 #define ERASE_TIMEOUT_MS 10000
-#define WRITE_INTERVAL_MS 10
+#define WRITE_INTERVAL_MS 1
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
