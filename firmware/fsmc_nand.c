@@ -347,7 +347,7 @@ uint32_t nand_get_status(void)
     status = nand_read_status();
 
     /* Wait for a NAND operation to complete or a TIMEOUT to occur */
-    while ((status != NAND_READY) && (timeout != 0x00))
+    while (status == NAND_BUSY && timeout)
     {
         status = nand_read_status();
         timeout --;
