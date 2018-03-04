@@ -70,18 +70,9 @@ void EP1_IN_Callback (void)
 *******************************************************************************/
 void EP3_OUT_Callback(void)
 {
-  if (GetENDPOINT(ENDP3) & EP_DTOG_TX)
-  {
-    Receive_length = GetEPDblBuf0Count(ENDP3);
-    PMAToUserBufferCopy((uint8_t *)Receive_Buffer, ENDP3_BUF0_ADDR, Receive_length);
-  }
-  else
-  {
-    Receive_length = GetEPDblBuf1Count(ENDP3);
-    PMAToUserBufferCopy((uint8_t *)Receive_Buffer, ENDP3_BUF1_ADDR, Receive_length);
-  }
-
-  FreeUserBuffer(ENDP3, EP_DBUF_OUT);
+  packet_receive = 1;
+  Receive_length = GetEPRxCount(ENDP3);
+  PMAToUserBufferCopy((unsigned char*)Receive_Buffer, ENDP3_RXADDR, Receive_length);
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

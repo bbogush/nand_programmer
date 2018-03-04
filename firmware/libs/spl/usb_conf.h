@@ -58,16 +58,10 @@
 
 /* EP1  */
 /* tx buffer base address */
-#define ENDP1_BUF0_ADDR      (0xC0)
-#define ENDP1_BUF1_ADDR      (0x100)
+#define ENDP1_TXADDR        (0xC0)
+#define ENDP2_TXADDR        (0x100)
+#define ENDP3_RXADDR        (0x110)
 
-/* EP2 */
-#define ENDP2_TXADDR        (0x140)
-
-/* EP3 */
-/* rx buffer base address*/
-#define ENDP3_BUF0_ADDR      (0x180)
-#define ENDP3_BUF1_ADDR      (0x1c0)
 
 /*-------------------------------------------------------------*/
 /* -------------------   ISTR events  -------------------------*/

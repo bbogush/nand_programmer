@@ -167,12 +167,8 @@ void Virtual_Com_Port_Reset(void)
 
   /* Initialize Endpoint 1 */
   SetEPType(ENDP1, EP_BULK);
-  SetEPDoubleBuff(ENDP1);
-  SetEPDblBuffAddr(ENDP1, ENDP1_BUF0_ADDR, ENDP1_BUF1_ADDR);
-  ClearDTOG_TX(ENDP1);
-  ClearDTOG_RX(ENDP1);
-  ToggleDTOG_RX(ENDP1);
-  SetEPTxStatus(ENDP1, EP_TX_VALID);
+  SetEPTxAddr(ENDP1, ENDP1_TXADDR);
+  SetEPTxStatus(ENDP1, EP_TX_NAK);
   SetEPRxStatus(ENDP1, EP_RX_DIS);
 
   /* Initialize Endpoint 2 */
@@ -183,12 +179,8 @@ void Virtual_Com_Port_Reset(void)
 
   /* Initialize Endpoint 3 */
   SetEPType(ENDP3, EP_BULK);
-  SetEPDoubleBuff(ENDP3);
-  SetEPDblBuffAddr(ENDP3, ENDP3_BUF0_ADDR, ENDP3_BUF1_ADDR);
-  SetEPDblBuffCount(ENDP3, EP_DBUF_OUT, VIRTUAL_COM_PORT_DATA_SIZE);
-  ClearDTOG_RX(ENDP3);
-  ClearDTOG_TX(ENDP3);
-  ToggleDTOG_RX(ENDP3);
+  SetEPRxAddr(ENDP3, ENDP3_RXADDR);
+  SetEPRxCount(ENDP3, VIRTUAL_COM_PORT_DATA_SIZE);
   SetEPRxStatus(ENDP3, EP_RX_VALID);
   SetEPTxStatus(ENDP3, EP_TX_DIS);
 
