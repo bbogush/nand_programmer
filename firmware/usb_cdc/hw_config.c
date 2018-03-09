@@ -369,7 +369,7 @@ static void IntToUnicode (uint32_t value , uint8_t *pbuf , uint8_t len)
 uint32_t CDC_Send_DATA (uint8_t *ptrBuffer, uint8_t Send_length)
 {
   /*if max buffer is Not reached*/
-  if(Send_length < VIRTUAL_COM_PORT_DATA_SIZE)     
+  if(Send_length <= VIRTUAL_COM_PORT_DATA_SIZE)     
   {
     /*Sent flag*/
     packet_sent = 0;
