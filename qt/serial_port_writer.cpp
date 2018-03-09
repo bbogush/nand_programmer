@@ -51,8 +51,8 @@ void SerialPortWriter::writeEnd(int status)
 
 void SerialPortWriter::handleTimeout()
 {
-    qCritical() << QString("Timeout writing to port %1, error: %2").
-        arg(serialPort->portName()).arg(serialPort->errorString()) << endl;
+    qCritical() << QString("Timeout writing to port %1").
+        arg(serialPort->portName()) << endl;
     writeEnd(WRITE_ERROR);
 }
 
