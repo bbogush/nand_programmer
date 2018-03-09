@@ -130,6 +130,51 @@ typedef struct
 extern __IO uint8_t Receive_Buffer[USB_BUF_SIZE];
 uint8_t usb_send_buf[USB_BUF_SIZE];
 
+int __io_putchar(int ch)
+{
+    USART_SendData(USART1, (uint8_t)ch);
+
+    /* Loop until the end of transmission */
+    while (!USART_GetFlagStatus(USART1, USART_FLAG_TC));
+
+    return ch;
+}
+
+static void uart_init()
+{
+    USART_InitTypeDef usart;
+    GPIO_InitTypeDef usart_gpio;
+
+    /* Enable GPIO clock */
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, 1);
+
+    /* Enable UART clock */
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, 1); 
+
+    /* Configure USART Tx as alternate function push-pull */
+    usart_gpio.GPIO_Mode = GPIO_Mode_AF_PP;
+    usart_gpio.GPIO_Pin = GPIO_Pin_9;
+    usart_gpio.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GPIOA, &usart_gpio);
+
+    /* Configure USART Rx as input floating */
+    usart_gpio.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+    usart_gpio.GPIO_Pin = GPIO_Pin_10;
+    GPIO_Init(GPIOA, &usart_gpio);
+
+    /* USART configuration */
+    usart.USART_BaudRate = 115200;
+    usart.USART_WordLength = USART_WordLength_8b;
+    usart.USART_StopBits = USART_StopBits_1;
+    usart.USART_Parity = USART_Parity_No;
+    usart.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    usart.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+    USART_Init(USART1, &usart);
+
+    /* Enable USART */
+    USART_Cmd(USART1, 1);
+}
+
 static void jtag_init()
 {
     /* Enable JTAG in low power mode */
@@ -490,9 +535,6 @@ static void usb_handler(usb_t *usb)
 {
     int len;
 
-    if (!USB_IsDeviceConfigured())
-        return;
-
     CDC_Receive_DATA();
     if (!CDC_ReceiveDataLen())
         return;
@@ -512,9 +554,21 @@ int main()
 {
     static usb_t usb;
 
-    jtag_init();
+    uart_init();
+    printf("\r\nNAND programmer ver: 1.0\r\n");
 
+    printf("JTAG init...");
+    jtag_init();
+    printf("send resp.\r\n");
+    printf("done.\r\n");
+
+    printf("USB init...");
     usb_init(&usb);
+    printf("done.\r\n");
+
+    printf("USB configuring...");
+    while (!USB_IsDeviceConfigured());
+    printf("done.\r\n)");
 
     while (1)
         usb_handler(&usb);
