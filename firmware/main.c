@@ -127,6 +127,14 @@ typedef struct
     uint8_t tx_buf_size;
 } usb_t;
 
+typedef struct
+{
+    usb_t usb;
+    uint32_t addr;
+    int addr_is_valid;
+    page_t page;    
+} prog_t;
+
 extern __IO uint8_t Receive_Buffer[USB_BUF_SIZE];
 uint8_t usb_send_buf[USB_BUF_SIZE];
 
@@ -218,7 +226,7 @@ static int send_bad_block_info(uint32_t addr)
     return 0;
 }
 
-static int cmd_nand_read_id(usb_t *usb)
+static int cmd_nand_read_id(prog_t *prog)
 {
     resp_id_t resp;
     size_t resp_len = sizeof(resp);
@@ -226,26 +234,26 @@ static int cmd_nand_read_id(usb_t *usb)
     if (!chip_is_selected())
         goto Error;
 
-    if (usb->tx_buf_size < resp_len)
+    if (prog->usb.tx_buf_size < resp_len)
         goto Error;
 
     resp.header.code = RESP_DATA;
     resp.header.info = resp_len - sizeof(resp.header);
     nand_read_id(&resp.nand_id);
 
-    memcpy(usb->tx_buf, &resp, resp_len);
+    memcpy(prog->usb.tx_buf, &resp, resp_len);
 
     return resp_len;
 
 Error:
-    return make_status(usb, 0);
+    return make_status(&prog->usb, 0);
 }
 
-static int cmd_nand_erase(usb_t *usb)
+static int cmd_nand_erase(prog_t *prog)
 {
     chip_info_t *chip_info;
     uint32_t addr, page, pages_in_block, ret = -1;
-    erase_cmd_t *erase_cmd = (erase_cmd_t *)usb->rx_buf;
+    erase_cmd_t *erase_cmd = (erase_cmd_t *)prog->usb.rx_buf;
 
     if (!chip_is_selected())
         goto Exit;
@@ -283,109 +291,107 @@ static int cmd_nand_erase(usb_t *usb)
 
     ret = 0;
 Exit:
-    return make_status(usb, !ret);
+    return make_status(&prog->usb, !ret);
 }
 
-static int cmd_nand_write_start(usb_t *usb, prog_addr_t *prog_addr,
-    page_t *page)
+static int cmd_nand_write_start(prog_t *prog)
 {
-    write_start_cmd_t *write_start_cmd = (write_start_cmd_t *)usb->rx_buf;
+    write_start_cmd_t *write_start_cmd = (write_start_cmd_t *)prog->usb.rx_buf;
     chip_info_t *chip_info = chip_info_selected_get();
 
     if (write_start_cmd->addr >= chip_info->size)
         return -1;
 
-    prog_addr->addr = write_start_cmd->addr;
-    prog_addr->is_valid = 1;
+    prog->addr = write_start_cmd->addr;
+    prog->addr_is_valid = 1;
 
-    page->page = write_start_cmd->addr / chip_info->page_size;
-    page->offset = write_start_cmd->addr % chip_info->page_size;
-    memset(page->buf, 0, sizeof(page->buf));
+    prog->page.page = write_start_cmd->addr / chip_info->page_size;
+    prog->page.offset = write_start_cmd->addr % chip_info->page_size;
+    memset(prog->page.buf, 0, sizeof(prog->page.buf));
 
     return 0;
 }
 
-static int cmd_nand_write_data(usb_t *usb, prog_addr_t *prog_addr, page_t *page)
+static int cmd_nand_write_data(prog_t *prog)
 {
     uint32_t status, write_len, bytes_left;
-    write_data_cmd_t *write_data_cmd = (write_data_cmd_t *)usb->rx_buf;
+    write_data_cmd_t *write_data_cmd = (write_data_cmd_t *)prog->usb.rx_buf;
     chip_info_t *chip_info = chip_info_selected_get();
 
     if (write_data_cmd->len + offsetof(write_data_cmd_t, data) >
-        usb->rx_buf_size)
+        prog->usb.rx_buf_size)
     {
         return -1;
     }
 
-    if (!prog_addr->is_valid)
+    if (!prog->addr_is_valid)
         return -1;
 
-    if (page->offset + write_data_cmd->len > chip_info->page_size)
-        write_len = chip_info->page_size - page->offset;
+    if (prog->page.offset + write_data_cmd->len > chip_info->page_size)
+        write_len = chip_info->page_size - prog->page.offset;
     else
         write_len = write_data_cmd->len;
 
-    memcpy(page->buf + page->offset, write_data_cmd->data, write_len);
-    page->offset += write_len;
+    memcpy(prog->page.buf + prog->page.offset, write_data_cmd->data, write_len);
+    prog->page.offset += write_len;
 
-    if (page->offset == chip_info->page_size)
+    if (prog->page.offset == chip_info->page_size)
     {
-        if ((status = nand_write_page(page->buf, page->page,
+        if ((status = nand_write_page(prog->page.buf, prog->page.page,
             chip_info->page_size)) != NAND_READY)
         {
             if (nand_read_status() == NAND_ERROR)
             {
-                if (send_bad_block_info(prog_addr->addr))
+                if (send_bad_block_info(prog->addr))
                     return -1;
             }
             else
                 return -1;
         }
 
-        prog_addr->addr += chip_info->page_size;
-        if (prog_addr->addr >= chip_info->size)
-            prog_addr->is_valid = 0;
+        prog->addr += chip_info->page_size;
+        if (prog->addr >= chip_info->size)
+            prog->addr_is_valid = 0;
 
-        page->page++;
-        page->offset = 0;
-        memset(page->buf, 0, chip_info->page_size);
+        prog->page.page++;
+        prog->page.offset = 0;
+        memset(prog->page.buf, 0, chip_info->page_size);
     }
 
     bytes_left = write_data_cmd->len - write_len;
     if (bytes_left)
     {
-        memcpy(page->buf, write_data_cmd->data + write_len, bytes_left);
-        page->offset += bytes_left;
+        memcpy(prog->page.buf, write_data_cmd->data + write_len, bytes_left);
+        prog->page.offset += bytes_left;
     }
 
     return 0;
 }
 
-static int cmd_nand_write_end(prog_addr_t *prog_addr, page_t *page)
+static int cmd_nand_write_end(prog_t *prog)
 {
-    uint32_t status;
     chip_info_t *chip_info = chip_info_selected_get();
 
-    if (!prog_addr->is_valid)
+    if (!prog->addr_is_valid)
         return 0;
 
-    prog_addr->is_valid = 0;
+    prog->addr_is_valid = 0;
 
-    if (!page->offset)
+    if (!prog->page.offset)
         return 0;
 
-    status = nand_write_page(page->buf, page->page, chip_info->page_size);
-    if (status != NAND_READY)
+    if (nand_write_page(prog->page.buf, prog->page.page, chip_info->page_size)
+        != NAND_READY)
+    {
        return -1;
+    }
 
     return 0;
 }
 
-static int cmd_nand_write(usb_t *usb)
+static int cmd_nand_write(prog_t *prog)
 {
-    static prog_addr_t prog_addr;
-    static page_t page;
-    cmd_t *cmd = (cmd_t *)usb->rx_buf;
+    cmd_t *cmd = (cmd_t *)prog->usb.rx_buf;
     int ret = -1;
 
     if (!chip_is_selected())
@@ -394,34 +400,34 @@ static int cmd_nand_write(usb_t *usb)
     switch (cmd->code)
     {
     case CMD_NAND_WRITE_S:
-        ret = cmd_nand_write_start(usb, &prog_addr, &page);
+        ret = cmd_nand_write_start(prog);
         break;
     case CMD_NAND_WRITE_D:
-        ret = cmd_nand_write_data(usb, &prog_addr, &page);
+        ret = cmd_nand_write_data(prog);
         if (!ret)
             return 0;
         break;
     case CMD_NAND_WRITE_E:
-        ret = cmd_nand_write_end(&prog_addr, &page);
+        ret = cmd_nand_write_end(prog);
         break;
     default:
         break;
     }
 
 Exit:
-    return make_status(usb, !ret);
+    return make_status(&prog->usb, !ret);
 }
 
-static int cmd_nand_read(usb_t *usb)
+static int cmd_nand_read(prog_t *prog)
 {
     chip_info_t *chip_info;
     uint32_t addr;
     static page_t page;
     uint32_t status, write_len;
     uint32_t resp_header_size = offsetof(resp_t, data);
-    uint32_t tx_data_len = usb->tx_buf_size - resp_header_size;
-    read_cmd_t *read_cmd = (read_cmd_t *)usb->rx_buf;
-    resp_t *resp = (resp_t *)usb->tx_buf;
+    uint32_t tx_data_len = prog->usb.tx_buf_size - resp_header_size;
+    read_cmd_t *read_cmd = (read_cmd_t *)prog->usb.rx_buf;
+    resp_t *resp = (resp_t *)prog->usb.tx_buf;
 
     if (!chip_is_selected())
         goto Error;
@@ -465,7 +471,7 @@ static int cmd_nand_read(usb_t *usb)
             while (!CDC_IsPacketSent());
 
             resp->info = write_len;
-            CDC_Send_DATA(usb->tx_buf, resp_header_size + write_len);
+            CDC_Send_DATA(prog->usb.tx_buf, resp_header_size + write_len);
 
             page.offset += write_len;
             read_cmd->len -= write_len;
@@ -484,12 +490,12 @@ static int cmd_nand_read(usb_t *usb)
     return 0;
 
 Error:
-    return make_status(usb, 0);
+    return make_status(&prog->usb, 0);
 }
 
-static int cmd_nand_select(usb_t *usb)
+static int cmd_nand_select(prog_t *prog)
 {
-    select_cmd_t *select_cmd = (select_cmd_t *)usb->rx_buf;
+    select_cmd_t *select_cmd = (select_cmd_t *)prog->usb.rx_buf;
     int ret = 0;
 
     if (!chip_select(select_cmd->chip_num))
@@ -497,32 +503,32 @@ static int cmd_nand_select(usb_t *usb)
     else
         ret = -1;
 
-    return make_status(usb, !ret);
+    return make_status(&prog->usb, !ret);
 }
 
-static int usb_cmd_handler(usb_t *usb)
+static int usb_cmd_handler(prog_t *prog)
 {
-    cmd_t *cmd = (cmd_t *)usb->rx_buf;
+    cmd_t *cmd = (cmd_t *)prog->usb.rx_buf;
     int ret = -1;
 
     switch (cmd->code)
     {
     case CMD_NAND_READ_ID:
-        ret = cmd_nand_read_id(usb);
+        ret = cmd_nand_read_id(prog);
         break;
     case CMD_NAND_ERASE:
-        ret = cmd_nand_erase(usb);
+        ret = cmd_nand_erase(prog);
         break;
     case CMD_NAND_READ:
-        ret = cmd_nand_read(usb);
+        ret = cmd_nand_read(prog);
         break;
     case CMD_NAND_WRITE_S:
     case CMD_NAND_WRITE_D:
     case CMD_NAND_WRITE_E:
-        ret = cmd_nand_write(usb);
+        ret = cmd_nand_write(prog);
         break;
     case CMD_NAND_SELECT:
-        ret = cmd_nand_select(usb);
+        ret = cmd_nand_select(prog);
         break;
     default:
         break;
@@ -531,7 +537,7 @@ static int usb_cmd_handler(usb_t *usb)
     return ret;
 }
 
-static void usb_handler(usb_t *usb)
+static void cmd_handler(prog_t *prog)
 {
     int len;
 
@@ -539,12 +545,12 @@ static void usb_handler(usb_t *usb)
     if (!CDC_ReceiveDataLen())
         return;
 
-    len = usb_cmd_handler(usb);
+    len = usb_cmd_handler(prog);
     if (len <= 0)
         goto Exit;
 
     if (CDC_IsPacketSent())
-        CDC_Send_DATA(usb->tx_buf, len);
+        CDC_Send_DATA(prog->usb.tx_buf, len);
 
 Exit:
     CDC_ReceiveDataAck();
@@ -552,7 +558,7 @@ Exit:
 
 int main()
 {
-    static usb_t usb;
+    static prog_t prog;
 
     uart_init();
     printf("\r\nNAND programmer ver: 1.0\r\n");
@@ -563,7 +569,7 @@ int main()
     printf("done.\r\n");
 
     printf("USB init...");
-    usb_init(&usb);
+    usb_init(&prog.usb);
     printf("done.\r\n");
 
     printf("USB configuring...");
@@ -571,7 +577,7 @@ int main()
     printf("done.\r\n)");
 
     while (1)
-        usb_handler(&usb);
+        cmd_handler(&prog);
 
     return 0;
 }
