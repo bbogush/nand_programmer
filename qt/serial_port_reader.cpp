@@ -44,9 +44,9 @@ void SerialPortReader::read(std::function<void(int)> callback,
 
 void SerialPortReader::readEnd(int status)
 {
-    callback(status);
     signalDisconnect();
     timer.stop();
+    callback(status);
 }
 
 void SerialPortReader::readCancel()

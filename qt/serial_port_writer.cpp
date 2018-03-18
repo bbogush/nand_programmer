@@ -44,9 +44,9 @@ void SerialPortWriter::handleBytesWritten(qint64 bytes)
 
 void SerialPortWriter::writeEnd(int status)
 {
-    callback(status);
     signalDisconnect();
     timer.stop();
+    callback(status);
 }
 
 void SerialPortWriter::handleTimeout()
