@@ -19,7 +19,7 @@
 
 #define USB_BUF_SIZE 64
 #define MAX_PAGE_SIZE 0x0800
-
+#define WRITE_ACK_BYTES 2048
 enum
 {
     CMD_NAND_READ_ID = 0x00,
@@ -92,6 +92,7 @@ enum
     STATUS_OK        = 0x00,
     STATUS_ERROR     = 0x01,
     STATUS_BAD_BLOCK = 0x02,
+    STATUS_WRITE_ACK = 0x03,
 };
 
 typedef struct __attribute__((__packed__))
@@ -105,6 +106,12 @@ typedef struct __attribute__((__packed__))
     resp_t header;
     uint32_t addr;
 } resp_bad_block_t;
+
+typedef struct __attribute__((__packed__))
+{
+    resp_t header;
+    uint32_t bytes_ack;
+} resp_write_ack_t;
 
 typedef struct
 {
@@ -132,7 +139,9 @@ typedef struct
     usb_t usb;
     uint32_t addr;
     int addr_is_valid;
-    page_t page;    
+    page_t page;
+    uint32_t bytes_written;
+    uint32_t bytes_ack;
 } prog_t;
 
 extern __IO uint8_t Receive_Buffer[USB_BUF_SIZE];
@@ -294,6 +303,17 @@ Exit:
     return make_status(&prog->usb, !ret);
 }
 
+static int send_write_ack(uint32_t bytes_ack)
+{
+    resp_t resp_header = { RESP_STATUS, STATUS_WRITE_ACK };
+    resp_write_ack_t write_ack = { resp_header, bytes_ack };
+
+    if (!CDC_Send_DATA((uint8_t *)&write_ack, sizeof(write_ack)))
+        return -1;
+
+    return 0;
+}
+
 static int cmd_nand_write_start(prog_t *prog)
 {
     write_start_cmd_t *write_start_cmd = (write_start_cmd_t *)prog->usb.rx_buf;
@@ -308,6 +328,9 @@ static int cmd_nand_write_start(prog_t *prog)
     prog->page.page = write_start_cmd->addr / chip_info->page_size;
     prog->page.offset = write_start_cmd->addr % chip_info->page_size;
     memset(prog->page.buf, 0, sizeof(prog->page.buf));
+
+    prog->bytes_written = 0;
+    prog->bytes_ack = 0;
 
     return 0;
 }
@@ -363,6 +386,14 @@ static int cmd_nand_write_data(prog_t *prog)
     {
         memcpy(prog->page.buf, write_data_cmd->data + write_len, bytes_left);
         prog->page.offset += bytes_left;
+    }
+
+    prog->bytes_written += write_data_cmd->len;
+    if (prog->bytes_written - prog->bytes_ack >= WRITE_ACK_BYTES)
+    {
+        if (send_write_ack(prog->bytes_written))
+            return -1;
+        prog->bytes_ack = prog->bytes_written;
     }
 
     return 0;

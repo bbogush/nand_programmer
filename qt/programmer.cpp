@@ -12,15 +12,13 @@
 #define SERIAL_PORT_SPEED 4000000
 #define READ_TIMEOUT_MS 100
 #define ERASE_TIMEOUT_MS 10000
-#define WRITE_INTERVAL_MS 1
+#define WRITE_TIMEOUT_MS 500
+#define WRITE_BYTES_PENDING_ACK_LIM 2048
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
     serialPortReader = new SerialPortReader(&serialPort, this);
     serialPortWriter = new SerialPortWriter(&serialPort, this);
-    writeSchedTimer.setSingleShot(true);
-    QObject::connect(&writeSchedTimer, SIGNAL(timeout()), this,
-        SLOT(sendWriteCmd()));
 }
 
 Programmer::~Programmer()
@@ -335,7 +333,6 @@ void Programmer::readRespWriteEndChipCb(int status)
     }
 
 Exit:
-    fprintf(stderr, "stop=%d", (int)time(NULL));
     writeChipCb(ret);
 }
 
@@ -377,16 +374,20 @@ int Programmer::handleWriteError(QByteArray *data)
 
 void Programmer::sendWriteCmdCb(int status)
 {
+    isWriteInProgress = false;
+
     if (isReadError)
         return;
 
-    if (status != SerialPortWriter::WRITE_OK || handleWriteError(&readData))
+    if (status != SerialPortWriter::WRITE_OK)
     {
         serialPortReader->readCancel();
         writeChipCb(-1);
+        return;
     }
 
-    writeSchedTimer.start(WRITE_INTERVAL_MS);
+    if (writeSentBytes < writeAckBytes + WRITE_BYTES_PENDING_ACK_LIM)
+        sendWriteCmd();
 }
 
 void Programmer::sendWriteCmd()
@@ -396,17 +397,23 @@ void Programmer::sendWriteCmd()
     WriteEndCmd *writeEndCmd;
     WriteDataCmd *writeDataCmd;
 
+    if (isWriteInProgress)
+        return;
+
     txBufDataLen = sizeof(cdcBuf) - sizeof(WriteDataCmd);
-    if (writeChipLen)
+    if (writeRemainingBytes)
     {
-        sendDataLen = writeChipLen < txBufDataLen ? writeChipLen : txBufDataLen;
+        isWriteInProgress = true;
+
+        sendDataLen = writeRemainingBytes < txBufDataLen ?
+            writeRemainingBytes : txBufDataLen;
 
         writeDataCmd = (WriteDataCmd *)cdcBuf;
         writeDataCmd->cmd.code = CMD_NAND_WRITE_D;
         writeDataCmd->len = sendDataLen;
-        memcpy(writeDataCmd->data, writeChipBuf + writeChipOffset, sendDataLen);
-        writeChipOffset += sendDataLen;
-        writeChipLen -= sendDataLen;
+        memcpy(writeDataCmd->data, writeChipBuf + writeSentBytes, sendDataLen);
+        writeSentBytes += sendDataLen;
+        writeRemainingBytes -= sendDataLen;
 
         writeData.clear();
         writeData.append((const char *)cdcBuf, sizeof(WriteDataCmd) + sendDataLen);
@@ -421,7 +428,7 @@ void Programmer::sendWriteCmd()
         serialPortReader->readCancel();
         readData.clear();
         serialPortReader->read(std::bind(&Programmer::readRespWriteEndChipCb,
-            this, std::placeholders::_1), &readData, READ_TIMEOUT_MS);
+            this, std::placeholders::_1), &readData, WRITE_TIMEOUT_MS);
 
         writeData.clear();
         writeData.append((const char *)cdcBuf, sizeof(WriteEndCmd));
@@ -430,13 +437,81 @@ void Programmer::sendWriteCmd()
     }
 }
 
-void Programmer::readRespWriteErrorChipCb(int status)
+int Programmer::handleWriteAck(QByteArray *data)
 {
-    if (status != SerialPortReader::READ_OK)
+    RespWriteAck *header;
+
+    if (data->size() < (int)sizeof(RespWriteAck))
     {
-        isReadError = 1;
-        writeChipCb(-1);
+        qCritical() << "Programmer error: write acknowledge is not full";
+        return -1;
     }
+
+    header = (RespWriteAck *)data->data();
+    if (!header->ackBytes || header->ackBytes > writeLen)
+    {
+        qCritical() << "Programmer error: acknowledged " << header->ackBytes
+            << " bytes";
+        return -1;
+    }
+
+    writeAckBytes = header->ackBytes;
+    if (writeSentBytes < writeAckBytes + WRITE_BYTES_PENDING_ACK_LIM)
+        sendWriteCmd();
+
+    data->clear();
+    serialPortReader->read(std::bind(&Programmer::readRespWriteChipCb,
+        this, std::placeholders::_1), data, WRITE_TIMEOUT_MS);
+
+    return 0;
+}
+
+void Programmer::readRespWriteChipCb(int status)
+{
+    RespHeader *header;
+
+    if (status != SerialPortReader::READ_OK)
+        goto Error;
+
+    while (readData.size())
+    {
+        if (readRespHeader(&readData, 0, header))
+            goto Error;
+
+        switch (header->code)
+        {
+        case RESP_STATUS:
+            switch(header->info)
+            {
+            case STATUS_WRITE_ACK:
+                if (!handleWriteAck(&readData))
+                    readData.remove(0, sizeof(RespWriteAck));
+                else
+                    goto Error;
+                break;
+            case STATUS_BAD_BLOCK:
+                if (!handleBadBlock(&readData, 0))
+                    readData.remove(0, sizeof(RespBadBlock));
+                else
+                    goto Error;
+                break;
+            case STATUS_ERROR:
+                qCritical() << "Programmer error: failed to write chip";
+                goto Error;
+            default:
+                handleStatus(header);
+                goto Error;
+            }
+        }
+    }
+
+    return;
+
+Error:
+    readData.clear();
+    isReadError = 1;
+    writeChipCb(-1);
+
 }
 
 void Programmer::readRespWriteStartChipCb(int status)
@@ -469,9 +544,10 @@ void Programmer::readRespWriteStartChipCb(int status)
 
     isReadError = 0;
     readData.clear();
-    serialPortReader->read(std::bind(&Programmer::readRespWriteErrorChipCb,
-        this, std::placeholders::_1), &readData, -1);
+    serialPortReader->read(std::bind(&Programmer::readRespWriteChipCb,
+        this, std::placeholders::_1), &readData, WRITE_TIMEOUT_MS);
 
+    isWriteInProgress = false;
     sendWriteCmd();
     return;
 
@@ -496,19 +572,20 @@ void Programmer::writeChip(std::function<void(int)> callback, uint8_t *buf,
 
     readData.clear();
     serialPortReader->read(std::bind(&Programmer::readRespWriteStartChipCb,
-        this, std::placeholders::_1), &readData, READ_TIMEOUT_MS);
+        this, std::placeholders::_1), &readData, WRITE_TIMEOUT_MS);
 
     writeStartCmd.cmd.code = CMD_NAND_WRITE_S;
     writeStartCmd.addr = addr;
 
-    writeChipOffset = 0;
+    writeSentBytes = 0;
     writeChipBuf = buf;
-    writeChipLen = len;
+    writeRemainingBytes = len;
+    writeLen = len;
     writeChipCb = callback;
+    writeAckBytes = 0;
     writeData.clear();
     writeData.append((const char *)&writeStartCmd, sizeof(writeStartCmd));
 
-    fprintf(stderr, "start=%d", (int)time(NULL));
     serialPortWriter->write(std::bind(&Programmer::sendWriteStartCmdCb,
         this, std::placeholders::_1), &writeData);
 }

@@ -82,6 +82,7 @@ typedef enum
     STATUS_OK        = 0x00,
     STATUS_ERROR     = 0x01,
     STATUS_BAD_BLOCK = 0x02,
+    STATUS_WRITE_ACK = 0x03,
 } StatusData;
 
 typedef struct __attribute__((__packed__))
@@ -111,6 +112,12 @@ typedef struct __attribute__((__packed__))
     uint32_t addr;
 } RespBadBlock;
 
+typedef struct __attribute__((__packed__))
+{
+    RespHeader header;
+    uint32_t ackBytes;
+} RespWriteAck;
+
 class Programmer : public QObject
 {
     Q_OBJECT
@@ -125,10 +132,12 @@ class Programmer : public QObject
     uint8_t *readChipBuf;
     uint32_t readChipLen;
     uint8_t *writeChipBuf;
-    uint32_t writeChipOffset;
-    uint32_t writeChipLen;
+    uint32_t writeSentBytes;
+    uint32_t writeRemainingBytes;
+    uint32_t writeAckBytes;
+    uint32_t writeLen;
+    bool isWriteInProgress;
     bool isReadError;
-    QTimer writeSchedTimer;
 
     void sendCmdCb(int status);
     int readRespHeader(const QByteArray *data, uint32_t offset,
@@ -139,13 +148,14 @@ class Programmer : public QObject
     void readRespReadChipCb(int status);
     void readRespWriteEndChipCb(int status);
     void sendWriteCmdCb(int status);
-    void readRespWriteErrorChipCb(int status);
+    void readRespWriteChipCb(int status);
     void readRespWriteStartChipCb(int status);
     void sendWriteStartCmdCb(int status);
     int handleStatus(RespHeader *respHead);
     int handleWrongResp(uint8_t code);
     int handleBadBlock(QByteArray *data, uint32_t offset);
     int handleWriteError(QByteArray *data);
+    int handleWriteAck(QByteArray *data);
 
 public:
     QByteArray readData;
