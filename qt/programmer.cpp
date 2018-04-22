@@ -13,7 +13,7 @@
 #define READ_TIMEOUT_MS 100
 #define ERASE_TIMEOUT_MS 10000
 #define WRITE_TIMEOUT_MS 500
-#define WRITE_BYTES_PENDING_ACK_LIM 2048
+#define WRITE_BYTES_PENDING_ACK_LIM 1
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {

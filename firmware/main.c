@@ -28,7 +28,7 @@
 
 #define USB_BUF_SIZE 64
 #define MAX_PAGE_SIZE 0x0800
-#define WRITE_ACK_BYTES 2048
+#define WRITE_ACK_BYTES 1
 enum
 {
     CMD_NAND_READ_ID = 0x00,
