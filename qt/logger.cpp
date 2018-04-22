@@ -5,6 +5,7 @@
 
 #include "logger.h"
 #include <QDebug>
+#include <QScrollBar>
 
 Logger *Logger::logger;
 QTextEdit *Logger::logTextEdit;
@@ -46,7 +47,13 @@ void Logger::logHandler(QtMsgType type, const QMessageLogContext &context ,
             abort();
     }
     else
+    {
         logTextEdit->insertPlainText(formatMsg);
+
+        logTextEdit->verticalScrollBar()->
+            setValue(logTextEdit->verticalScrollBar()->maximum());
+
+    }
 }
 
 Logger::Logger()
