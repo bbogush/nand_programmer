@@ -13,7 +13,7 @@
 #define READ_TIMEOUT_MS 100
 #define ERASE_TIMEOUT_MS 10000
 #define WRITE_TIMEOUT_MS 500
-#define WRITE_BYTES_PENDING_ACK_LIM 1
+#define WRITE_BYTES_PENDING_ACK_LIM 1984
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
@@ -455,12 +455,13 @@ int Programmer::handleWriteAck(QByteArray *data)
     }
 
     writeAckBytes = header->ackBytes;
-    if (writeSentBytes < writeAckBytes + WRITE_BYTES_PENDING_ACK_LIM)
-        sendWriteCmd();
 
     data->clear();
     serialPortReader->read(std::bind(&Programmer::readRespWriteChipCb,
         this, std::placeholders::_1), data, WRITE_TIMEOUT_MS);
+
+    if (writeSentBytes < writeAckBytes + WRITE_BYTES_PENDING_ACK_LIM)
+        sendWriteCmd();
 
     return 0;
 }
