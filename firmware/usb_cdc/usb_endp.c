@@ -42,8 +42,6 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 extern __IO uint32_t packet_sent;
-extern __IO uint32_t packet_receive;
-extern __IO uint8_t Receive_Buffer[64];
 uint32_t Receive_length;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -68,11 +66,63 @@ void EP1_IN_Callback (void)
 * Output         : None.
 * Return         : None.
 *******************************************************************************/
+#define PACKET_SIZE 64
+#define CIRC_BUF_SIZE 32
+
+typedef uint8_t packet_t[PACKET_SIZE];
+
+static packet_t circ_buf[CIRC_BUF_SIZE];
+static uint8_t head, size, tail = CIRC_BUF_SIZE - 1;
+
+uint8_t *USB_Data_Peek(void)
+{
+  uint8_t *data;
+
+  if (!size)
+    return NULL;
+    
+  data = circ_buf[head];
+
+  return data;
+}
+
+uint8_t *USB_Data_Get(void)
+{
+  uint8_t *data;
+
+  if (!size)
+    return NULL;
+
+  data = circ_buf[head];
+  head = (head + 1) % CIRC_BUF_SIZE;
+  size--;
+
+  return data;
+}
+
+static inline void USB_DataRx_Sched_Internal(void)
+{
+  if (size < CIRC_BUF_SIZE)
+    SetEPRxValid(ENDP3);
+}
+
+void USB_DataRx_Sched(void)
+{
+  __disable_irq();
+  USB_DataRx_Sched_Internal();
+  __enable_irq();
+}
+
 void EP3_OUT_Callback(void)
 {
-  packet_receive = 1;
   Receive_length = GetEPRxCount(ENDP3);
-  PMAToUserBufferCopy((unsigned char*)Receive_Buffer, ENDP3_RXADDR, Receive_length);
+  if (size < CIRC_BUF_SIZE)
+  {
+    tail = (tail + 1) % CIRC_BUF_SIZE;
+    PMAToUserBufferCopy(circ_buf[tail], ENDP3_RXADDR, Receive_length);
+    size++;
+    USB_DataRx_Sched_Internal();
+  }
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

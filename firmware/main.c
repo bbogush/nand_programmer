@@ -153,7 +153,6 @@ typedef struct
     uint32_t bytes_ack;
 } prog_t;
 
-extern __IO uint8_t Receive_Buffer[USB_BUF_SIZE];
 uint8_t usb_send_buf[USB_BUF_SIZE];
 
 int __io_putchar(int ch)
@@ -214,10 +213,9 @@ static void usb_init(usb_t *usb)
     USB_Interrupts_Config();
     USB_Init();
 
-    usb->rx_buf = (uint8_t *)Receive_Buffer;
-    usb->rx_buf_size = sizeof(Receive_Buffer);
     usb->tx_buf = (uint8_t *)usb_send_buf;
-    usb->tx_buf_size = sizeof(usb_send_buf);
+    usb->tx_buf_size = USB_BUF_SIZE;
+    usb->rx_buf_size = USB_BUF_SIZE;
 }
 
 static int make_status(usb_t *usb, int is_ok)
@@ -695,19 +693,18 @@ static void cmd_handler(prog_t *prog)
 {
     int len;
 
-    CDC_Receive_DATA();
-    if (!CDC_ReceiveDataLen())
-        return;
+    while ((prog->usb.rx_buf = USB_Data_Peek()))
+    {
+        len = usb_cmd_handler(prog);
+        USB_Data_Get();
+        USB_DataRx_Sched();
 
-    len = usb_cmd_handler(prog);
-    if (len <= 0)
-        goto Exit;
+        if (len <= 0)
+            continue;
 
-    if (CDC_IsPacketSent())
-        CDC_Send_DATA(prog->usb.tx_buf, len);
-
-Exit:
-    CDC_ReceiveDataAck();
+        if (CDC_IsPacketSent())
+            CDC_Send_DATA(prog->usb.tx_buf, len);
+    }
 }
 
 int main()
@@ -729,6 +726,8 @@ int main()
     printf("USB configuring...");
     while (!USB_IsDeviceConfigured());
     printf("done.\r\n)");
+
+    CDC_Receive_DATA();
 
     while (1)
         cmd_handler(&prog);
