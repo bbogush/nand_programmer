@@ -425,7 +425,6 @@ void Programmer::sendWriteCmd()
         writeEndCmd = (WriteEndCmd *)cdcBuf;
         writeEndCmd->cmd.code = CMD_NAND_WRITE_E;
 
-        serialPortReader->readCancel();
         readData.clear();
         serialPortReader->read(std::bind(&Programmer::readRespWriteEndChipCb,
             this, std::placeholders::_1), &readData, WRITE_TIMEOUT_MS);
