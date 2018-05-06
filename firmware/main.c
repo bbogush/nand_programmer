@@ -29,6 +29,9 @@
 #define USB_BUF_SIZE 64
 #define MAX_PAGE_SIZE 0x0800
 #define WRITE_ACK_BYTES 1
+#define NAND_TIMEOUT 0x1000000
+#define SEND_TIMEOUT 0x1000000
+
 enum
 {
     CMD_NAND_READ_ID = 0x00,
@@ -151,6 +154,8 @@ typedef struct
     page_t page;
     uint32_t bytes_written;
     uint32_t bytes_ack;
+    int nand_wr_in_progress;
+    uint32_t nand_timeout;
 } prog_t;
 
 uint8_t usb_send_buf[USB_BUF_SIZE];
@@ -394,30 +399,76 @@ static int cmd_nand_write_start(prog_t *prog)
     return 0;
 }
 
-static int nand_write(prog_t *prog, chip_info_t *chip_info)
+static int nand_handle_status(prog_t *prog)
 {
-    uint32_t status;
-    
-    DEBUG_PRINT("NAND write at 0x%lx %lu bytes\r\n", prog->addr,
-        chip_info->page_size);
-
-    status = nand_write_page(prog->page.buf, prog->page.page,
-        chip_info->page_size);
-    switch (status)
+    switch (nand_read_status())
     {
-    case NAND_READY:
-        break;
     case NAND_ERROR:
         if (send_bad_block_info(prog->addr))
             return -1;
+    case NAND_READY:
+        prog->nand_wr_in_progress = 0;
+        prog->nand_timeout = 0;
         break;
-    case NAND_TIMEOUT_ERROR:
-        ERROR_PRINT("NAND write timeout at 0x%lx\r\n", prog->addr);
+    case NAND_BUSY:
+        if (++prog->nand_timeout == NAND_TIMEOUT)
+        {
+            ERROR_PRINT("NAND write timeout at 0x%lx\r\n", prog->addr);
+            prog->nand_wr_in_progress = 0;
+            prog->nand_timeout = 0;
+            return -1;
+        }
         break;
     default:
         ERROR_PRINT("Unknown NAND status\r\n");
+        prog->nand_wr_in_progress = 0;
+        prog->nand_timeout = 0;
         return -1;
     }
+
+    return 0;
+}
+
+static int nand_write(prog_t *prog, chip_info_t *chip_info)
+{   
+    if (prog->nand_wr_in_progress)
+    {
+        DEBUG_PRINT("Wait for previous NAND write\r\n");
+        do
+        {
+            if (nand_handle_status(prog))
+                return -1;
+        }
+        while (prog->nand_wr_in_progress);
+    }
+
+    DEBUG_PRINT("NAND write at 0x%lx %lu bytes\r\n", prog->addr,
+        chip_info->page_size);
+
+    nand_write_page_async(prog->page.buf, prog->page.page,
+        chip_info->page_size);
+
+    prog->nand_wr_in_progress = 1;
+
+    return 0;
+}
+
+static int send_status(prog_t *prog, int len)
+{
+    uint32_t timeout = SEND_TIMEOUT;
+
+    if (!CDC_IsPacketSent())
+    {
+        DEBUG_PRINT("Wait for previous CDC TX\r\n");
+        while (!CDC_IsPacketSent() && --timeout);
+        if (!timeout)
+        {
+            ERROR_PRINT("Failed to send status, CDC is busy\r\n");
+            return -1;
+        }
+    }
+
+    CDC_Send_DATA(prog->usb.tx_buf, len);
 
     return 0;
 }
@@ -702,8 +753,16 @@ static void cmd_handler(prog_t *prog)
         if (len <= 0)
             continue;
 
-        if (CDC_IsPacketSent())
-            CDC_Send_DATA(prog->usb.tx_buf, len);
+        send_status(prog, len);
+    }
+}
+
+static void nand_handler(prog_t *prog)
+{
+    if (prog->nand_wr_in_progress)
+    {
+        if (nand_handle_status(prog))
+            send_status(prog, make_status(&prog->usb, 0));
     }
 }
 
@@ -730,7 +789,10 @@ int main()
     CDC_Receive_DATA();
 
     while (1)
+    {
         cmd_handler(&prog);
+        nand_handler(&prog);
+    }
 
     return 0;
 }

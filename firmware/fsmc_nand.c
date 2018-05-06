@@ -148,7 +148,7 @@ void nand_read_id(nand_id_t *nand_id)
     nand_id->fourth_id  = ADDR_4th_CYCLE (data);
 }
 
-uint32_t nand_write_page(uint8_t *buf, uint32_t page, uint32_t page_size)
+void nand_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size)
 {
     uint32_t i;
 
@@ -163,7 +163,12 @@ uint32_t nand_write_page(uint8_t *buf, uint32_t page, uint32_t page_size)
     for(i = 0; i < page_size; i++)
         *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = buf[i];
 
-    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_WRITE_TRUE1;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_WRITE_TRUE1; 
+}
+
+uint32_t nand_write_page(uint8_t *buf, uint32_t page, uint32_t page_size)
+{
+    nand_write_page_async(buf, page, page_size);
  
     return nand_get_status();
 }

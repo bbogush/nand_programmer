@@ -71,6 +71,7 @@ typedef struct
 void nand_init(void);
 void nand_read_id(nand_id_t *nand_id);
 uint32_t nand_write_page(uint8_t *buf, uint32_t page, uint32_t page_size);
+void nand_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size);
 uint32_t nand_read_page(uint8_t *buf, uint32_t page, uint32_t page_size);
 uint32_t nand_write_spare_area(uint8_t *buf, nand_addr_t addr,
     uint32_t num_spare_area_to_write);
