@@ -145,7 +145,8 @@ void Programmer::readChipId(std::function<void(ChipId)> callback)
 
     readData.clear();
     serialPortReader->read(std::bind(&Programmer::readRespChipIdCb, this,
-        std::placeholders::_1), &readData, READ_TIMEOUT_MS);
+        std::placeholders::_1), &readData, READ_TIMEOUT_MS,
+        sizeof(RespHeader));
 
     readChipIdCb = callback;
     writeData.clear();
@@ -217,7 +218,8 @@ void Programmer::eraseChip(std::function<void(void)> callback, uint32_t addr,
 
     readData.clear();
     serialPortReader->read(std::bind(&Programmer::readRespEraseChipCb, this,
-        std::placeholders::_1), &readData, ERASE_TIMEOUT_MS);
+        std::placeholders::_1), &readData, ERASE_TIMEOUT_MS,
+        sizeof(RespHeader));
 
     eraseChipCb = callback;
     writeData.clear();
@@ -294,7 +296,8 @@ void Programmer::readChip(std::function<void(int)> callback, uint8_t *buf,
 
     readData.clear();
     serialPortReader->read(std::bind(&Programmer::readRespReadChipCb, this,
-        std::placeholders::_1), &readData, READ_TIMEOUT_MS);
+        std::placeholders::_1), &readData, READ_TIMEOUT_MS,
+        std::numeric_limits<int>::max());
 
     readChipCb = callback;
     readChipBuf = buf;
@@ -427,7 +430,8 @@ void Programmer::sendWriteCmd()
 
         readData.clear();
         serialPortReader->read(std::bind(&Programmer::readRespWriteEndChipCb,
-            this, std::placeholders::_1), &readData, WRITE_TIMEOUT_MS);
+            this, std::placeholders::_1), &readData, WRITE_TIMEOUT_MS,
+            sizeof(RespHeader));
 
         writeData.clear();
         writeData.append((const char *)cdcBuf, sizeof(WriteEndCmd));
@@ -458,7 +462,8 @@ int Programmer::handleWriteAck(QByteArray *data)
 
     data->clear();
     serialPortReader->read(std::bind(&Programmer::readRespWriteChipCb,
-        this, std::placeholders::_1), data, WRITE_TIMEOUT_MS);
+        this, std::placeholders::_1), data, WRITE_TIMEOUT_MS,
+        sizeof(RespHeader));
 
     if (writeSentBytes < writeAckBytes + WRITE_BYTES_PENDING_ACK_LIM)
         sendWriteCmd();
@@ -545,7 +550,8 @@ void Programmer::readRespWriteStartChipCb(int status)
     isReadError = 0;
     readData.clear();
     serialPortReader->read(std::bind(&Programmer::readRespWriteChipCb,
-        this, std::placeholders::_1), &readData, WRITE_TIMEOUT_MS);
+        this, std::placeholders::_1), &readData, WRITE_TIMEOUT_MS,
+        sizeof(RespHeader));
 
     isWriteInProgress = false;
     sendWriteCmd();
@@ -572,7 +578,8 @@ void Programmer::writeChip(std::function<void(int)> callback, uint8_t *buf,
 
     readData.clear();
     serialPortReader->read(std::bind(&Programmer::readRespWriteStartChipCb,
-        this, std::placeholders::_1), &readData, WRITE_TIMEOUT_MS);
+        this, std::placeholders::_1), &readData, WRITE_TIMEOUT_MS,
+        sizeof(RespHeader));
 
     writeStartCmd.cmd.code = CMD_NAND_WRITE_S;
     writeStartCmd.addr = addr;
@@ -622,7 +629,8 @@ void Programmer::selectChip(std::function<void(void)> callback,
 
     readData.clear();
     serialPortReader->read(std::bind(&Programmer::readRespSelectChipCb, this,
-        std::placeholders::_1), &readData, READ_TIMEOUT_MS);
+        std::placeholders::_1), &readData, READ_TIMEOUT_MS,
+        sizeof(RespHeader));
 
     selectChipCb = callback;
     writeData.clear();

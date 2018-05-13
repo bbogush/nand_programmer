@@ -30,7 +30,7 @@ void SerialPortReader::signalDisconnect()
 }
 
 void SerialPortReader::read(std::function<void(int)> callback,
-    QByteArray *data, int timeout)
+    QByteArray *data, int timeout, int dataSize)
 {
     signalConnect();
     readData = data;
@@ -40,6 +40,7 @@ void SerialPortReader::read(std::function<void(int)> callback,
         this->timeout = timeout;
         timer.start(timeout);
     }
+    this->dataSize = dataSize;
 }
 
 void SerialPortReader::readEnd(int status)
@@ -57,7 +58,10 @@ void SerialPortReader::readCancel()
 void SerialPortReader::handleReadyRead()
 {
     readData->append(serialPort->readAll());
-    timer.start(timeout);
+    if (readData->size() >= dataSize)
+        readEnd(READ_OK);
+    else
+        timer.start(timeout);
 }
 
 void SerialPortReader::handleTimeout()
