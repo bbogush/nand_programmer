@@ -17,8 +17,6 @@
 #include <string.h>
 #include <stddef.h>
 
-#define DEBUG
-
 #ifdef DEBUG
     #define DEBUG_PRINT printf
 #else
