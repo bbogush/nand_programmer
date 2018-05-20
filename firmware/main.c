@@ -22,7 +22,7 @@
 #ifdef DEBUG
     #define DEBUG_PRINT printf
 #else
-    #define DEBUG_PRINT
+    #define DEBUG_PRINT(...)
 #endif
 #define ERROR_PRINT(fmt, args...) printf("ERROR: "fmt, ## args)
 
