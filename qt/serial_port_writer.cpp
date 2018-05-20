@@ -13,6 +13,7 @@ SerialPortWriter::SerialPortWriter(QSerialPort *serialPort, QObject *parent):
     QObject(parent), serialPort(serialPort), bytesWritten(0)
 {
     timer.setSingleShot(true);
+    writeIsPending = false;
 }
 
 void SerialPortWriter::signalConnect()
@@ -46,6 +47,7 @@ void SerialPortWriter::writeEnd(int status)
 {
     signalDisconnect();
     timer.stop();
+    writeIsPending = false;
     callback(status);
 }
 
@@ -68,6 +70,13 @@ void SerialPortWriter::write(std::function<void(int)> callback,
     const QByteArray *writeData)
 {
     qint64 bytesWritten;
+
+    if (writeIsPending)
+    {
+        qCritical() << "Previous write is not completed";
+        return;
+    }
+    writeIsPending = true;
 
     signalConnect();
 
@@ -94,5 +103,10 @@ void SerialPortWriter::write(std::function<void(int)> callback,
     }
 
     timer.start(WRITE_TIMEOUT_MS);
+}
+
+bool SerialPortWriter::isPending()
+{
+    return writeIsPending;
 }
 

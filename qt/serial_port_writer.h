@@ -20,6 +20,7 @@ class SerialPortWriter: public QObject
     const QByteArray *writeData;
     qint64 bytesWritten;
     QTimer timer;
+    bool writeIsPending;
     std::function<void(int)> callback;
 
     void signalConnect();
@@ -37,6 +38,7 @@ public:
         QObject *parent = 0);
 
     void write(std::function<void(int)> callback, const QByteArray *writeData);
+    bool isPending();
 
 public slots:
     void handleBytesWritten(qint64 bytes);
