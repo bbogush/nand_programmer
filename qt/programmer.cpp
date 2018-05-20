@@ -554,7 +554,11 @@ void Programmer::readRespWriteStartChipCb(int status)
         sizeof(RespHeader));
 
     isWriteInProgress = false;
-    sendWriteCmd();
+
+    if (!serialPortWriter->isPending())
+        sendWriteCmd();
+    else
+        schedWrite = true;
     return;
 
 Error:
@@ -569,12 +573,17 @@ void Programmer::sendWriteStartCmdCb(int status)
         writeChipCb(-1);
         return;
     }
+
+    if (schedWrite)
+        sendWriteCmd();
 }
 
 void Programmer::writeChip(std::function<void(int)> callback, uint8_t *buf,
     uint32_t addr, uint32_t len)
 {
     WriteStartCmd writeStartCmd;
+
+    schedWrite = false;
 
     readData.clear();
     serialPortReader->read(std::bind(&Programmer::readRespWriteStartChipCb,

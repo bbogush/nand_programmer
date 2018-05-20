@@ -138,6 +138,7 @@ class Programmer : public QObject
     uint32_t writeLen;
     bool isWriteInProgress;
     bool isReadError;
+    bool schedWrite;
 
     void sendCmdCb(int status);
     int readRespHeader(const QByteArray *data, uint32_t offset,
