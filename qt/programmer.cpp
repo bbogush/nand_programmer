@@ -12,8 +12,8 @@
 #define SERIAL_PORT_SPEED 4000000
 #define READ_TIMEOUT_MS 100
 #define ERASE_TIMEOUT_MS 10000
-#define WRITE_TIMEOUT_MS 500
-#define WRITE_BYTES_PENDING_ACK_LIM 1
+#define WRITE_TIMEOUT_MS 30000
+#define WRITE_BYTES_PENDING_ACK_LIM 1984
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {

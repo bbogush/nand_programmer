@@ -7,7 +7,7 @@
 #include <QDebug>
 #include <QString>
 
-#define WRITE_TIMEOUT_MS 100
+#define WRITE_TIMEOUT_MS 1000
 
 SerialPortWriter::SerialPortWriter(QSerialPort *serialPort, QObject *parent):
     QObject(parent), serialPort(serialPort), bytesWritten(0)
