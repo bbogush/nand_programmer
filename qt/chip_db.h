@@ -28,6 +28,8 @@ typedef struct
 
 uint32_t getChipDB(ChipInfo *&db);
 ChipInfo *getChipInfoByName(char *name);
+ChipInfo *getChipInfoById(uint32_t id);
+uint32_t getChipPageSize(uint32_t id);
 
 #endif // CHIP_DB_H
 

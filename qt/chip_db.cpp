@@ -29,3 +29,18 @@ ChipInfo *getChipInfoByName(char *name)
 
     return 0;
 }
+
+ChipInfo *getChipInfoById(uint32_t id)
+{
+    if (id == CHIP_ID_NONE || id >= CHIP_ID_LAST)
+        return NULL;
+
+    return &chipDB[id];
+}
+
+uint32_t getChipPageSize(uint32_t id)
+{
+    ChipInfo *info = getChipInfoById(id);
+
+    return info ? info->page_size : 0;
+}
