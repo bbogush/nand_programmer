@@ -8,8 +8,8 @@
 
 static ChipInfo chipDB[] =
 {
-    { CHIP_ID_NONE, "No Chip", 0 },
-    { CHIP_ID_K9F2G08U0C, "K9F2G08U0C", 0x10000000 },
+    { CHIP_ID_NONE, "No Chip", 0, 0, 0 },
+    { CHIP_ID_K9F2G08U0C, "K9F2G08U0C", 0x800, 0x20000, 0x10000000 },
 };
 
 uint32_t getChipDB(ChipInfo *&db)

@@ -21,6 +21,8 @@ typedef struct
 {
     uint32_t id;
     char name[MAX_CHIP_NAME_LEN];
+    uint32_t page_size;
+    uint32_t block_size;
     uint32_t size;
 } ChipInfo;
 
