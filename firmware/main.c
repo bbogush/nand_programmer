@@ -520,7 +520,7 @@ static int cmd_nand_write_data(prog_t *prog)
     }
 
     prog->bytes_written += write_data_cmd->len;
-    if (prog->bytes_written - prog->bytes_ack >= WRITE_ACK_BYTES)
+    if (prog->bytes_written - prog->bytes_ack >= chip_info->page_size)
     {
         if (send_write_ack(prog->bytes_written))
             return -1;
