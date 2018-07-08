@@ -224,14 +224,28 @@ void MainWindow::writeChipCb(int status)
 
 void MainWindow::slotProgWrite()
 {
+    uint32_t pageSize;
+
     if (!bufferSize)
     {
         qInfo() << "Write buffer is empty";
         return;
     }
 
+    if (chipId == CHIP_ID_NONE)
+    {
+        qInfo() << "Chip is not selected";
+        return;
+    }
+
+    if (!(pageSize = getChipPageSize(chipId)))
+    {
+        qInfo() << "Chip page size is unknown";
+        return;
+    }
+
     prog->writeChip(std::bind(&MainWindow::writeChipCb, this,
-        std::placeholders::_1), buffer, START_ADDRESS, bufferSize);
+        std::placeholders::_1), buffer, START_ADDRESS, bufferSize, pageSize);
 }
 
 void MainWindow::selectChipCb()
@@ -241,6 +255,7 @@ void MainWindow::selectChipCb()
 
 void MainWindow::slotSelectChip(int selectedChipNum)
 {
+    chipId = selectedChipNum;
     prog->selectChip(std::bind(&MainWindow::selectChipCb, this),
         selectedChipNum);
 }

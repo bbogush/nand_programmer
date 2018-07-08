@@ -12,7 +12,8 @@
 #define SERIAL_PORT_SPEED 4000000
 #define READ_TIMEOUT_MS 100
 #define ERASE_TIMEOUT_MS 10000
-#define WRITE_TIMEOUT_MS 30000
+#define WRITE_TIMEOUT_MS 30000//500
+#define WRITE_BYTES_PENDING_ACK_LIM 1984
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
@@ -388,14 +389,14 @@ void Programmer::sendWriteCmdCb(int status)
         return;
     }
 
-    if (writeSentBytes < writeAckBytes + writeAckBytesLim)
+    if (writeSentBytes < writeAckBytes + WRITE_BYTES_PENDING_ACK_LIM)
         sendWriteCmd();
 }
 
 void Programmer::sendWriteCmd()
 {
     uint8_t cdcBuf[CDC_BUF_SIZE];
-    uint32_t sendDataLen, txBufDataLen, ackLim;
+    uint32_t sendDataLen, txBufDataLen;
     WriteEndCmd *writeEndCmd;
     WriteDataCmd *writeDataCmd;
 
@@ -409,9 +410,6 @@ void Programmer::sendWriteCmd()
 
         sendDataLen = writeRemainingBytes < txBufDataLen ?
             writeRemainingBytes : txBufDataLen;
-        ackLim = writeAckBytes + writeAckBytesLim;
-        if (writeSentBytes + sendDataLen > ackLim)
-            sendDataLen = ackLim - writeSentBytes;
 
         writeDataCmd = (WriteDataCmd *)cdcBuf;
         writeDataCmd->cmd.code = CMD_NAND_WRITE_D;
@@ -419,6 +417,8 @@ void Programmer::sendWriteCmd()
         memcpy(writeDataCmd->data, writeChipBuf + writeSentBytes, sendDataLen);
         writeSentBytes += sendDataLen;
         writeRemainingBytes -= sendDataLen;
+
+        qDebug() << "sent=" << writeSentBytes;
 
         writeData.clear();
         writeData.append((const char *)cdcBuf, sizeof(WriteDataCmd) + sendDataLen);
@@ -461,13 +461,14 @@ int Programmer::handleWriteAck(QByteArray *data)
     }
 
     writeAckBytes = header->ackBytes;
+    qDebug() << "ack=" << writeAckBytes;
 
     data->clear();
     serialPortReader->read(std::bind(&Programmer::readRespWriteChipCb,
         this, std::placeholders::_1), data, WRITE_TIMEOUT_MS,
         sizeof(RespHeader));
 
-    if (writeSentBytes < writeAckBytes + writeAckBytesLim)
+    if (writeSentBytes < writeAckBytes + WRITE_BYTES_PENDING_ACK_LIM)
         sendWriteCmd();
 
     return 0;
@@ -581,7 +582,7 @@ void Programmer::sendWriteStartCmdCb(int status)
 }
 
 void Programmer::writeChip(std::function<void(int)> callback, uint8_t *buf,
-    uint32_t addr, uint32_t len, uint32_t pageSize)
+    uint32_t addr, uint32_t len)
 {
     WriteStartCmd writeStartCmd;
 
@@ -601,7 +602,6 @@ void Programmer::writeChip(std::function<void(int)> callback, uint8_t *buf,
     writeLen = len;
     writeChipCb = callback;
     writeAckBytes = 0;
-    writeAckBytesLim = pageSize;
     writeData.clear();
     writeData.append((const char *)&writeStartCmd, sizeof(writeStartCmd));
 

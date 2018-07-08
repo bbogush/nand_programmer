@@ -135,6 +135,7 @@ class Programmer : public QObject
     uint32_t writeSentBytes;
     uint32_t writeRemainingBytes;
     uint32_t writeAckBytes;
+    uint32_t writeAckBytesLim;
     uint32_t writeLen;
     bool isWriteInProgress;
     bool isReadError;
@@ -175,7 +176,7 @@ public:
     void readChip(std::function<void(int)> callback, uint8_t *buf,
         uint32_t addr, uint32_t len);
     void writeChip(std::function<void(int)> callback, uint8_t *buf,
-        uint32_t addr, uint32_t len);
+        uint32_t addr, uint32_t len, uint32_t pageSize);
     void selectChip(std::function<void(void)> callback, uint32_t chipNum);
 
 private slots:

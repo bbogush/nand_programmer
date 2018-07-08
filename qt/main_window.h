@@ -28,6 +28,7 @@ private:
     uint8_t *buffer;
     uint32_t bufferSize;
     BufferTableModel bufferTableModel;
+    uint32_t chipId;
 
     void initBufTable();
     void resetBufTable();
