@@ -22,7 +22,7 @@
 static void addChipDB(QComboBox *chipSelectComboBox)
 {
     ChipInfo *db;
-    uint32_t size = getChipDB(db);
+    uint32_t size = chipDbGet(db);
 
     for (uint32_t i = 0; i < size; i++)
         chipSelectComboBox->addItem(db[i].name);
@@ -176,7 +176,7 @@ void MainWindow::eraseChipCb()
 void MainWindow::slotProgErase()
 {
     QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
-    ChipInfo *chipInfo = getChipInfoByName(ba.data());
+    ChipInfo *chipInfo = chipInfoGetByName(ba.data());
 
     prog->eraseChip(std::bind(&MainWindow::eraseChipCb, this), START_ADDRESS,
         chipInfo->size);
@@ -185,7 +185,7 @@ void MainWindow::slotProgErase()
 void MainWindow::readChipCb(int status)
 {
     QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
-    ChipInfo *chipInfo = getChipInfoByName(ba.data());
+    ChipInfo *chipInfo = chipInfoGetByName(ba.data());
     uint32_t readSize = chipInfo->size;
 
     if (status)
@@ -201,7 +201,7 @@ void MainWindow::readChipCb(int status)
 void MainWindow::slotProgRead()
 {
     QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
-    ChipInfo *chipInfo = getChipInfoByName(ba.data());
+    ChipInfo *chipInfo = chipInfoGetByName(ba.data());
     uint32_t readSize = chipInfo->size;
 
     resetBufTable();
@@ -238,7 +238,7 @@ void MainWindow::slotProgWrite()
         return;
     }
 
-    if (!(pageSize = getChipPageSize(chipId)))
+    if (!(pageSize = chipPageSizeGet(chipId)))
     {
         qInfo() << "Chip page size is unknown";
         return;

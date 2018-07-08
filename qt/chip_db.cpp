@@ -12,14 +12,14 @@ static ChipInfo chipDB[] =
     { CHIP_ID_K9F2G08U0C, "K9F2G08U0C", 0x800, 0x20000, 0x10000000 },
 };
 
-uint32_t getChipDB(ChipInfo *&db)
+uint32_t chipDbGet(ChipInfo *&db)
 {
     db = chipDB;
 
     return CHIP_ID_LAST;
 }
 
-ChipInfo *getChipInfoByName(char *name)
+ChipInfo *chipInfoGetByName(char *name)
 {
     for (int id = 0; id < CHIP_ID_LAST; id++)
     {
@@ -30,7 +30,7 @@ ChipInfo *getChipInfoByName(char *name)
     return 0;
 }
 
-ChipInfo *getChipInfoById(uint32_t id)
+ChipInfo *chipInfoGetById(uint32_t id)
 {
     if (id == CHIP_ID_NONE || id >= CHIP_ID_LAST)
         return NULL;
@@ -38,9 +38,9 @@ ChipInfo *getChipInfoById(uint32_t id)
     return &chipDB[id];
 }
 
-uint32_t getChipPageSize(uint32_t id)
+uint32_t chipPageSizeGet(uint32_t id)
 {
-    ChipInfo *info = getChipInfoById(id);
+    ChipInfo *info = chipInfoGetById(id);
 
     return info ? info->page_size : 0;
 }
