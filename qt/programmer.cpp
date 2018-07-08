@@ -396,7 +396,7 @@ void Programmer::sendWriteCmdCb(int status)
 void Programmer::sendWriteCmd()
 {
     uint8_t cdcBuf[CDC_BUF_SIZE];
-    uint32_t sendDataLen, txBufDataLen;
+    uint32_t sendDataLen, txBufDataLen, ackLim;
     WriteEndCmd *writeEndCmd;
     WriteDataCmd *writeDataCmd;
 
@@ -410,6 +410,9 @@ void Programmer::sendWriteCmd()
 
         sendDataLen = writeRemainingBytes < txBufDataLen ?
             writeRemainingBytes : txBufDataLen;
+        ackLim = writeAckBytes + WRITE_BYTES_PENDING_ACK_LIM;
+        if (writeSentBytes + sendDataLen > ackLim)
+            sendDataLen = ackLim - writeSentBytes;
 
         writeDataCmd = (WriteDataCmd *)cdcBuf;
         writeDataCmd->cmd.code = CMD_NAND_WRITE_D;
