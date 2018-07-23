@@ -61,6 +61,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     initBufTable();
 
     prog = new Programmer(this);
+    connect(prog, SIGNAL(writeChipCompleted(int)), this,
+        SLOT(slotProgWriteCompleted(int)));
 
     addChipDB(ui->chipSelectComboBox);
     connect(ui->chipSelectComboBox, SIGNAL(currentIndexChanged(int)),
@@ -216,7 +218,7 @@ void MainWindow::slotProgRead()
         std::placeholders::_1), buffer, START_ADDRESS, readSize);
 }
 
-void MainWindow::writeChipCb(int status)
+void MainWindow::slotProgWriteCompleted(int status)
 {
     if (!status)
         qInfo() << "Data has been successfully written";
@@ -244,8 +246,7 @@ void MainWindow::slotProgWrite()
         return;
     }
 
-    prog->writeChip(std::bind(&MainWindow::writeChipCb, this,
-        std::placeholders::_1), buffer, START_ADDRESS, bufferSize, pageSize);
+    prog->writeChip(buffer, START_ADDRESS, bufferSize, pageSize);
 }
 
 void MainWindow::selectChipCb()

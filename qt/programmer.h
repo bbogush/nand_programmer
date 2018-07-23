@@ -31,7 +31,6 @@ class Programmer : public QObject
     std::function<void(void)> selectChipCb;
     std::function<void(void)> eraseChipCb;
     std::function<void(int)> readChipCb;
-    std::function<void(int)> writeChipCb;
     uint8_t *readChipBuf;
     uint32_t readChipLen;
     uint8_t *writeChipBuf;
@@ -73,9 +72,12 @@ public:
         uint32_t len);
     void readChip(std::function<void(int)> callback, uint8_t *buf,
         uint32_t addr, uint32_t len);
-    void writeChip(std::function<void(int)> callback, uint8_t *buf,
-        uint32_t addr, uint32_t len, uint32_t pageSize);
+    void writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
+        uint32_t pageSize);
     void selectChip(std::function<void(void)> callback, uint32_t chipNum);
+
+signals:
+    void writeChipCompleted(int ret);
 
 private slots:
     void writeCb(int ret);

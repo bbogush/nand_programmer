@@ -39,6 +39,9 @@ private:
     void readChipCb(int status);
     void writeChipCb(int status);
 
+private slots:
+    void slotProgWriteCompleted(int status);
+
 public slots:
     void slotFileOpen();
     void slotProgConnect();

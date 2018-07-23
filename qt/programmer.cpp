@@ -323,13 +323,12 @@ void Programmer::writeCb(int ret)
 {
     QObject::disconnect(&writer, SIGNAL(result(int)), this, SLOT(writeCb(int)));
     serialPortConnect();
-    writeChipCb(ret);
+    emit writeChipCompleted(ret);
 }
 
-void Programmer::writeChip(std::function<void(int)> callback, uint8_t *buf,
-    uint32_t addr, uint32_t len, uint32_t pageSize)
+void Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
+    uint32_t pageSize)
 {
-    writeChipCb = callback;
     QObject::connect(&writer, SIGNAL(result(int)), this, SLOT(writeCb(int)));
 
     /* Serial port object cannot be used in other thread */
