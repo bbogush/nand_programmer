@@ -239,84 +239,21 @@ void Programmer::eraseChip(std::function<void(void)> callback, uint32_t addr,
         this, std::placeholders::_1), &writeData);
 }
 
-void Programmer::readRespReadChipCb(int status)
+void Programmer::readCb(int ret)
 {
-    uint size;
-    RespHeader *header;
-    uint32_t writeOffset = 0, readOffset = 0, bytes_left = 0;
-
-    if (status == SerialPortReader::READ_ERROR)
-        goto Error;
-
-    size = readData.size();
-    while ((bytes_left = size - readOffset))
-    {
-        if (readRespHeader(&readData, readOffset, header))
-            goto Error;
-
-        switch (header->code)
-        {
-        case RESP_STATUS:
-            if (header->info == STATUS_OK && header->info == STATUS_BAD_BLOCK)
-            {
-                if (handleBadBlock(&readData, readOffset))
-                    goto Error;
-                readOffset += sizeof(RespBadBlock);
-            }
-            else
-            {
-                qCritical() << "Programmer error: failed to read chip";
-                goto Error;
-            }
-            break;
-        case RESP_DATA:
-            if (header->info > CDC_BUF_SIZE - sizeof(RespHeader) || header->info > bytes_left)
-            {
-                qCritical() << "Wrong data length in response header:" << header->info;
-                goto Error;
-            }
-            memcpy(readChipBuf + writeOffset, header->data, header->info);
-            writeOffset += header->info;
-            readOffset += sizeof(RespHeader) + header->info;
-           break;
-        default:
-            handleWrongResp(header->code);
-            goto Error;
-        }
-    }
-
-    if (readChipLen == writeOffset)
-        readChipCb(0);
-    else
-    {
-        qCritical() << "Data was partialy received, size:" << writeOffset;
-        goto Error;
-    }
-
-    return;
-
-Error:
-    readChipCb(-1);
+    QObject::disconnect(&reader, SIGNAL(result(int)), this, SLOT(readCb(int)));
+    serialPortConnect();
+    emit readChipCompleted(ret);
 }
 
-void Programmer::readChip(std::function<void(int)> callback, uint8_t *buf,
-    uint32_t addr, uint32_t len)
+void Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
 {
-    Cmd cmd = { .code = CMD_NAND_READ };
-    ReadCmd readCmd = { .cmd = cmd, .addr = addr, .len = len };
+    QObject::connect(&reader, SIGNAL(result(int)), this, SLOT(readCb(int)));
 
-    readData.clear();
-    serialPortReader->read(std::bind(&Programmer::readRespReadChipCb, this,
-        std::placeholders::_1), &readData, READ_TIMEOUT_MS,
-        std::numeric_limits<int>::max());
-
-    readChipCb = callback;
-    readChipBuf = buf;
-    readChipLen = len;
-    writeData.clear();
-    writeData.append((const char *)&readCmd, sizeof(readCmd));
-    serialPortWriter->write(std::bind(&Programmer::sendCmdCb,
-        this, std::placeholders::_1), &writeData);
+    /* Serial port object cannot be used in other thread */
+    serialPortDisconnect();
+    reader.init(CDC_DEV_NAME, SERIAL_PORT_SPEED, buf, addr, len);
+    reader.start();
 }
 
 void Programmer::writeCb(int ret)

@@ -63,6 +63,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     prog = new Programmer(this);
     connect(prog, SIGNAL(writeChipCompleted(int)), this,
         SLOT(slotProgWriteCompleted(int)));
+    connect(prog, SIGNAL(readChipCompleted(int)), this,
+        SLOT(slotProgReadCompleted(int)));
 
     addChipDB(ui->chipSelectComboBox);
     connect(ui->chipSelectComboBox, SIGNAL(currentIndexChanged(int)),
@@ -184,7 +186,7 @@ void MainWindow::slotProgErase()
         chipInfo->size);
 }
 
-void MainWindow::readChipCb(int status)
+void MainWindow::slotProgReadCompleted(int status)
 {
     QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
     ChipInfo *chipInfo = chipInfoGetByName(ba.data());
@@ -214,8 +216,7 @@ void MainWindow::slotProgRead()
         return;
     }
 
-    prog->readChip(std::bind(&MainWindow::readChipCb, this,
-        std::placeholders::_1), buffer, START_ADDRESS, readSize);
+    prog->readChip(buffer, START_ADDRESS, readSize);
 }
 
 void MainWindow::slotProgWriteCompleted(int status)

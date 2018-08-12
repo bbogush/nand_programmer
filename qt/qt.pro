@@ -25,7 +25,8 @@ SOURCES += main.cpp\
     serial_port_reader.cpp \
     logger.cpp \
     buffer_table_model.cpp \
-    writer.cpp
+    writer.cpp \
+    reader.cpp
 
 HEADERS  += main_window.h \
     programmer.h \
@@ -35,7 +36,8 @@ HEADERS  += main_window.h \
     logger.h \
     buffer_table_model.h \
     cmd.h \
-    writer.h
+    writer.h \
+    reader.h
 
 FORMS    += main_window.ui
 

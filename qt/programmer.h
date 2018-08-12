@@ -15,6 +15,7 @@
 #include "serial_port_writer.h"
 #include "serial_port_reader.h"
 #include "writer.h"
+#include "reader.h"
 #include "cmd.h"
 
 using namespace std;
@@ -25,12 +26,12 @@ class Programmer : public QObject
 
     QSerialPort serialPort;
     Writer writer;
+    Reader reader;
     QThread *currThread;
     bool isConn;
     std::function<void(ChipId)> readChipIdCb;
     std::function<void(void)> selectChipCb;
     std::function<void(void)> eraseChipCb;
-    std::function<void(int)> readChipCb;
     uint8_t *readChipBuf;
     uint32_t readChipLen;
     uint8_t *writeChipBuf;
@@ -49,7 +50,6 @@ class Programmer : public QObject
     void readRespChipIdCb(int status);
     void readRespSelectChipCb(int status);
     void readRespEraseChipCb(int status);
-    void readRespReadChipCb(int status);
     int handleStatus(RespHeader *respHead);
     int handleWrongResp(uint8_t code);
     int handleBadBlock(QByteArray *data, uint32_t offset);
@@ -70,17 +70,18 @@ public:
     void readChipId(std::function<void(ChipId)> callback);
     void eraseChip(std::function<void(void)> callback, uint32_t addr,
         uint32_t len);
-    void readChip(std::function<void(int)> callback, uint8_t *buf,
-        uint32_t addr, uint32_t len);
+    void readChip(uint8_t *buf, uint32_t addr, uint32_t len);
     void writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
         uint32_t pageSize);
     void selectChip(std::function<void(void)> callback, uint32_t chipNum);
 
 signals:
     void writeChipCompleted(int ret);
+    void readChipCompleted(int ret);
 
 private slots:
     void writeCb(int ret);
+    void readCb(int ret);
 };
 
 #endif // PROGRAMMER_H

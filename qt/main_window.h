@@ -40,6 +40,7 @@ private:
     void writeChipCb(int status);
 
 private slots:
+    void slotProgReadCompleted(int status);
     void slotProgWriteCompleted(int status);
 
 public slots:
