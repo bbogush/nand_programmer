@@ -61,10 +61,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     initBufTable();
 
     prog = new Programmer(this);
-    connect(prog, SIGNAL(writeChipCompleted(int)), this,
-        SLOT(slotProgWriteCompleted(int)));
-    connect(prog, SIGNAL(readChipCompleted(int)), this,
-        SLOT(slotProgReadCompleted(int)));
 
     addChipDB(ui->chipSelectComboBox);
     connect(ui->chipSelectComboBox, SIGNAL(currentIndexChanged(int)),
@@ -157,19 +153,26 @@ void MainWindow::slotProgConnect()
     }
 }
 
-void MainWindow::readChipIdCb(ChipId id)
+void MainWindow::slotProgReadDeviceIdCompleted(int status)
 {
     QString idStr;
 
-    idStr.sprintf("0x%02X 0x%02X 0x%02X 0x%02X", id.makerId, id.deviceId,
-        id.thirdId, id.fourthId);
+    disconnect(prog, SIGNAL(readChipCompleted(int)), this,
+        SLOT(slotProgReadDeviceIdCompleted(int)));
+
+    if (status)
+        return;
+
+    idStr.sprintf("0x%02X 0x%02X 0x%02X 0x%02X", chipId.makerId,
+        chipId.deviceId, chipId.thirdId, chipId.fourthId);
     ui->deviceValueLabel->setText(idStr);
 }
 
 void MainWindow::slotProgReadDeviceId()
 {
-    prog->readChipId(std::bind(&MainWindow::readChipIdCb, this,
-        std::placeholders::_1));
+    connect(prog, SIGNAL(readChipIdCompleted(int)), this,
+        SLOT(slotProgReadDeviceIdCompleted(int)));
+    prog->readChipId(&chipId);
 }
 
 void MainWindow::eraseChipCb()
@@ -192,6 +195,9 @@ void MainWindow::slotProgReadCompleted(int status)
     ChipInfo *chipInfo = chipInfoGetByName(ba.data());
     uint32_t readSize = chipInfo->size;
 
+    disconnect(prog, SIGNAL(readChipCompleted(int)), this,
+        SLOT(slotProgReadCompleted(int)));
+
     if (status)
     {
         delete buffer;
@@ -208,6 +214,9 @@ void MainWindow::slotProgRead()
     ChipInfo *chipInfo = chipInfoGetByName(ba.data());
     uint32_t readSize = chipInfo->size;
 
+    connect(prog, SIGNAL(readChipCompleted(int)), this,
+        SLOT(slotProgReadCompleted(int)));
+
     resetBufTable();
     buffer = new (std::nothrow) uint8_t[readSize];
     if (!buffer)
@@ -221,6 +230,9 @@ void MainWindow::slotProgRead()
 
 void MainWindow::slotProgWriteCompleted(int status)
 {
+    disconnect(prog, SIGNAL(writeChipCompleted(int)), this,
+        SLOT(slotProgWriteCompleted(int)));
+
     if (!status)
         qInfo() << "Data has been successfully written";
 }
@@ -235,17 +247,20 @@ void MainWindow::slotProgWrite()
         return;
     }
 
-    if (chipId == CHIP_ID_NONE)
+    if (selectedChipNum == CHIP_ID_NONE)
     {
         qInfo() << "Chip is not selected";
         return;
     }
 
-    if (!(pageSize = chipPageSizeGet(chipId)))
+    if (!(pageSize = chipPageSizeGet(selectedChipNum)))
     {
         qInfo() << "Chip page size is unknown";
         return;
     }
+
+    connect(prog, SIGNAL(writeChipCompleted(int)), this,
+        SLOT(slotProgWriteCompleted(int)));
 
     prog->writeChip(buffer, START_ADDRESS, bufferSize, pageSize);
 }
@@ -257,7 +272,7 @@ void MainWindow::selectChipCb()
 
 void MainWindow::slotSelectChip(int selectedChipNum)
 {
-    chipId = selectedChipNum;
+    this->selectedChipNum = selectedChipNum;
     prog->selectChip(std::bind(&MainWindow::selectChipCb, this),
         selectedChipNum);
 }

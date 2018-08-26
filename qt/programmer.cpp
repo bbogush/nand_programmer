@@ -108,39 +108,6 @@ int Programmer::readRespHeader(const QByteArray *data, uint32_t offset,
     return 0;
 }
 
-void Programmer::readRespChipIdCb(int status)
-{
-    uint size;
-    RespHeader *header;
-    RespId *respId;
-
-    if (status == SerialPortReader::READ_ERROR)
-        return;
-
-    if (readRespHeader(&readData, 0, header))
-        return;
-
-    switch (header->code)
-    {
-    case RESP_DATA:
-        size = readData.size();
-        if (size < (int)sizeof(RespId))
-        {
-            qCritical() << "Size of chip ID response is wrong:" << size;
-            return;
-        }
-        respId = (RespId *)readData.data();
-        readChipIdCb(respId->nandId);
-        break;
-    case RESP_STATUS:
-        handleStatus(header);
-        break;
-    default:
-        handleWrongResp(header->code);
-        break;
-    }
-}
-
 void Programmer::sendCmdCb(int status)
 {
     if (status != SerialPortWriter::WRITE_OK)
@@ -150,20 +117,28 @@ void Programmer::sendCmdCb(int status)
     }
 }
 
-void Programmer::readChipId(std::function<void(ChipId)> callback)
+void Programmer::readChipIdCb(int ret)
+{
+    emit readChipIdCompleted(ret);
+    serialPortConnect();
+    QObject::disconnect(&reader, SIGNAL(result(int)), this,
+        SLOT(readChipIdCb(int)));
+}
+
+void Programmer::readChipId(ChipId *chipId)
 {
     Cmd cmd = { .code = CMD_NAND_READ_ID };
 
-    readData.clear();
-    serialPortReader->read(std::bind(&Programmer::readRespChipIdCb, this,
-        std::placeholders::_1), &readData, READ_TIMEOUT_MS,
-        sizeof(RespHeader));
+    QObject::connect(&reader, SIGNAL(result(int)), this,
+        SLOT(readChipIdCb(int)));
 
-    readChipIdCb = callback;
+    /* Serial port object cannot be used in other thread */
+    serialPortDisconnect();
     writeData.clear();
     writeData.append((const char *)&cmd, sizeof(cmd));
-    serialPortWriter->write(std::bind(&Programmer::sendCmdCb,
-        this, std::placeholders::_1), &writeData);
+    reader.init(CDC_DEV_NAME, SERIAL_PORT_SPEED, (uint8_t *)chipId,
+        sizeof(ChipId), (uint8_t *)writeData.constData(), writeData.size());
+    reader.start();
 }
 
 int Programmer::handleBadBlock(QByteArray *data, uint32_t offset)
@@ -248,11 +223,17 @@ void Programmer::readCb(int ret)
 
 void Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
 {
+    Cmd cmd = { .code = CMD_NAND_READ };
+    ReadCmd readCmd = { .cmd = cmd, .addr = addr, .len = len };
+
     QObject::connect(&reader, SIGNAL(result(int)), this, SLOT(readCb(int)));
 
     /* Serial port object cannot be used in other thread */
     serialPortDisconnect();
-    reader.init(CDC_DEV_NAME, SERIAL_PORT_SPEED, buf, addr, len);
+    writeData.clear();
+    writeData.append((const char *)&readCmd, sizeof(readCmd));
+    reader.init(CDC_DEV_NAME, SERIAL_PORT_SPEED, buf, len,
+        (uint8_t *)writeData.constData(), writeData.size());
     reader.start();
 }
 

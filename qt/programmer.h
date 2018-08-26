@@ -29,7 +29,6 @@ class Programmer : public QObject
     Reader reader;
     QThread *currThread;
     bool isConn;
-    std::function<void(ChipId)> readChipIdCb;
     std::function<void(void)> selectChipCb;
     std::function<void(void)> eraseChipCb;
     uint8_t *readChipBuf;
@@ -47,7 +46,6 @@ class Programmer : public QObject
     void sendCmdCb(int status);
     int readRespHeader(const QByteArray *data, uint32_t offset,
         RespHeader *&header);
-    void readRespChipIdCb(int status);
     void readRespSelectChipCb(int status);
     void readRespEraseChipCb(int status);
     int handleStatus(RespHeader *respHead);
@@ -67,7 +65,7 @@ public:
     int connect();
     void disconnect();
     bool isConnected();
-    void readChipId(std::function<void(ChipId)> callback);
+    void readChipId(ChipId *chipId);
     void eraseChip(std::function<void(void)> callback, uint32_t addr,
         uint32_t len);
     void readChip(uint8_t *buf, uint32_t addr, uint32_t len);
@@ -76,10 +74,12 @@ public:
     void selectChip(std::function<void(void)> callback, uint32_t chipNum);
 
 signals:
+    void readChipIdCompleted(int ret);
     void writeChipCompleted(int ret);
     void readChipCompleted(int ret);
 
 private slots:
+    void readChipIdCb(int ret);
     void writeCb(int ret);
     void readCb(int ret);
 };

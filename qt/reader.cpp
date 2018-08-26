@@ -15,14 +15,15 @@
 Q_DECLARE_METATYPE(QTextBlock)
 Q_DECLARE_METATYPE(QTextCursor)
 
-void Reader::init(const QString &portName, qint32 baudRate, uint8_t *buf,
-    uint32_t addr, uint32_t len)
+void Reader::init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
+    uint32_t rlen, uint8_t *wbuf, uint32_t wlen)
 {
     this->portName = portName;
     this->baudRate = baudRate;
-    this->buf = buf;
-    this->addr = addr;
-    this->len = len;
+    this->rbuf = rbuf;
+    this->rlen = rlen;
+    this->wbuf = wbuf;
+    this->wlen = wlen;
     readOffset = 0;
 }
 
@@ -48,10 +49,7 @@ int Reader::write(uint8_t *data, uint32_t len)
 
 int Reader::readStart()
 {
-    Cmd cmd = { .code = CMD_NAND_READ };
-    ReadCmd readCmd = { .cmd = cmd, .addr = addr, .len = len };
-
-    return write((uint8_t *)&readCmd, sizeof(readCmd));
+    return write(wbuf, wlen);
 }
 
 int Reader::read(uint8_t *pbuf, uint32_t len)
@@ -124,13 +122,13 @@ int Reader::handleData(uint8_t *pbuf, uint32_t len)
     if (len < packetSize)
         return 0;
 
-    if (dataSize + readOffset > this->len)
+    if (dataSize + readOffset > this->rlen)
     {
         qCritical() << "Read buffer overflow";
         return -1;
     }
 
-    memcpy(buf + readOffset, header->data, dataSize);
+    memcpy(rbuf + readOffset, header->data, dataSize);
     readOffset += dataSize;
 
     return packetSize;
@@ -195,7 +193,7 @@ int Reader::readData()
         if ((offset = handlePackets(pbuf, len)) < 0)
             return -1;
     }
-    while (readOffset != this->len);
+    while (readOffset != this->rlen);
 
     return 0;
 }

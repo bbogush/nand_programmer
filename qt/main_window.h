@@ -28,7 +28,8 @@ private:
     uint8_t *buffer;
     uint32_t bufferSize;
     BufferTableModel bufferTableModel;
-    uint32_t chipId;
+    uint32_t selectedChipNum;
+    ChipId chipId;
 
     void initBufTable();
     void resetBufTable();
@@ -40,6 +41,7 @@ private:
     void writeChipCb(int status);
 
 private slots:
+    void slotProgReadDeviceIdCompleted(int status);
     void slotProgReadCompleted(int status);
     void slotProgWriteCompleted(int status);
 

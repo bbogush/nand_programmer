@@ -16,9 +16,10 @@ class Reader : public QThread
     QSerialPort *serialPort;
     QString portName;
     qint32 baudRate;
-    uint8_t *buf;
-    uint32_t addr;
-    uint32_t len;
+    uint8_t *rbuf;
+    uint32_t rlen;
+    uint8_t *wbuf;
+    uint32_t wlen;
     uint32_t readOffset;
 
     int serialPortCreate();
@@ -35,8 +36,8 @@ class Reader : public QThread
     void run() override;
 
 public:
-    void init(const QString &portName, qint32 baudRate, uint8_t *buf,
-        uint32_t addr, uint32_t len);
+    void init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
+        uint32_t rlen, uint8_t *wbuf, uint32_t wlen);
 signals:
     void result(int ret);
 };
