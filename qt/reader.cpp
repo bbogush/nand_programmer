@@ -98,7 +98,10 @@ int Reader::handleStatus(uint8_t *pbuf, uint32_t len)
     case STATUS_BAD_BLOCK:
         return handleBadBlock(pbuf, len);
     case STATUS_OK:
-        /* Not expected */
+        // Exit read loop
+        if (!rlen)
+            readOffset = 1;
+        break;
     default:
         qCritical() << "Wrong response header info " << header->info;
         return -1;
@@ -192,8 +195,11 @@ int Reader::readData()
 
         if ((offset = handlePackets(pbuf, len)) < 0)
             return -1;
+
+        if (!readOffset)
+            continue;
     }
-    while (readOffset != this->rlen);
+    while (rlen && rlen != readOffset);
 
     return 0;
 }

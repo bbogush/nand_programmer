@@ -30,7 +30,6 @@ class Programmer : public QObject
     QThread *currThread;
     bool isConn;
     std::function<void(void)> selectChipCb;
-    std::function<void(void)> eraseChipCb;
     uint8_t *readChipBuf;
     uint32_t readChipLen;
     uint8_t *writeChipBuf;
@@ -47,7 +46,6 @@ class Programmer : public QObject
     int readRespHeader(const QByteArray *data, uint32_t offset,
         RespHeader *&header);
     void readRespSelectChipCb(int status);
-    void readRespEraseChipCb(int status);
     int handleStatus(RespHeader *respHead);
     int handleWrongResp(uint8_t code);
     int handleBadBlock(QByteArray *data, uint32_t offset);
@@ -66,8 +64,7 @@ public:
     void disconnect();
     bool isConnected();
     void readChipId(ChipId *chipId);
-    void eraseChip(std::function<void(void)> callback, uint32_t addr,
-        uint32_t len);
+    void eraseChip(uint32_t addr, uint32_t len);
     void readChip(uint8_t *buf, uint32_t addr, uint32_t len);
     void writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
         uint32_t pageSize);
@@ -77,11 +74,13 @@ signals:
     void readChipIdCompleted(int ret);
     void writeChipCompleted(int ret);
     void readChipCompleted(int ret);
+    void eraseChipCompleted(int ret);
 
 private slots:
     void readChipIdCb(int ret);
     void writeCb(int ret);
     void readCb(int ret);
+    void eraseChipCb(int ret);
 };
 
 #endif // PROGRAMMER_H

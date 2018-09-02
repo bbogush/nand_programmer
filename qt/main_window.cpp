@@ -175,9 +175,13 @@ void MainWindow::slotProgReadDeviceId()
     prog->readChipId(&chipId);
 }
 
-void MainWindow::eraseChipCb()
+void MainWindow::slotProgEraseCompleted(int status)
 {
-    qInfo() << "Chip has been erased successfully";
+    disconnect(prog, SIGNAL(eraseChipCompleted(int)), this,
+        SLOT(slotProgEraseCompleted(int)));
+
+    if (!status)
+        qInfo() << "Chip has been erased successfully";
 }
 
 void MainWindow::slotProgErase()
@@ -185,8 +189,10 @@ void MainWindow::slotProgErase()
     QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
     ChipInfo *chipInfo = chipInfoGetByName(ba.data());
 
-    prog->eraseChip(std::bind(&MainWindow::eraseChipCb, this), START_ADDRESS,
-        chipInfo->size);
+    connect(prog, SIGNAL(eraseChipCompleted(int)), this,
+        SLOT(slotProgEraseCompleted(int)));
+
+    prog->eraseChip(START_ADDRESS, chipInfo->size);
 }
 
 void MainWindow::slotProgReadCompleted(int status)

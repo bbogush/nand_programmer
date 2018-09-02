@@ -44,6 +44,7 @@ private slots:
     void slotProgReadDeviceIdCompleted(int status);
     void slotProgReadCompleted(int status);
     void slotProgWriteCompleted(int status);
+    void slotProgEraseCompleted(int status);
 
 public slots:
     void slotFileOpen();

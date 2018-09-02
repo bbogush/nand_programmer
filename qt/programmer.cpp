@@ -141,77 +141,29 @@ void Programmer::readChipId(ChipId *chipId)
     reader.start();
 }
 
-int Programmer::handleBadBlock(QByteArray *data, uint32_t offset)
+void Programmer::eraseChipCb(int ret)
 {
-    RespBadBlock *badBlock;
-    uint size = data->size();
-    uint bytes_left = size - offset;
-
-    if (bytes_left < sizeof(RespBadBlock))
-    {
-        qCritical() << "Header size of bad block response is wrong:"
-            << bytes_left;
-        return -1;
-    }
-
-    badBlock = (RespBadBlock *)(data->data() + offset);
-    qInfo() << QString("Bad block at 0x%1").arg(badBlock->addr, 8,
-        16, QLatin1Char( '0' ));
-
-    return 0;
+    QObject::disconnect(&reader, SIGNAL(result(int)), this,
+        SLOT(eraseChipCb(int)));
+    serialPortConnect();
+    emit eraseChipCompleted(ret);
 }
 
-void Programmer::readRespEraseChipCb(int status)
-{
-    RespHeader *header;
-
-    if (status == SerialPortReader::READ_ERROR)
-        return;
-
-    while (readData.size())
-    {
-        if (readRespHeader(&readData, 0, header))
-            return;
-        switch (header->code)
-        {
-        case RESP_STATUS:
-            if (header->info == STATUS_OK)
-                eraseChipCb();
-            else if (header->info == STATUS_BAD_BLOCK)
-            {
-                if (!handleBadBlock(&readData, 0))
-                {
-                    readData.remove(0, sizeof(RespBadBlock));
-                    continue;
-                }
-            }
-            else
-                qCritical() << "Programmer error: failed to erase chip";
-            break;
-        default:
-            handleWrongResp(header->code);
-            break;
-        }
-        readData.clear();
-    }
-}
-
-void Programmer::eraseChip(std::function<void(void)> callback, uint32_t addr,
-    uint32_t len)
+void Programmer::eraseChip(uint32_t addr, uint32_t len)
 {
     Cmd cmd = { .code = CMD_NAND_ERASE };
     EraseCmd eraseCmd = { .cmd = cmd, .addr = addr, .len = len };
 
-    readData.clear();
-    serialPortReader->read(std::bind(&Programmer::readRespEraseChipCb, this,
-        std::placeholders::_1), &readData, ERASE_TIMEOUT_MS,
-        sizeof(RespHeader));
+    QObject::connect(&reader, SIGNAL(result(int)), this,
+        SLOT(eraseChipCb(int)));
 
-    eraseChipCb = callback;
+    /* Serial port object cannot be used in other thread */
+    serialPortDisconnect();
     writeData.clear();
     writeData.append((const char *)&eraseCmd, sizeof(eraseCmd));
-    serialPortWriter->write(std::bind(&Programmer::sendCmdCb,
-        this, std::placeholders::_1), &writeData);
+    reader.init(CDC_DEV_NAME, SERIAL_PORT_SPEED, NULL, 0,
+        (uint8_t *)writeData.constData(), writeData.size());
+    reader.start();
 }
 
 void Programmer::readCb(int ret)
