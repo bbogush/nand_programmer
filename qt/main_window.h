@@ -34,17 +34,12 @@ private:
     void initBufTable();
     void resetBufTable();
 
-    void readChipIdCb(ChipId id);
-    void selectChipCb();
-    void eraseChipCb();
-    void readChipCb(int status);
-    void writeChipCb(int status);
-
 private slots:
     void slotProgReadDeviceIdCompleted(int status);
     void slotProgReadCompleted(int status);
     void slotProgWriteCompleted(int status);
     void slotProgEraseCompleted(int status);
+    void slotProgSelectCompleted(int status);
 
 public slots:
     void slotFileOpen();

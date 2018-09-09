@@ -271,14 +271,21 @@ void MainWindow::slotProgWrite()
     prog->writeChip(buffer, START_ADDRESS, bufferSize, pageSize);
 }
 
-void MainWindow::selectChipCb()
+void MainWindow::slotProgSelectCompleted(int status)
 {
-    qInfo() << "Chip has been selected successfully";
+    disconnect(prog, SIGNAL(selectChipCompleted(int)), this,
+        SLOT(slotProgSelectCompleted(int)));
+
+    if (!status)
+        qInfo() << "Chip has been selected successfully";
 }
 
 void MainWindow::slotSelectChip(int selectedChipNum)
 {
     this->selectedChipNum = selectedChipNum;
-    prog->selectChip(std::bind(&MainWindow::selectChipCb, this),
-        selectedChipNum);
+
+    connect(prog, SIGNAL(selectChipCompleted(int)), this,
+        SLOT(slotProgSelectCompleted(int)));
+
+    prog->selectChip(selectedChipNum);
 }

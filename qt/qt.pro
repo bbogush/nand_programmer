@@ -21,8 +21,6 @@ SOURCES += main.cpp\
         main_window.cpp \
     programmer.cpp \
     chip_db.cpp \
-    serial_port_writer.cpp \
-    serial_port_reader.cpp \
     logger.cpp \
     buffer_table_model.cpp \
     writer.cpp \
@@ -31,8 +29,6 @@ SOURCES += main.cpp\
 HEADERS  += main_window.h \
     programmer.h \
     chip_db.h \
-    serial_port_writer.h \
-    serial_port_reader.h \
     logger.h \
     buffer_table_model.h \
     cmd.h \

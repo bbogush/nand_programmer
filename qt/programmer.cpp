@@ -16,8 +16,6 @@
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
-    serialPortReader = new SerialPortReader(&serialPort, this);
-    serialPortWriter = new SerialPortWriter(&serialPort, this);
 }
 
 Programmer::~Programmer()
@@ -65,56 +63,6 @@ void Programmer::disconnect()
 bool Programmer::isConnected()
 {
     return isConn;
-}
-
-int Programmer::handleStatus(RespHeader *respHead)
-{
-    switch (respHead->info)
-    {
-    case STATUS_OK:
-        break;
-    case STATUS_ERROR:
-        qCritical() << "Programmer command failed";
-        return -1;
-    default:
-        qCritical() << "Programmer returned unknown status code" << respHead->info;
-        return -1;
-    }
-
-    return 0;
-}
-
-int Programmer::handleWrongResp(uint8_t code)
-{
-    qCritical() << "Programmer returned wrong response code: " << code;
-    return -1;
-}
-
-int Programmer::readRespHeader(const QByteArray *data, uint32_t offset,
-    RespHeader *&header)
-{
-    uint size = data->size();
-    uint bytes_left = size - offset;
-
-    if (bytes_left < sizeof(RespHeader))
-    {
-        qCritical() << "Programmer error: response header size is wrong:"
-            << bytes_left;
-        return -1;
-    }
-
-    header = (RespHeader *)(data->data() + offset);
-
-    return 0;
-}
-
-void Programmer::sendCmdCb(int status)
-{
-    if (status != SerialPortWriter::WRITE_OK)
-    {
-        serialPortReader->readCancel();
-        return;
-    }
 }
 
 void Programmer::readChipIdCb(int ret)
@@ -207,46 +155,29 @@ void Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
     writer.start();
 }
 
-void Programmer::readRespSelectChipCb(int status)
+void Programmer::selectChipCb(int ret)
 {
-    RespHeader *header;
-
-    if (status == SerialPortReader::READ_ERROR)
-        return;
-
-    if (readRespHeader(&readData, 0, header))
-        return;
-
-    switch (header->code)
-    {
-    case RESP_STATUS:
-        if (header->info == STATUS_OK)
-            selectChipCb();
-        else
-            qCritical() << "Programmer error: failed to select chip";
-        break;
-    default:
-        handleWrongResp(header->code);
-        break;
-    }
+    QObject::disconnect(&reader, SIGNAL(result(int)), this,
+        SLOT(selectChipCb(int)));
+    serialPortConnect();
+    emit selectChipCompleted(ret);
 }
 
-void Programmer::selectChip(std::function<void(void)> callback,
-    uint32_t chipNum)
+void Programmer::selectChip(uint32_t chipNum)
 {
     Cmd cmd = { .code = CMD_NAND_SELECT };
     SelectCmd selectCmd = { .cmd = cmd, .chipNum = chipNum };
 
-    readData.clear();
-    serialPortReader->read(std::bind(&Programmer::readRespSelectChipCb, this,
-        std::placeholders::_1), &readData, READ_TIMEOUT_MS,
-        sizeof(RespHeader));
+    QObject::connect(&reader, SIGNAL(result(int)), this,
+        SLOT(selectChipCb(int)));
 
-    selectChipCb = callback;
+    /* Serial port object cannot be used in other thread */
+    serialPortDisconnect();
     writeData.clear();
-    writeData.append((const char *)&selectCmd, sizeof(selectCmd));
-    serialPortWriter->write(std::bind(&Programmer::sendCmdCb, this,
-        std::placeholders::_1), &writeData);
+    writeData.append((const char *)&selectCmd, sizeof(SelectCmd));
+    reader.init(CDC_DEV_NAME, SERIAL_PORT_SPEED, NULL, 0,
+        (uint8_t *)writeData.constData(), writeData.size());
+    reader.start();
 }
 
 

@@ -9,11 +9,7 @@
 #include <QObject>
 #include <QtSerialPort/QSerialPort>
 #include <QByteArray>
-#include <QTimer>
 #include <cstdint>
-#include <functional>
-#include "serial_port_writer.h"
-#include "serial_port_reader.h"
 #include "writer.h"
 #include "reader.h"
 #include "cmd.h"
@@ -27,36 +23,13 @@ class Programmer : public QObject
     QSerialPort serialPort;
     Writer writer;
     Reader reader;
-    QThread *currThread;
     bool isConn;
-    std::function<void(void)> selectChipCb;
-    uint8_t *readChipBuf;
-    uint32_t readChipLen;
-    uint8_t *writeChipBuf;
-    uint32_t writeSentBytes;
-    uint32_t writeRemainingBytes;
-    uint32_t writeAckBytes;
-    uint32_t writeAckBytesLim;
-    uint32_t writeLen;
-    bool isWriteInProgress;
-    bool isReadError;
-    bool schedWrite;
 
-    void sendCmdCb(int status);
-    int readRespHeader(const QByteArray *data, uint32_t offset,
-        RespHeader *&header);
-    void readRespSelectChipCb(int status);
-    int handleStatus(RespHeader *respHead);
-    int handleWrongResp(uint8_t code);
-    int handleBadBlock(QByteArray *data, uint32_t offset);
     int serialPortConnect();
     void serialPortDisconnect();
 
 public:
-    QByteArray readData;
     QByteArray writeData;
-    SerialPortWriter *serialPortWriter;
-    SerialPortReader *serialPortReader;
 
     explicit Programmer(QObject *parent = 0);
     ~Programmer();
@@ -68,19 +41,21 @@ public:
     void readChip(uint8_t *buf, uint32_t addr, uint32_t len);
     void writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
         uint32_t pageSize);
-    void selectChip(std::function<void(void)> callback, uint32_t chipNum);
+    void selectChip(uint32_t chipNum);
 
 signals:
     void readChipIdCompleted(int ret);
     void writeChipCompleted(int ret);
     void readChipCompleted(int ret);
     void eraseChipCompleted(int ret);
+    void selectChipCompleted(int ret);
 
 private slots:
     void readChipIdCb(int ret);
     void writeCb(int ret);
     void readCb(int ret);
     void eraseChipCb(int ret);
+    void selectChipCb(int ret);
 };
 
 #endif // PROGRAMMER_H
