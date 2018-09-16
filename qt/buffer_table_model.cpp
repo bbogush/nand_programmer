@@ -24,6 +24,9 @@ int BufferTableModel::columnCount(const QModelIndex & /*parent*/) const
 
 QVariant BufferTableModel::data(const QModelIndex &index, int role) const
 {
+    QString hexString;
+    uint32_t start, end;
+
     if (role == Qt::DisplayRole)
     {
         switch (index.column())
@@ -33,17 +36,22 @@ QVariant BufferTableModel::data(const QModelIndex &index, int role) const
                 QChar('0'));
             break;
         case HEADER_HEX_COL:
-        {
-            QString hexString;
-            uint32_t start = index.row() * ROW_DATA_SIZE,
-                end = start + ROW_DATA_SIZE;
+            start = index.row() * ROW_DATA_SIZE;
+            end = start + ROW_DATA_SIZE;
 
             for (uint32_t i = start; i < end && i < bufSize; i++)
-                hexString.append(QString("%1 ").arg(buf[i], 2, 16, QChar('0')));
+            {
+                hexString.append(QString("%1 ").arg(buf[i], 2, 16,
+                    QChar('0')));
+            }
             return hexString;
-        }
         case HEADER_ANCII_COL:
-            return QString("................");
+            start = index.row() * ROW_DATA_SIZE;
+            end = start + ROW_DATA_SIZE;
+
+            for (uint32_t i = start; i < end && i < bufSize; i++)
+                hexString.append(QString("%1 ").arg(QChar(buf[i])));
+            return hexString;
         }
     }
 
