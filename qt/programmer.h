@@ -21,6 +21,7 @@ class Programmer : public QObject
     Q_OBJECT
 
     QSerialPort serialPort;
+    QString usbDevName;
     Writer writer;
     Reader reader;
     bool isConn;
@@ -36,6 +37,8 @@ public:
     int connect();
     void disconnect();
     bool isConnected();
+    void setUsbDevName(const QString &name);
+    QString getUsbDevName();
     void readChipId(ChipId *chipId);
     void eraseChip(uint32_t addr, uint32_t len);
     void readChip(uint8_t *buf, uint32_t addr, uint32_t len);

@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     logger.cpp \
     buffer_table_model.cpp \
     writer.cpp \
-    reader.cpp
+    reader.cpp \
+    settings_programmer_dialog.cpp
 
 HEADERS  += main_window.h \
     programmer.h \
@@ -33,8 +34,10 @@ HEADERS  += main_window.h \
     buffer_table_model.h \
     cmd.h \
     writer.h \
-    reader.h
+    reader.h \
+    settings_programmer_dialog.h
 
-FORMS    += main_window.ui
+FORMS    += main_window.ui \
+    settings_programmer_dialog.ui
 
 QMAKE_CXXFLAGS += -std=c++11 -Wextra -Werror

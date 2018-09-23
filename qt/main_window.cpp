@@ -5,6 +5,7 @@
 
 #include "main_window.h"
 #include "ui_main_window.h"
+#include "settings_programmer_dialog.h"
 #include "chip_db.h"
 #include "logger.h"
 #include <QDebug>
@@ -78,6 +79,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotProgRead()));
     connect(ui->actionWrite, SIGNAL(triggered()), this,
         SLOT(slotProgWrite()));
+    connect(ui->actionProgrammer, SIGNAL(triggered()), this,
+        SLOT(slotSettingsProgrammer()));
 }
 
 MainWindow::~MainWindow()
@@ -288,4 +291,14 @@ void MainWindow::slotSelectChip(int selectedChipNum)
         SLOT(slotProgSelectCompleted(int)));
 
     prog->selectChip(selectedChipNum);
+}
+
+void MainWindow::slotSettingsProgrammer()
+{
+    SettingsProgrammerDialog progDialog(this);
+
+    progDialog.setUsbDevName(prog->getUsbDevName());
+
+    if (progDialog.exec() == QDialog::Accepted)
+        prog->setUsbDevName(progDialog.getUsbDevName());
 }

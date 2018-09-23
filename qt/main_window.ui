@@ -200,7 +200,7 @@
      <x>0</x>
      <y>0</y>
      <width>570</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuDevice">
@@ -225,9 +225,16 @@
     </property>
     <addaction name="actionConnect"/>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="actionProgrammer"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuProgrammer"/>
    <addaction name="menuDevice"/>
+   <addaction name="menuSettings"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -282,6 +289,11 @@
   <action name="actionErase">
    <property name="text">
     <string>Erase</string>
+   </property>
+  </action>
+  <action name="actionProgrammer">
+   <property name="text">
+    <string>Programmer</string>
    </property>
   </action>
  </widget>

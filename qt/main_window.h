@@ -49,6 +49,7 @@ public slots:
     void slotProgRead();
     void slotProgWrite();
     void slotSelectChip(int selectedChipNum);
+    void slotSettingsProgrammer();
 };
 
 #endif // MAIN_WINDOW_H

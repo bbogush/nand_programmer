@@ -6,8 +6,7 @@
 #include "programmer.h"
 #include <QDebug>
 
-#define CDC_DEV_NAME "/dev/ttyACM0"
-#define CDC_BUF_SIZE 64
+#define USB_DEV_NAME "/dev/ttyACM0"
 
 #define SERIAL_PORT_SPEED 4000000
 #define READ_TIMEOUT_MS 100
@@ -16,6 +15,7 @@
 
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
+    usbDevName = USB_DEV_NAME;
 }
 
 Programmer::~Programmer()
@@ -26,7 +26,7 @@ Programmer::~Programmer()
 
 int Programmer::serialPortConnect()
 {
-    serialPort.setPortName(CDC_DEV_NAME);
+    serialPort.setPortName(usbDevName);
     serialPort.setBaudRate(SERIAL_PORT_SPEED);
 
     if (!serialPort.open(QIODevice::ReadWrite))
@@ -65,6 +65,16 @@ bool Programmer::isConnected()
     return isConn;
 }
 
+void Programmer::setUsbDevName(const QString &name)
+{
+    usbDevName = name;
+}
+
+QString Programmer::getUsbDevName()
+{
+    return usbDevName;
+}
+
 void Programmer::readChipIdCb(int ret)
 {
     emit readChipIdCompleted(ret);
@@ -84,7 +94,7 @@ void Programmer::readChipId(ChipId *chipId)
     serialPortDisconnect();
     writeData.clear();
     writeData.append((const char *)&cmd, sizeof(cmd));
-    reader.init(CDC_DEV_NAME, SERIAL_PORT_SPEED, (uint8_t *)chipId,
+    reader.init(usbDevName, SERIAL_PORT_SPEED, (uint8_t *)chipId,
         sizeof(ChipId), (uint8_t *)writeData.constData(), writeData.size());
     reader.start();
 }
@@ -109,7 +119,7 @@ void Programmer::eraseChip(uint32_t addr, uint32_t len)
     serialPortDisconnect();
     writeData.clear();
     writeData.append((const char *)&eraseCmd, sizeof(eraseCmd));
-    reader.init(CDC_DEV_NAME, SERIAL_PORT_SPEED, NULL, 0,
+    reader.init(usbDevName, SERIAL_PORT_SPEED, NULL, 0,
         (uint8_t *)writeData.constData(), writeData.size());
     reader.start();
 }
@@ -132,7 +142,7 @@ void Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
     serialPortDisconnect();
     writeData.clear();
     writeData.append((const char *)&readCmd, sizeof(readCmd));
-    reader.init(CDC_DEV_NAME, SERIAL_PORT_SPEED, buf, len,
+    reader.init(usbDevName, SERIAL_PORT_SPEED, buf, len,
         (uint8_t *)writeData.constData(), writeData.size());
     reader.start();
 }
@@ -151,7 +161,7 @@ void Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
 
     /* Serial port object cannot be used in other thread */
     serialPortDisconnect();
-    writer.init(CDC_DEV_NAME, SERIAL_PORT_SPEED, buf, addr, len, pageSize);
+    writer.init(usbDevName, SERIAL_PORT_SPEED, buf, addr, len, pageSize);
     writer.start();
 }
 
@@ -175,7 +185,7 @@ void Programmer::selectChip(uint32_t chipNum)
     serialPortDisconnect();
     writeData.clear();
     writeData.append((const char *)&selectCmd, sizeof(SelectCmd));
-    reader.init(CDC_DEV_NAME, SERIAL_PORT_SPEED, NULL, 0,
+    reader.init(usbDevName, SERIAL_PORT_SPEED, NULL, 0,
         (uint8_t *)writeData.constData(), writeData.size());
     reader.start();
 }
