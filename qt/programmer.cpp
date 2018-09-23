@@ -31,8 +31,8 @@ int Programmer::serialPortConnect()
 
     if (!serialPort.open(QIODevice::ReadWrite))
     {
-        qCritical() << "Failed to open serial port:"
-            << serialPort.errorString();
+        qCritical() << "Failed to open serial port " << usbDevName << ": " <<
+            serialPort.errorString();
         return -1;
     }
 
