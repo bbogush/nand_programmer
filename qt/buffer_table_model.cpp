@@ -25,6 +25,7 @@ int BufferTableModel::columnCount(const QModelIndex & /*parent*/) const
 QVariant BufferTableModel::data(const QModelIndex &index, int role) const
 {
     QString hexString;
+    QChar decodedChar;
     uint32_t start, end;
 
     if (role == Qt::DisplayRole)
@@ -50,7 +51,12 @@ QVariant BufferTableModel::data(const QModelIndex &index, int role) const
             end = start + ROW_DATA_SIZE;
 
             for (uint32_t i = start; i < end && i < bufSize; i++)
-                hexString.append(QString("%1 ").arg(QChar(buf[i])));
+            {
+                decodedChar = QChar(buf[i]);
+                if (!decodedChar.isPrint())
+                    decodedChar = QChar('.');
+                hexString.append(decodedChar);
+            }
             return hexString;
         }
     }
