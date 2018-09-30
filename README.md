@@ -15,6 +15,9 @@ Unreleased version.
 - NAND read of chip ID support
 - Open KiCad PCB & Schematic
 - Open source code
+- Write speed: 512KBytes/s
+- Read speed: 640KBytes/s
+- Erase speed: 256MBytes/s
 
 ### Supported chips
 - K9F2G08U0C
