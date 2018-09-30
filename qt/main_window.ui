@@ -134,7 +134,7 @@
        <widget class="QTableView" name="bufferTableView">
         <property name="minimumSize">
          <size>
-          <width>550</width>
+          <width>560</width>
           <height>300</height>
          </size>
         </property>
