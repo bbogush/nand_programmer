@@ -48,6 +48,7 @@ void Logger::logHandler(QtMsgType type, const QMessageLogContext &context ,
     }
     else
     {
+        logTextEdit->moveCursor(QTextCursor::End);
         logTextEdit->insertPlainText(formatMsg);
 
         logTextEdit->verticalScrollBar()->
