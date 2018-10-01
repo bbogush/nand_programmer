@@ -566,6 +566,9 @@ static int cmd_nand_write_end(prog_t *prog)
 {
     chip_info_t *chip_info = chip_info_selected_get();
 
+    if (!prog->page.offset)
+        goto Exit;
+
     if (!prog->addr_is_valid)
     {
         ERROR_PRINT("Write address is not set\r\n");
@@ -573,9 +576,6 @@ static int cmd_nand_write_end(prog_t *prog)
     }
 
     prog->addr_is_valid = 0;
-
-    if (!prog->page.offset)
-        goto Exit;
 
     if (nand_write(prog, chip_info))
         return make_error_status(&prog->usb, ERR_NAND_WR);
