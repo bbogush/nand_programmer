@@ -12,8 +12,7 @@
 #define READ_TIMEOUT 5000
 #define BUF_SIZE 1024
 
-Q_DECLARE_METATYPE(QTextBlock)
-Q_DECLARE_METATYPE(QTextCursor)
+Q_DECLARE_METATYPE(QtMsgType)
 
 void Reader::init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
     uint32_t rlen, uint8_t *wbuf, uint32_t wlen)
@@ -34,13 +33,13 @@ int Reader::write(uint8_t *data, uint32_t len)
     ret = serialPort->write((char *)data, len);
     if (ret < 0)
     {
-        qCritical() << "Failed to write: " << serialPort->errorString();
+        logErr(QString("Failed to write: %1").arg(serialPort->errorString()));
         return -1;
     }
     else if ((uint32_t)ret < len)
     {
-        qCritical() << "Data was partialy written, returned " << ret <<
-            ", expected " << len;
+        logErr(QString("Data was partialy written, returned %1, expected %2")
+            .arg(ret).arg(len));
         return -1;
     }
 
@@ -58,14 +57,14 @@ int Reader::read(uint8_t *pbuf, uint32_t len)
 
     if (!serialPort->waitForReadyRead(READ_TIMEOUT))
     {
-        qCritical() << "Read data timeout";
+        logErr("Read data timeout");
         return -1;
     }
 
     ret = serialPort->read((char *)pbuf, len);
     if (ret < 0)
     {
-        qCritical() << "Failed to read data";
+        logErr("Failed to read data");
         return -1;
     }
 
@@ -80,8 +79,8 @@ int Reader::handleBadBlock(uint8_t *pbuf, uint32_t len)
     if (len < size)
         return 0;
 
-    qInfo() << QString("Bad block at 0x%1").arg(badBlock->addr, 8,
-        16, QLatin1Char( '0' ));
+    logInfo(QString("Bad block at 0x%1").arg(badBlock->addr, 8, 16,
+        QLatin1Char('0')));
 
     return size;
 }
@@ -93,7 +92,7 @@ int Reader::handleStatus(uint8_t *pbuf, uint32_t len)
     switch (header->info)
     {
     case STATUS_ERROR:
-        qCritical() << "Programmer sent error";
+        logErr("Programmer sent error");
         return -1;
     case STATUS_BAD_BLOCK:
         return handleBadBlock(pbuf, len);
@@ -103,7 +102,7 @@ int Reader::handleStatus(uint8_t *pbuf, uint32_t len)
             readOffset = 1;
         break;
     default:
-        qCritical() << "Wrong response header info " << header->info;
+        logErr(QString("Wrong response header info %1").arg(header->info));
         return -1;
     }
 
@@ -118,7 +117,8 @@ int Reader::handleData(uint8_t *pbuf, uint32_t len)
 
     if (!dataSize || packetSize > BUF_SIZE)
     {
-        qCritical() << "Wrong data length in response header:" << dataSize;
+        logErr(QString("Wrong data length in response header: %1")
+            .arg(dataSize));
         return -1;
     }
 
@@ -127,7 +127,7 @@ int Reader::handleData(uint8_t *pbuf, uint32_t len)
 
     if (dataSize + readOffset > this->rlen)
     {
-        qCritical() << "Read buffer overflow";
+        logErr("Read buffer overflow");
         return -1;
     }
 
@@ -151,8 +151,8 @@ int Reader::handlePacket(uint8_t *pbuf, uint32_t len)
     case RESP_DATA:
         return handleData(pbuf, len);
     default:
-        qCritical() << "Programmer returned wrong response code: " <<
-            header->code;
+        logErr(QString("Programmer returned wrong response code: %1")
+            .arg(header->code));
         return -1;
     }
 
@@ -163,7 +163,6 @@ int Reader::handlePackets(uint8_t *pbuf, uint32_t len)
 {
     int ret;
     uint32_t offset = 0;
-
     do
     {
         if ((ret = handlePacket(pbuf + offset, len - offset)) < 0)
@@ -213,8 +212,8 @@ int Reader::serialPortCreate()
 
     if (!serialPort->open(QIODevice::ReadWrite))
     {
-        qCritical() << "Failed to open serial port: " <<
-            serialPort->errorString();
+        logErr(QString("Failed to open serial port: %1")
+            .arg(serialPort->errorString()));
         return -1;
     }
 
@@ -232,8 +231,7 @@ void Reader::run()
     int ret = -1;
 
     /* Required for logger */
-    qRegisterMetaType<QTextBlock>();
-    qRegisterMetaType<QTextCursor>();
+    qRegisterMetaType<QtMsgType>();
 
     if (serialPortCreate())
         goto Exit;
@@ -248,5 +246,15 @@ void Reader::run()
 Exit:
     serialPortDestroy();
     emit result(ret);
+}
+
+void Reader::logErr(const QString& msg)
+{
+    emit log(QtCriticalMsg, msg);
+}
+
+void Reader::logInfo(const QString& msg)
+{
+    emit log(QtInfoMsg, msg);
 }
 

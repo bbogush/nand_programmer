@@ -34,12 +34,15 @@ class Reader : public QThread
     int handlePackets(uint8_t *pbuf, uint32_t len);
     int readData();
     void run() override;
+    void logErr(const QString& msg);
+    void logInfo(const QString& msg);
 
 public:
     void init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
         uint32_t rlen, uint8_t *wbuf, uint32_t wlen);
 signals:
     void result(int ret);
+    void log(QtMsgType msgType, QString msg);
 };
 
 #endif // READER_H

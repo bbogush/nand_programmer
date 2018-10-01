@@ -33,11 +33,15 @@ class Writer : public QThread
     int serialPortCreate();
     void serialPortDestroy();
     void run() override;
+    void logErr(const QString& msg);
+    void logInfo(const QString& msg);
+
 public:
     void init(const QString &portName, qint32 baudRate, uint8_t *buf,
         uint32_t addr, uint32_t len, uint32_t pageSize);
 signals:
     void result(int ret);
+    void log(QtMsgType msgType, QString msg);
 };
 
 #endif // WRITER_H

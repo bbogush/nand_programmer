@@ -11,8 +11,7 @@
 #define READ_ACK_TIMEOUT 5000
 #define BUF_SIZE 64
 
-Q_DECLARE_METATYPE(QTextBlock)
-Q_DECLARE_METATYPE(QTextCursor)
+Q_DECLARE_METATYPE(QtMsgType)
 
 void Writer::init(const QString &portName, qint32 baudRate, uint8_t *buf,
     uint32_t addr, uint32_t len, uint32_t pageSize)
@@ -32,13 +31,13 @@ int Writer::write(uint8_t *data, uint32_t dataLen)
     ret = serialPort->write((char *)data, dataLen);
     if (ret < 0)
     {
-        qCritical() << "Failed to write: " << serialPort->errorString();
+        logErr(QString("Failed to write: %1").arg(serialPort->errorString()));
         return -1;
     }
     else if ((uint32_t)ret < dataLen)
     {
-        qCritical() << "Data was partialy written, returned " << ret <<
-            ", expected " << dataLen;
+        logErr(QString("Data was partialy written, returned %1, expected %2")
+            .arg(ret).arg(dataLen));
         return -1;
     }
 
@@ -49,7 +48,7 @@ int Writer::handleWriteAck(RespHeader *header, uint32_t len, void *ackData)
 {
     if (len != sizeof(RespWriteAck))
     {
-        qCritical() << "Write ack response is too short " << len;
+        logErr(QString("Write ack response is too short %1").arg(len));
         return -1;
     }
 
@@ -64,12 +63,12 @@ int Writer::handleBadBlock(RespHeader *header, uint32_t len)
 
     if (len != sizeof(RespBadBlock))
     {
-        qCritical() << "Bad block response is too short " << len;
+        logErr(QString("Bad block response is too short %1").arg(len));
         return -1;
     }
 
-    qInfo() << QString("Bad block at 0x%1").arg(badBlock->addr, 8,
-        16, QLatin1Char( '0' ));
+    logInfo(QString("Bad block at 0x%1").arg(badBlock->addr, 8, 16,
+        QLatin1Char('0')));
 
     return 0;
 }
@@ -83,7 +82,7 @@ int Writer::handleStatus(RespHeader *header, uint32_t len, void *ackData)
     case STATUS_OK:
         break;
     case STATUS_ERROR:
-        qCritical() << "Programmer send error";
+        logErr("Programmer send error");
         return -1;
     case STATUS_BAD_BLOCK:
         handleBadBlock(header, len);
@@ -93,7 +92,7 @@ int Writer::handleStatus(RespHeader *header, uint32_t len, void *ackData)
             return -1;
         break;
     default:
-        qCritical() << "Wrong status received " << status;
+        logErr(QString("Wrong status received %1").arg(status));
         return -1;
     }
 
@@ -104,7 +103,7 @@ int Writer::handleAck(RespHeader *header, uint32_t len, void *ackData)
 {
     if (header->code != RESP_STATUS)
     {
-        qCritical() << "Wrong response code " << header->code;
+        logErr(QString("Wrong response code %1").arg(header->code));
         return -1;
     }
 
@@ -119,20 +118,20 @@ int Writer::readAck(void *ackData)
 
     if (!serialPort->waitForReadyRead(READ_ACK_TIMEOUT))
     {
-        qCritical() << "Write ACK was not received";
+        logErr("Write ACK was not received");
         return -1;
     }
 
     ret = serialPort->read((char *)pbuf, BUF_SIZE);
     if (ret < 0)
     {
-        qCritical() << "Failed to read ACK";
+        logErr("Failed to read ACK");
         return -1;
     }
     else if ((uint32_t)ret < dataLen)
     {
-        qCritical() << "Response is too short, expected " << dataLen <<
-            ", received " << ret;
+        logErr(QString("Response is too short, expected %1, received %2")
+            .arg(dataLen).arg(ret));
         return -1;
     }
 
@@ -190,8 +189,8 @@ int Writer::writeData()
 
         if (ack != bytesWritten)
         {
-            qCritical() << "Received wrong ack " << ack << ", expected " <<
-                bytesWritten;
+            logErr(QString("Received wrong ack %1, expected%2 ").arg(ack)
+                .arg(bytesWritten));
             return -1;
         }
         bytesAcked = ack;
@@ -224,8 +223,8 @@ int Writer::serialPortCreate()
 
     if (!serialPort->open(QIODevice::ReadWrite))
     {
-        qCritical() << "Failed to open serial port: " <<
-            serialPort->errorString();
+        logErr(QString("Failed to open serial port: %1")
+            .arg(serialPort->errorString()));
         return -1;
     }
 
@@ -243,8 +242,7 @@ void Writer::run()
     int ret = -1;
 
     /* Required for logger */
-    qRegisterMetaType<QTextBlock>();
-    qRegisterMetaType<QTextCursor>();
+    qRegisterMetaType<QtMsgType>();
 
     if (serialPortCreate())
         goto Exit;
@@ -260,5 +258,15 @@ void Writer::run()
  Exit:
     serialPortDestroy();
     emit result(ret);
+}
+
+void Writer::logErr(const QString& msg)
+{
+    emit log(QtCriticalMsg, msg);
+}
+
+void Writer::logInfo(const QString& msg)
+{
+    emit log(QtInfoMsg, msg);
 }
 

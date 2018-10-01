@@ -59,6 +59,7 @@ private slots:
     void readCb(int ret);
     void eraseChipCb(int ret);
     void selectChipCb(int ret);
+    void logCb(QtMsgType msgType, QString msg);
 };
 
 #endif // PROGRAMMER_H

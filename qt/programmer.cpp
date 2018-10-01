@@ -16,6 +16,10 @@
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
     usbDevName = USB_DEV_NAME;
+    QObject::connect(&reader, SIGNAL(log(QtMsgType, QString)), this,
+        SLOT(logCb(QtMsgType, QString)));
+    QObject::connect(&writer, SIGNAL(log(QtMsgType, QString)), this,
+        SLOT(logCb(QtMsgType, QString)));
 }
 
 Programmer::~Programmer()
@@ -188,6 +192,27 @@ void Programmer::selectChip(uint32_t chipNum)
     reader.init(usbDevName, SERIAL_PORT_SPEED, NULL, 0,
         (uint8_t *)writeData.constData(), writeData.size());
     reader.start();
+}
+
+void Programmer::logCb(QtMsgType msgType, QString msg)
+{
+    switch (msgType)
+    {
+    case QtDebugMsg:
+        qDebug() << msg;
+        break;
+    case QtInfoMsg:
+        qInfo() << msg;
+        break;
+    case QtWarningMsg:
+        qWarning() << msg;
+        break;
+    case QtCriticalMsg:
+        qCritical() << msg;
+        break;
+    default:
+        break;
+    }
 }
 
 
