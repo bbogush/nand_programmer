@@ -27,6 +27,7 @@ class Reader : public QThread
     int write(uint8_t *data, uint32_t len);
     int readStart();
     int read(uint8_t *pbuf, uint32_t len);
+    int handleError(uint8_t *pbuf, uint32_t len);
     int handleBadBlock(uint8_t *pbuf, uint32_t len);
     int handleStatus(uint8_t *pbuf, uint32_t len);
     int handleData(uint8_t *pbuf, uint32_t len);

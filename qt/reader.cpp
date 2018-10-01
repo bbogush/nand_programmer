@@ -85,6 +85,19 @@ int Reader::handleBadBlock(uint8_t *pbuf, uint32_t len)
     return size;
 }
 
+int Reader::handleError(uint8_t *pbuf, uint32_t len)
+{
+    RespError *err = (RespError *)pbuf;
+    size_t size = sizeof(RespError);
+
+    if (len < size)
+        return 0;
+
+    logErr(QString("Programmer sent error: %1").arg(err->errCode));
+
+    return -1;
+}
+
 int Reader::handleStatus(uint8_t *pbuf, uint32_t len)
 {
     RespHeader *header = (RespHeader *)pbuf;
@@ -92,8 +105,7 @@ int Reader::handleStatus(uint8_t *pbuf, uint32_t len)
     switch (header->info)
     {
     case STATUS_ERROR:
-        logErr("Programmer sent error");
-        return -1;
+        return handleError(pbuf, len);
     case STATUS_BAD_BLOCK:
         return handleBadBlock(pbuf, len);
     case STATUS_OK:

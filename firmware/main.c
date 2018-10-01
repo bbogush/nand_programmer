@@ -41,6 +41,19 @@ enum
     CMD_NAND_SELECT  = 0x06,
 };
 
+enum
+{
+    ERR_ADDR_EXCEEDED  = 0x00,
+    ERR_ADDR_INVALID   = 0x01,
+    ERR_NAND_WR        = 0x02,
+    ERR_NAND_RD        = 0x03,
+    ERR_NAND_ERASE     = 0x04,
+    ERR_CHIP_NOT_SEL   = 0x05,
+    ERR_CHIP_NOT_FOUND = 0x06,
+    ERR_CMD_DATA_SIZE  = 0x07,
+    ERR_BUF_OVERFLOW   = 0x08,
+};
+
 typedef struct __attribute__((__packed__))
 {
     uint8_t code;
@@ -122,6 +135,12 @@ typedef struct __attribute__((__packed__))
     resp_t header;
     uint32_t bytes_ack;
 } resp_write_ack_t;
+
+typedef struct __attribute__((__packed__))
+{
+    resp_t header;
+    uint8_t err_code;
+} resp_err_t;
 
 typedef struct
 {
@@ -221,9 +240,9 @@ static void usb_init(usb_t *usb)
     usb->rx_buf_size = USB_BUF_SIZE;
 }
 
-static int make_status(usb_t *usb, int is_ok)
+static int make_ok_status(usb_t *usb)
 {
-    resp_t status = { RESP_STATUS,  is_ok ? STATUS_OK : STATUS_ERROR };
+    resp_t status = { RESP_STATUS, STATUS_OK };
     size_t len = sizeof(status);
 
     if (len > usb->tx_buf_size)
@@ -234,6 +253,24 @@ static int make_status(usb_t *usb, int is_ok)
     }
 
     memcpy(usb->tx_buf, &status, len);
+
+    return len;
+}
+
+static int make_error_status(usb_t *usb, uint8_t err_code)
+{
+    resp_t status = { RESP_STATUS, STATUS_ERROR };
+    resp_err_t err_status = { status, err_code };
+    size_t len = sizeof(err_status);
+
+    if (len > usb->tx_buf_size)
+    {
+        ERROR_PRINT("Status size %d is more then TX buffer size %d\r\n", len,
+            usb->tx_buf_size);
+        return -1;
+    }
+
+    memcpy(usb->tx_buf, &err_status, len);
 
     return len;
 }
@@ -262,13 +299,13 @@ static int cmd_nand_read_id(prog_t *prog)
     if (!chip_is_selected())
     {
         ERROR_PRINT("Chip is not selected\r\n");
-        goto Error;
+        return make_error_status(&prog->usb, ERR_CHIP_NOT_SEL);
     }
 
     if (prog->usb.tx_buf_size < resp_len)
     {
         ERROR_PRINT("Response size is more then TX buffer size\r\n");
-        goto Error;
+        return make_error_status(&prog->usb, ERR_BUF_OVERFLOW);
     }
 
     resp.header.code = RESP_DATA;
@@ -278,9 +315,6 @@ static int cmd_nand_read_id(prog_t *prog)
     memcpy(prog->usb.tx_buf, &resp, resp_len);
 
     return resp_len;
-
-Error:
-    return make_status(&prog->usb, 0);
 }
 
 static int nand_erase(uint32_t page, uint32_t addr)
@@ -312,7 +346,7 @@ static int nand_erase(uint32_t page, uint32_t addr)
 static int cmd_nand_erase(prog_t *prog)
 {
     chip_info_t *chip_info;
-    uint32_t addr, page, pages_in_block, ret = -1;
+    uint32_t addr, page, pages_in_block;
     erase_cmd_t *erase_cmd = (erase_cmd_t *)prog->usb.rx_buf;
 
     DEBUG_PRINT("Erase at 0x%lx %lx bytes command\r\n", erase_cmd->addr,
@@ -321,7 +355,7 @@ static int cmd_nand_erase(prog_t *prog)
     if (!chip_is_selected())
     {
         ERROR_PRINT("Chip is not selected\r\n");
-        goto Exit;
+        return make_error_status(&prog->usb, ERR_CHIP_NOT_SEL);
     }
     chip_info = chip_info_selected_get();
 
@@ -337,11 +371,11 @@ static int cmd_nand_erase(prog_t *prog)
         {
             ERROR_PRINT("Erase address 0x%lx is more then chip size 0x%lx\r\n",
                 addr, chip_info->size);
-            goto Exit;
+            return make_error_status(&prog->usb, ERR_ADDR_EXCEEDED);
         }
 
         if (nand_erase(page, addr))
-            goto Exit;
+            return make_error_status(&prog->usb, ERR_NAND_ERASE);
 
         if (erase_cmd->len >= chip_info->block_size)
             erase_cmd->len -= chip_info->block_size;
@@ -351,9 +385,7 @@ static int cmd_nand_erase(prog_t *prog)
         page += pages_in_block;
     }
 
-    ret = 0;
-Exit:
-    return make_status(&prog->usb, !ret);
+    return make_ok_status(&prog->usb);
 }
 
 static int send_write_ack(uint32_t bytes_ack)
@@ -381,7 +413,7 @@ static int cmd_nand_write_start(prog_t *prog)
     {
         ERROR_PRINT("Write address 0x%lx is more then chip size 0x%lx\r\n",
             write_start_cmd->addr, chip_info->size);
-        return -1;
+        return make_error_status(&prog->usb, ERR_ADDR_EXCEEDED);
     }
 
     prog->addr = write_start_cmd->addr;
@@ -394,7 +426,7 @@ static int cmd_nand_write_start(prog_t *prog)
     prog->bytes_written = 0;
     prog->bytes_ack = 0;
 
-    return 0;
+    return make_ok_status(&prog->usb);
 }
 
 static int nand_handle_status(prog_t *prog)
@@ -481,13 +513,13 @@ static int cmd_nand_write_data(prog_t *prog)
         prog->usb.rx_buf_size)
     {
         ERROR_PRINT("Data size is wrong %d\r\n", write_data_cmd->len);
-        return -1;
+        return make_error_status(&prog->usb, ERR_CMD_DATA_SIZE);
     }
 
     if (!prog->addr_is_valid)
     {
         ERROR_PRINT("Write address is not set\r\n");
-        return -1;
+        return make_error_status(&prog->usb, ERR_ADDR_INVALID);
     }
 
     if (prog->page.offset + write_data_cmd->len > chip_info->page_size)
@@ -501,7 +533,7 @@ static int cmd_nand_write_data(prog_t *prog)
     if (prog->page.offset == chip_info->page_size)
     {
         if (nand_write(prog, chip_info))
-            return -1;
+            return make_error_status(&prog->usb, ERR_NAND_WR);
 
         prog->addr += chip_info->page_size;
         if (prog->addr >= chip_info->size)
@@ -537,29 +569,30 @@ static int cmd_nand_write_end(prog_t *prog)
     if (!prog->addr_is_valid)
     {
         ERROR_PRINT("Write address is not set\r\n");
-        return -1;
+        return make_error_status(&prog->usb, ERR_ADDR_INVALID);
     }
 
     prog->addr_is_valid = 0;
 
     if (!prog->page.offset)
-        return 0;
+        goto Exit;
 
     if (nand_write(prog, chip_info))
-        return -1;
+        return make_error_status(&prog->usb, ERR_NAND_WR);
 
-    return 0;
+Exit:
+    return make_ok_status(&prog->usb);
 }
 
 static int cmd_nand_write(prog_t *prog)
 {
     cmd_t *cmd = (cmd_t *)prog->usb.rx_buf;
-    int ret = -1;
+    int ret = 0;
 
     if (!chip_is_selected())
     {
         ERROR_PRINT("Chip is not selected\r\n");
-        goto Exit;
+        return make_error_status(&prog->usb, ERR_CHIP_NOT_SEL);
     }
 
     switch (cmd->code)
@@ -569,8 +602,6 @@ static int cmd_nand_write(prog_t *prog)
         break;
     case CMD_NAND_WRITE_D:
         ret = cmd_nand_write_data(prog);
-        if (!ret)
-            return 0;
         break;
     case CMD_NAND_WRITE_E:
         ret = cmd_nand_write_end(prog);
@@ -579,8 +610,7 @@ static int cmd_nand_write(prog_t *prog)
         break;
     }
 
-Exit:
-    return make_status(&prog->usb, !ret);
+    return ret;
 }
 
 static int nand_read(uint32_t addr, page_t *page, chip_info_t *chip_info)
@@ -626,7 +656,7 @@ static int cmd_nand_read(prog_t *prog)
     if (!chip_is_selected())
     {
         ERROR_PRINT("Chip is not selected\r\n");
-        goto Error;
+        return make_error_status(&prog->usb, ERR_CHIP_NOT_SEL);
     }
     chip_info = chip_info_selected_get();
 
@@ -634,7 +664,7 @@ static int cmd_nand_read(prog_t *prog)
     {
         ERROR_PRINT("Read address 0x%lx is more then chip size 0x%lx\r\n",
             read_cmd->addr, chip_info->size);
-        goto Error;
+        return make_error_status(&prog->usb, ERR_ADDR_EXCEEDED);
     }
 
     addr = read_cmd->addr;
@@ -646,7 +676,7 @@ static int cmd_nand_read(prog_t *prog)
     while (read_cmd->len)
     {
         if (nand_read(addr, &page, chip_info))
-            goto Error;
+            return make_error_status(&prog->usb, ERR_NAND_RD);
 
         while (page.offset < chip_info->page_size && read_cmd->len)
         {
@@ -676,7 +706,7 @@ static int cmd_nand_read(prog_t *prog)
             {
                 ERROR_PRINT("Read address 0x%lx is more then chip size 0x%lx",
                     addr, chip_info->page_size);
-                goto Error;
+                return make_error_status(&prog->usb, ERR_ADDR_EXCEEDED);
             }
             page.page++;
             page.offset = 0;
@@ -684,15 +714,11 @@ static int cmd_nand_read(prog_t *prog)
     }
 
     return 0;
-
-Error:
-    return make_status(&prog->usb, 0);
 }
 
 static int cmd_nand_select(prog_t *prog)
 {
     select_cmd_t *select_cmd = (select_cmd_t *)prog->usb.rx_buf;
-    int ret = 0;
 
     DEBUG_PRINT("Chip select ID %lu command\r\n", select_cmd->chip_num);
 
@@ -701,10 +727,10 @@ static int cmd_nand_select(prog_t *prog)
     else
     {
         ERROR_PRINT("Chip ID %lu not found\r\n", select_cmd->chip_num);
-        ret = -1;
+        return make_error_status(&prog->usb, ERR_CHIP_NOT_FOUND);
     }
 
-    return make_status(&prog->usb, !ret);
+    return make_ok_status(&prog->usb);
 }
 
 static int usb_cmd_handler(prog_t *prog)
@@ -760,7 +786,7 @@ static void nand_handler(prog_t *prog)
     if (prog->nand_wr_in_progress)
     {
         if (nand_handle_status(prog))
-            send_status(prog, make_status(&prog->usb, 0));
+            send_status(prog, make_error_status(&prog->usb, ERR_NAND_WR));
     }
 }
 

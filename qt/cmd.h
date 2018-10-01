@@ -106,5 +106,11 @@ typedef struct __attribute__((__packed__))
     uint32_t ackBytes;
 } RespWriteAck;
 
+typedef struct __attribute__((__packed__))
+{
+    RespHeader header;
+    uint8_t errCode;
+} RespError;
+
 #endif // CMD_H
 

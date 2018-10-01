@@ -73,6 +73,19 @@ int Writer::handleBadBlock(RespHeader *header, uint32_t len)
     return 0;
 }
 
+int Writer::handleError(RespHeader *header, uint32_t len)
+{
+    RespError *err = (RespError *)header;
+    size_t size = sizeof(RespError);
+
+    if (len < size)
+        return 0;
+
+    logErr(QString("Programmer sent error: %1").arg(err->errCode));
+
+    return -1;
+}
+
 int Writer::handleStatus(RespHeader *header, uint32_t len, void *ackData)
 {
     uint8_t status = header->info;
@@ -82,8 +95,7 @@ int Writer::handleStatus(RespHeader *header, uint32_t len, void *ackData)
     case STATUS_OK:
         break;
     case STATUS_ERROR:
-        logErr("Programmer send error");
-        return -1;
+        return handleError(header, len);
     case STATUS_BAD_BLOCK:
         handleBadBlock(header, len);
         return -1;

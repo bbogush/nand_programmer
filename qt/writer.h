@@ -24,6 +24,7 @@ class Writer : public QThread
     int write(uint8_t *data, uint32_t dataLen);
     int handleWriteAck(RespHeader *header, uint32_t len, void *ackData);
     int handleBadBlock(RespHeader *header, uint32_t len);
+    int handleError(RespHeader *header, uint32_t len);
     int handleStatus(RespHeader *header, uint32_t len, void *ackData);
     int handleAck(RespHeader *header, uint32_t len, void *ackData);
     int readAck(void *ackData);
