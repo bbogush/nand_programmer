@@ -33,6 +33,8 @@ private:
 
     void initBufTable();
     void resetBufTable();
+    void setUiStateConnected(bool isConnected);
+    void setUiStateSelected(bool isSelected);
 
 private slots:
     void slotProgReadDeviceIdCompleted(int status);

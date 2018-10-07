@@ -71,7 +71,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotFileOpen()));
     connect(ui->actionConnect, SIGNAL(triggered()), this,
         SLOT(slotProgConnect()));
-    connect(ui->actionDetect_Device, SIGNAL(triggered()), this,
+    connect(ui->actionReadId, SIGNAL(triggered()), this,
         SLOT(slotProgReadDeviceId()));
     connect(ui->actionErase, SIGNAL(triggered()), this,
         SLOT(slotProgErase()));
@@ -137,6 +137,21 @@ Exit:
     file.close();
 }
 
+void MainWindow::setUiStateConnected(bool isConnected)
+{
+    ui->chipSelectComboBox->setEnabled(isConnected);
+    if (!isConnected)
+        ui->chipSelectComboBox->setCurrentIndex(CHIP_ID_NONE);
+}
+
+void MainWindow::setUiStateSelected(bool isSelected)
+{
+    ui->actionReadId->setEnabled(isSelected);
+    ui->actionErase->setEnabled(isSelected);
+    ui->actionRead->setEnabled(isSelected);
+    ui->actionWrite->setEnabled(isSelected);
+}
+
 void MainWindow::slotProgConnect()
 {
     if (!prog->isConnected())
@@ -146,11 +161,13 @@ void MainWindow::slotProgConnect()
         else
             return;
 
+        setUiStateConnected(true);
         ui->actionConnect->setText(tr("Disconnect"));
     }
     else
     {
         prog->disconnect();
+        setUiStateConnected(false);
         ui->actionConnect->setText(tr("Connect"));
         qInfo() << "Disconnected from programmer";
     }
@@ -280,12 +297,23 @@ void MainWindow::slotProgSelectCompleted(int status)
         SLOT(slotProgSelectCompleted(int)));
 
     if (!status)
+    {
+        setUiStateSelected(true);
         qInfo() << "Chip has been selected successfully";
+    }
+    else
+        setUiStateSelected(false);
 }
 
 void MainWindow::slotSelectChip(int selectedChipNum)
 {
     this->selectedChipNum = selectedChipNum;
+
+    if (selectedChipNum == CHIP_ID_NONE)
+    {
+        setUiStateSelected(false);
+        return;
+    }
 
     connect(prog, SIGNAL(selectChipCompleted(int)), this,
         SLOT(slotProgSelectCompleted(int)));

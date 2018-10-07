@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>570</width>
+    <width>580</width>
     <height>532</height>
    </rect>
   </property>
@@ -24,6 +24,9 @@
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="2" column="1">
          <widget class="QComboBox" name="chipSelectComboBox">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -199,7 +202,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>570</width>
+     <width>580</width>
      <height>19</height>
     </rect>
    </property>
@@ -207,7 +210,7 @@
     <property name="title">
      <string>Device</string>
     </property>
-    <addaction name="actionDetect_Device"/>
+    <addaction name="actionReadId"/>
     <addaction name="actionErase"/>
     <addaction name="actionRead"/>
     <addaction name="actionWrite"/>
@@ -256,7 +259,10 @@
     <bool>false</bool>
    </attribute>
   </widget>
-  <action name="actionDetect_Device">
+  <action name="actionReadId">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Read ID</string>
    </property>
@@ -277,16 +283,25 @@
    </property>
   </action>
   <action name="actionRead">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Read</string>
    </property>
   </action>
   <action name="actionWrite">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Write</string>
    </property>
   </action>
   <action name="actionErase">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Erase</string>
    </property>
