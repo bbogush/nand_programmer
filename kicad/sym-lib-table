@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name nand_programmator)(type Legacy)(uri ${KIPRJMOD}/sch_lib/nand_programmator.lib)(options "")(descr ""))
+  (lib (name adapters)(type Legacy)(uri ${KIPRJMOD}/adapters.lib)(options "")(descr ""))
+)

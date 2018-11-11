@@ -1,37 +1,6 @@
-EESchema Schematic File Version 2
-LIBS:power
-LIBS:device
-LIBS:transistors
-LIBS:conn
-LIBS:linear
-LIBS:regul
-LIBS:74xx
-LIBS:cmos4000
-LIBS:adc-dac
-LIBS:memory
-LIBS:xilinx
-LIBS:microcontrollers
-LIBS:dsp
-LIBS:microchip
-LIBS:analog_switches
-LIBS:motorola
-LIBS:texas
-LIBS:intel
-LIBS:audio
-LIBS:interface
-LIBS:digital-audio
-LIBS:philips
-LIBS:display
-LIBS:cypress
-LIBS:siliconi
-LIBS:opto
-LIBS:atmel
-LIBS:contrib
-LIBS:valves
-LIBS:stm32
-LIBS:adapters
+EESchema Schematic File Version 4
 LIBS:nand_programmator-cache
-EELAYER 25 0
+EELAYER 26 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -46,7 +15,7 @@ Comment3 ""
 Comment4 ""
 $EndDescr
 $Comp
-L STM32F103VCTx U2
+L nand_programmator:STM32F103VCTx U2
 U 1 1 5884C913
 P 4450 3700
 F 0 "U2" H 1750 6525 50  0000 L BNN
@@ -57,7 +26,7 @@ F 3 "" H 4450 3700 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L USB_OTG P1
+L nand_programmator:USB_OTG P1
 U 1 1 588508F5
 P 9150 5850
 F 0 "P1" H 9475 5725 50  0000 C CNN
@@ -68,7 +37,7 @@ F 3 "" V 9100 5750 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L LM1117-3.3 U1
+L nand_programmator:LM1117-3.3 U1
 U 1 1 58851592
 P 1650 6950
 F 0 "U1" H 1750 6700 50  0000 C CNN
@@ -79,7 +48,7 @@ F 3 "" H 1650 6950 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +5V #PWR01
+L nand_programmator:+5V #PWR01
 U 1 1 58851624
 P 900 6900
 F 0 "#PWR01" H 900 6750 50  0001 C CNN
@@ -90,7 +59,7 @@ F 3 "" H 900 6900 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GNDD #PWR02
+L nand_programmator:GNDD #PWR02
 U 1 1 5885184B
 P 1650 7400
 F 0 "#PWR02" H 1650 7150 50  0001 C CNN
@@ -101,7 +70,7 @@ F 3 "" H 1650 7400 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C4
+L nand_programmator:C C4
 U 1 1 588518F7
 P 1250 7150
 F 0 "C4" H 1275 7250 50  0000 L CNN
@@ -112,7 +81,7 @@ F 3 "" H 1250 7150 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR03
+L nand_programmator:+3.3V #PWR03
 U 1 1 58851AFE
 P 2450 6950
 F 0 "#PWR03" H 2450 6800 50  0001 C CNN
@@ -123,7 +92,7 @@ F 3 "" H 2450 6950 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR04
+L nand_programmator:+3.3V #PWR04
 U 1 1 58851FD8
 P 4750 700
 F 0 "#PWR04" H 4750 550 50  0001 C CNN
@@ -134,7 +103,7 @@ F 3 "" H 4750 700 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GNDD #PWR05
+L nand_programmator:GNDD #PWR05
 U 1 1 5885248D
 P 4750 6600
 F 0 "#PWR05" H 4750 6350 50  0001 C CNN
@@ -145,7 +114,7 @@ F 3 "" H 4750 6600 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +5V #PWR06
+L nand_programmator:+5V #PWR06
 U 1 1 58853126
 P 8750 5600
 F 0 "#PWR06" H 8750 5450 50  0001 C CNN
@@ -156,7 +125,7 @@ F 3 "" H 8750 5600 50  0000 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L GNDD #PWR07
+L nand_programmator:GNDD #PWR07
 U 1 1 58853209
 P 8750 6300
 F 0 "#PWR07" H 8750 6050 50  0001 C CNN
@@ -167,7 +136,7 @@ F 3 "" H 8750 6300 50  0000 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L R R4
+L nand_programmator:R R4
 U 1 1 5885374A
 P 8150 5850
 F 0 "R4" V 8230 5850 50  0000 C CNN
@@ -182,7 +151,7 @@ USB_DP
 Text GLabel 8600 5250 1    60   BiDi ~ 0
 USB_DM
 $Comp
-L R R6
+L nand_programmator:R R6
 U 1 1 58854FF3
 P 8600 5500
 F 0 "R6" V 8680 5500 50  0000 C CNN
@@ -193,7 +162,7 @@ F 3 "" H 8600 5500 50  0000 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L R R5
+L nand_programmator:R R5
 U 1 1 5885503E
 P 8400 5500
 F 0 "R5" V 8480 5500 50  0000 C CNN
@@ -204,7 +173,7 @@ F 3 "" H 8400 5500 50  0000 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR08
+L nand_programmator:+3.3V #PWR08
 U 1 1 588553B9
 P 7900 5800
 F 0 "#PWR08" H 7900 5650 50  0001 C CNN
@@ -219,7 +188,7 @@ USB_DM
 Text GLabel 7650 2400 2    60   BiDi ~ 0
 USB_DP
 $Comp
-L Crystal Y1
+L nand_programmator:Crystal Y1
 U 1 1 58856392
 P 1250 2050
 F 0 "Y1" H 1250 2200 50  0000 C CNN
@@ -230,7 +199,7 @@ F 3 "" H 1250 2050 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L C C1
+L nand_programmator:C C1
 U 1 1 58857883
 P 850 1900
 F 0 "C1" H 875 2000 50  0000 L CNN
@@ -241,7 +210,7 @@ F 3 "" H 850 1900 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L C C2
+L nand_programmator:C C2
 U 1 1 58857926
 P 850 2200
 F 0 "C2" H 875 2300 50  0000 L CNN
@@ -252,7 +221,7 @@ F 3 "" H 850 2200 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L GNDD #PWR09
+L nand_programmator:GNDD #PWR09
 U 1 1 58857997
 P 600 2300
 F 0 "#PWR09" H 600 2050 50  0001 C CNN
@@ -263,7 +232,7 @@ F 3 "" H 600 2300 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GNDD #PWR010
+L nand_programmator:GNDD #PWR010
 U 1 1 5885825D
 P 1100 1500
 F 0 "#PWR010" H 1100 1250 50  0001 C CNN
@@ -274,7 +243,7 @@ F 3 "" H 1100 1500 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR011
+L nand_programmator:+3.3V #PWR011
 U 1 1 58858301
 P 1500 1600
 F 0 "#PWR011" H 1500 1450 50  0001 C CNN
@@ -285,7 +254,7 @@ F 3 "" H 1500 1600 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R2
+L nand_programmator:R R2
 U 1 1 588585FC
 P 1400 1000
 F 0 "R2" V 1480 1000 50  0000 C CNN
@@ -296,7 +265,7 @@ F 3 "" H 1400 1000 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR012
+L nand_programmator:+3.3V #PWR012
 U 1 1 58858683
 P 1400 750
 F 0 "#PWR012" H 1400 600 50  0001 C CNN
@@ -307,7 +276,7 @@ F 3 "" H 1400 750 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R1
+L nand_programmator:R R1
 U 1 1 588CFC6E
 P 1300 1400
 F 0 "R1" V 1380 1400 50  0000 C CNN
@@ -318,7 +287,7 @@ F 3 "" H 1300 1400 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L LED D1
+L nand_programmator:LED D1
 U 1 1 588D17A1
 P 3900 7300
 F 0 "D1" H 3900 7400 50  0000 C CNN
@@ -329,7 +298,7 @@ F 3 "" H 3900 7300 50  0000 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR013
+L nand_programmator:+3.3V #PWR013
 U 1 1 588D23AE
 P 3250 7150
 F 0 "#PWR013" H 3250 7000 50  0001 C CNN
@@ -340,7 +309,7 @@ F 3 "" H 3250 7150 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R3
+L nand_programmator:R R3
 U 1 1 588D249A
 P 3500 7300
 F 0 "R3" V 3580 7300 50  0000 C CNN
@@ -351,7 +320,7 @@ F 3 "" H 3500 7300 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L GNDD #PWR014
+L nand_programmator:GNDD #PWR014
 U 1 1 588D2529
 P 4200 7350
 F 0 "#PWR014" H 4200 7100 50  0001 C CNN
@@ -362,7 +331,7 @@ F 3 "" H 4200 7350 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L CONN_02X10 P3
+L nand_programmator:CONN_02X10 P3
 U 1 1 588D3A90
 P 10650 4600
 F 0 "P3" H 10650 5150 50  0000 C CNN
@@ -373,7 +342,7 @@ F 3 "" H 10650 3400 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GNDD #PWR015
+L nand_programmator:GNDD #PWR015
 U 1 1 588D3C13
 P 11000 5150
 F 0 "#PWR015" H 11000 4900 50  0001 C CNN
@@ -384,7 +353,7 @@ F 3 "" H 11000 5150 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR016
+L nand_programmator:+3.3V #PWR016
 U 1 1 588D406D
 P 11000 3950
 F 0 "#PWR016" H 11000 3800 50  0001 C CNN
@@ -397,7 +366,7 @@ $EndComp
 Text GLabel 9400 4150 0    60   Output ~ 0
 NJRST
 $Comp
-L R R14
+L nand_programmator:R R14
 U 1 1 588D49F9
 P 10250 3900
 F 0 "R14" V 10330 3900 50  0000 C CNN
@@ -408,7 +377,7 @@ F 3 "" H 10250 3900 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR017
+L nand_programmator:+3.3V #PWR017
 U 1 1 588D4ACD
 P 10250 3600
 F 0 "#PWR017" H 10250 3450 50  0001 C CNN
@@ -421,7 +390,7 @@ $EndComp
 Text GLabel 9400 4300 0    60   Output ~ 0
 JTDI
 $Comp
-L R R12
+L nand_programmator:R R12
 U 1 1 588D4EE7
 P 10050 3900
 F 0 "R12" V 10130 3900 50  0000 C CNN
@@ -434,7 +403,7 @@ $EndComp
 Text GLabel 9400 4450 0    60   Output ~ 0
 JTMS
 $Comp
-L R R11
+L nand_programmator:R R11
 U 1 1 588D592C
 P 9850 3900
 F 0 "R11" V 9930 3900 50  0000 C CNN
@@ -447,7 +416,7 @@ $EndComp
 Text GLabel 9400 4600 0    60   Output ~ 0
 JTCK
 $Comp
-L R R13
+L nand_programmator:R R13
 U 1 1 588D5DCF
 P 10050 5300
 F 0 "R13" V 10130 5300 50  0000 C CNN
@@ -458,7 +427,7 @@ F 3 "" H 10050 5300 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GNDD #PWR018
+L nand_programmator:GNDD #PWR018
 U 1 1 588D5EDD
 P 10050 5600
 F 0 "#PWR018" H 10050 5350 50  0001 C CNN
@@ -469,7 +438,7 @@ F 3 "" H 10050 5600 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R15
+L nand_programmator:R R15
 U 1 1 588D6377
 P 10250 5300
 F 0 "R15" V 10330 5300 50  0000 C CNN
@@ -482,7 +451,7 @@ $EndComp
 Text GLabel 9400 4750 0    60   Input ~ 0
 JTDO
 $Comp
-L R R10
+L nand_programmator:R R10
 U 1 1 588D75D3
 P 9650 3900
 F 0 "R10" V 9730 3900 50  0000 C CNN
@@ -555,7 +524,7 @@ FSMC_NOE
 Text GLabel 9150 1300 0    60   Output ~ 0
 FSMC_NWAIT
 $Comp
-L R R8
+L nand_programmator:R R8
 U 1 1 588EC712
 P 9250 1050
 F 0 "R8" V 9330 1050 50  0000 C CNN
@@ -566,7 +535,7 @@ F 3 "" H 9250 1050 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR019
+L nand_programmator:+3.3V #PWR019
 U 1 1 588EC76B
 P 9250 800
 F 0 "#PWR019" H 9250 650 50  0001 C CNN
@@ -577,7 +546,7 @@ F 3 "" H 9250 800 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR020
+L nand_programmator:+3.3V #PWR020
 U 1 1 588ECFFC
 P 9250 1950
 F 0 "#PWR020" H 9250 1800 50  0001 C CNN
@@ -588,7 +557,7 @@ F 3 "" H 9250 1950 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GNDD #PWR021
+L nand_programmator:GNDD #PWR021
 U 1 1 588ED731
 P 9250 2150
 F 0 "#PWR021" H 9250 1900 50  0001 C CNN
@@ -607,7 +576,7 @@ FSMC_CLE
 Text GLabel 9100 2500 0    60   Input ~ 0
 FSMC_ALE
 $Comp
-L R R7
+L nand_programmator:R R7
 U 1 1 588EF55B
 P 9150 3100
 F 0 "R7" V 9230 3100 50  0000 C CNN
@@ -618,7 +587,7 @@ F 3 "" H 9150 3100 50  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L R R9
+L nand_programmator:R R9
 U 1 1 588F3B03
 P 8750 1750
 F 0 "R9" V 8830 1750 50  0000 C CNN
@@ -629,7 +598,7 @@ F 3 "" H 8750 1750 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L GNDD #PWR022
+L nand_programmator:GNDD #PWR022
 U 1 1 588F4BB2
 P 10600 2150
 F 0 "#PWR022" H 10600 1900 50  0001 C CNN
@@ -640,7 +609,7 @@ F 3 "" H 10600 2150 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR023
+L nand_programmator:+3.3V #PWR023
 U 1 1 588F4C2E
 P 10600 1950
 F 0 "#PWR023" H 10600 1800 50  0001 C CNN
@@ -651,7 +620,7 @@ F 3 "" H 10600 1950 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C14
+L nand_programmator:C C14
 U 1 1 589143F1
 P 10850 2000
 F 0 "C14" H 10875 2100 50  0000 L CNN
@@ -662,7 +631,7 @@ F 3 "" H 10850 2000 50  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L C C13
+L nand_programmator:C C13
 U 1 1 58914F0F
 P 9000 2000
 F 0 "C13" H 9025 2100 50  0000 L CNN
@@ -673,7 +642,7 @@ F 3 "" H 9000 2000 50  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L C C8
+L nand_programmator:C C8
 U 1 1 58919709
 P 5150 7250
 F 0 "C8" H 5175 7350 50  0000 L CNN
@@ -684,7 +653,7 @@ F 3 "" H 5150 7250 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C9
+L nand_programmator:C C9
 U 1 1 58919D82
 P 5500 7250
 F 0 "C9" H 5525 7350 50  0000 L CNN
@@ -695,7 +664,7 @@ F 3 "" H 5500 7250 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C10
+L nand_programmator:C C10
 U 1 1 58919FC6
 P 5850 7250
 F 0 "C10" H 5875 7350 50  0000 L CNN
@@ -706,7 +675,7 @@ F 3 "" H 5850 7250 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C11
+L nand_programmator:C C11
 U 1 1 5891A0C3
 P 6200 7250
 F 0 "C11" H 6225 7350 50  0000 L CNN
@@ -717,7 +686,7 @@ F 3 "" H 6200 7250 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C12
+L nand_programmator:C C12
 U 1 1 5891A177
 P 6550 7250
 F 0 "C12" H 6575 7350 50  0000 L CNN
@@ -728,7 +697,7 @@ F 3 "" H 6550 7250 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GNDD #PWR025
+L nand_programmator:GNDD #PWR025
 U 1 1 5891BBFE
 P 6550 7500
 F 0 "#PWR025" H 6550 7250 50  0001 C CNN
@@ -739,7 +708,7 @@ F 3 "" H 6550 7500 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR026
+L nand_programmator:+3.3V #PWR026
 U 1 1 588F4456
 P 9150 2900
 F 0 "#PWR026" H 9150 2750 50  0001 C CNN
@@ -750,7 +719,7 @@ F 3 "" H 9150 2900 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C7
+L nand_programmator:C C7
 U 1 1 588FCFBD
 P 4850 7250
 F 0 "C7" H 4875 7350 50  0000 L CNN
@@ -761,22 +730,22 @@ F 3 "" H 4850 7250 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	900  6950 1350 6950
+	900  6950 1250 6950
 Wire Wire Line
-	1650 7250 1650 7400
+	1650 7250 1650 7350
 Connection ~ 1250 6950
 Wire Wire Line
-	1950 6950 2450 6950
+	1950 6950 2050 6950
 Connection ~ 2050 6950
 Wire Wire Line
-	4150 700  4750 700 
+	4150 700  4250 700 
 Connection ~ 4550 700 
 Connection ~ 4450 700 
 Connection ~ 4350 700 
 Connection ~ 4250 700 
 Connection ~ 4650 700 
 Wire Wire Line
-	4150 6600 4750 6600
+	4150 6600 4250 6600
 Connection ~ 4250 6600
 Connection ~ 4350 6600
 Connection ~ 4450 6600
@@ -789,7 +758,7 @@ Wire Wire Line
 Wire Wire Line
 	8850 6050 8750 6050
 Wire Wire Line
-	8750 6050 8750 6300
+	8750 6050 8750 6250
 Wire Wire Line
 	8600 5650 8600 5750
 Wire Wire Line
@@ -797,7 +766,7 @@ Wire Wire Line
 Wire Wire Line
 	8400 5650 8400 5850
 Wire Wire Line
-	8300 5850 8850 5850
+	8300 5850 8400 5850
 Connection ~ 8400 5850
 Wire Wire Line
 	8600 5250 8600 5350
@@ -821,9 +790,9 @@ Wire Wire Line
 Wire Wire Line
 	1450 2000 1450 1900
 Wire Wire Line
-	1450 1900 1000 1900
+	1450 1900 1250 1900
 Wire Wire Line
-	1000 2200 1450 2200
+	1000 2200 1250 2200
 Wire Wire Line
 	1450 2200 1450 2100
 Wire Wire Line
@@ -836,7 +805,7 @@ Connection ~ 600  2200
 Connection ~ 1250 2200
 Connection ~ 1250 1900
 Wire Wire Line
-	600  1900 600  2300
+	600  1900 600  2200
 Wire Wire Line
 	1100 1400 1100 1500
 Wire Wire Line
@@ -846,7 +815,7 @@ Wire Wire Line
 Wire Wire Line
 	1400 1150 1400 1200
 Wire Wire Line
-	1250 1200 1550 1200
+	1250 1200 1400 1200
 Wire Wire Line
 	1450 1400 1550 1400
 Wire Wire Line
@@ -866,7 +835,7 @@ Wire Wire Line
 Wire Wire Line
 	10900 4250 11000 4250
 Wire Wire Line
-	11000 4250 11000 5150
+	11000 4250 11000 4350
 Wire Wire Line
 	10900 5050 11000 5050
 Connection ~ 11000 5050
@@ -892,7 +861,7 @@ Wire Wire Line
 	10900 4350 11000 4350
 Connection ~ 11000 4350
 Wire Wire Line
-	11000 3950 11000 4150
+	11000 3950 11000 4000
 Wire Wire Line
 	11000 4150 10900 4150
 Wire Wire Line
@@ -901,17 +870,17 @@ Wire Wire Line
 	10400 4000 11000 4000
 Connection ~ 11000 4000
 Wire Wire Line
-	10250 3600 10250 3750
+	10250 3600 10250 3700
 Wire Wire Line
 	10050 3700 10050 3750
 Wire Wire Line
-	9650 3700 10250 3700
+	9650 3700 9850 3700
 Connection ~ 10250 3700
 Wire Wire Line
 	9850 3750 9850 3700
 Connection ~ 10050 3700
 Wire Wire Line
-	10050 5450 10050 5600
+	10050 5450 10050 5550
 Connection ~ 10050 5550
 Wire Wire Line
 	10250 5450 10250 5550
@@ -923,24 +892,24 @@ Connection ~ 9850 3700
 Wire Wire Line
 	10350 4850 10400 4850
 Wire Wire Line
-	9400 4750 10400 4750
+	9400 4750 9650 4750
 Wire Wire Line
 	10250 5150 10250 4650
 Wire Wire Line
 	10250 4650 10400 4650
 Wire Wire Line
-	10050 4550 10050 5150
+	10050 4550 10050 4600
 Wire Wire Line
-	9400 4450 10400 4450
+	9400 4450 9850 4450
 Wire Wire Line
 	10250 4250 10400 4250
 Wire Wire Line
-	10250 4050 10250 4250
+	10250 4050 10250 4150
 Connection ~ 10250 4150
 Wire Wire Line
 	9400 4150 10250 4150
 Wire Wire Line
-	10050 4050 10050 4350
+	10050 4050 10050 4300
 Connection ~ 10050 4300
 Wire Wire Line
 	9850 4050 9850 4450
@@ -1098,7 +1067,7 @@ Wire Wire Line
 	10550 1200 10600 1200
 Connection ~ 9250 2000
 Wire Wire Line
-	9150 1300 9350 1300
+	9150 1300 9250 1300
 Wire Wire Line
 	9350 1300 9350 1500
 Wire Wire Line
@@ -1109,7 +1078,7 @@ Wire Wire Line
 Wire Wire Line
 	9400 1700 9350 1700
 Wire Wire Line
-	9150 1600 9350 1600
+	9150 1600 9250 1600
 Wire Wire Line
 	9250 1950 9250 2000
 Wire Wire Line
@@ -1126,9 +1095,9 @@ Connection ~ 9250 1600
 Wire Wire Line
 	10600 1950 10600 2000
 Wire Wire Line
-	10400 2000 10700 2000
+	10400 2000 10600 2000
 Wire Wire Line
-	10400 2100 11000 2100
+	10400 2100 10600 2100
 Wire Wire Line
 	10600 2100 10600 2150
 Wire Wire Line
@@ -1145,12 +1114,12 @@ Wire Wire Line
 	8850 2000 8850 2100
 Connection ~ 9250 2100
 Wire Wire Line
-	4850 7100 6550 7100
+	4850 7100 5150 7100
 Connection ~ 5500 7100
 Connection ~ 5850 7100
 Connection ~ 6200 7100
 Wire Wire Line
-	4850 7400 6550 7400
+	4850 7400 5150 7400
 Connection ~ 5500 7400
 Connection ~ 5850 7400
 Connection ~ 6200 7400
@@ -1181,17 +1150,17 @@ Wire Wire Line
 Connection ~ 5150 7100
 Connection ~ 5150 7400
 Wire Wire Line
-	900  6900 900  7000
+	900  6900 900  6950
 Wire Wire Line
 	900  7300 900  7350
 Wire Wire Line
-	900  7350 2450 7350
+	900  7350 1250 7350
 Connection ~ 1650 7350
 Wire Wire Line
 	1250 7300 1250 7350
 Connection ~ 1250 7350
 $Comp
-L C C5
+L nand_programmator:C C5
 U 1 1 58900C4D
 P 2050 7150
 F 0 "C5" H 2075 7250 50  0000 L CNN
@@ -1206,8 +1175,6 @@ Wire Wire Line
 Wire Wire Line
 	2450 6950 2450 7000
 Wire Wire Line
-	2450 7300 2450 7300
-Wire Wire Line
 	2450 7350 2450 7300
 Connection ~ 2050 7350
 Wire Wire Line
@@ -1216,7 +1183,7 @@ Wire Wire Line
 	1250 6950 1250 7000
 Connection ~ 900  6950
 $Comp
-L C C3
+L nand_programmator:C C3
 U 1 1 58903E4F
 P 900 7150
 F 0 "C3" H 925 7250 50  0000 L CNN
@@ -1227,7 +1194,7 @@ F 3 "" H 900 7150 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L C C6
+L nand_programmator:C C6
 U 1 1 5890498A
 P 2450 7150
 F 0 "C6" H 2475 7250 50  0000 L CNN
@@ -1240,11 +1207,11 @@ $EndComp
 Wire Wire Line
 	9250 1750 8900 1750
 Wire Wire Line
-	9150 2000 9400 2000
+	9150 2000 9250 2000
 Wire Wire Line
-	8850 2100 9400 2100
+	8850 2100 9250 2100
 $Comp
-L +3.3V #PWR027
+L nand_programmator:+3.3V #PWR027
 U 1 1 5890602E
 P 8450 1700
 F 0 "#PWR027" H 8450 1550 50  0001 C CNN
@@ -1259,7 +1226,7 @@ Wire Wire Line
 Wire Wire Line
 	8450 1750 8600 1750
 $Comp
-L TSOP-48_adapter P2
+L nand_programmator:TSOP-48_adapter P2
 U 1 1 588E58D7
 P 9900 1600
 F 0 "P2" H 9900 -100 60  0000 C CNN
@@ -1270,14 +1237,124 @@ F 3 "" H 9900 2450 60  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR?
+L nand_programmator:+3.3V #PWR0101
 U 1 1 5895143A
 P 6550 7000
-F 0 "#PWR?" H 6550 6850 50  0001 C CNN
+F 0 "#PWR0101" H 6550 6850 50  0001 C CNN
 F 1 "+3.3V" H 6550 7140 50  0000 C CNN
 F 2 "" H 6550 7000 50  0000 C CNN
 F 3 "" H 6550 7000 50  0000 C CNN
 	1    6550 7000
 	1    0    0    -1  
 $EndComp
+Wire Wire Line
+	1250 6950 1350 6950
+Wire Wire Line
+	2050 6950 2450 6950
+Wire Wire Line
+	4550 700  4650 700 
+Wire Wire Line
+	4450 700  4550 700 
+Wire Wire Line
+	4350 700  4450 700 
+Wire Wire Line
+	4250 700  4350 700 
+Wire Wire Line
+	4650 700  4750 700 
+Wire Wire Line
+	4250 6600 4350 6600
+Wire Wire Line
+	4350 6600 4450 6600
+Wire Wire Line
+	4450 6600 4550 6600
+Wire Wire Line
+	4550 6600 4650 6600
+Wire Wire Line
+	4650 6600 4750 6600
+Wire Wire Line
+	8400 5850 8850 5850
+Wire Wire Line
+	8750 6250 8750 6300
+Wire Wire Line
+	600  2200 600  2300
+Wire Wire Line
+	1250 2200 1450 2200
+Wire Wire Line
+	1250 1900 1000 1900
+Wire Wire Line
+	11000 5050 11000 5150
+Wire Wire Line
+	11000 4950 11000 5050
+Wire Wire Line
+	11000 4850 11000 4950
+Wire Wire Line
+	11000 4750 11000 4850
+Wire Wire Line
+	11000 4650 11000 4750
+Wire Wire Line
+	11000 4550 11000 4650
+Wire Wire Line
+	11000 4450 11000 4550
+Wire Wire Line
+	11000 4350 11000 4450
+Wire Wire Line
+	11000 4000 11000 4150
+Wire Wire Line
+	10250 3700 10250 3750
+Wire Wire Line
+	10050 3700 10250 3700
+Wire Wire Line
+	10050 5550 10050 5600
+Wire Wire Line
+	9850 3700 10050 3700
+Wire Wire Line
+	10250 4150 10250 4250
+Wire Wire Line
+	10050 4300 10050 4350
+Wire Wire Line
+	9850 4450 10400 4450
+Wire Wire Line
+	10050 4600 10050 5150
+Wire Wire Line
+	9650 4750 10400 4750
+Wire Wire Line
+	1400 1200 1550 1200
+Wire Wire Line
+	9250 2000 9400 2000
+Wire Wire Line
+	9250 1300 9350 1300
+Wire Wire Line
+	9250 1600 9350 1600
+Wire Wire Line
+	10600 2000 10700 2000
+Wire Wire Line
+	10600 2100 11000 2100
+Wire Wire Line
+	9250 2100 9400 2100
+Wire Wire Line
+	5500 7100 5850 7100
+Wire Wire Line
+	5850 7100 6200 7100
+Wire Wire Line
+	6200 7100 6550 7100
+Wire Wire Line
+	5500 7400 5850 7400
+Wire Wire Line
+	5850 7400 6200 7400
+Wire Wire Line
+	6200 7400 6550 7400
+Wire Wire Line
+	5150 7100 5500 7100
+Wire Wire Line
+	5150 7400 5500 7400
+Wire Wire Line
+	1650 7350 1650 7400
+Wire Wire Line
+	1650 7350 2050 7350
+Wire Wire Line
+	1250 7350 1650 7350
+Wire Wire Line
+	2050 7350 2450 7350
+Wire Wire Line
+	900  6950 900  7000
 $EndSCHEMATC
