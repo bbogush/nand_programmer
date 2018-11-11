@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <export version="D">
   <design>
-    <source>/media/D/Projects/ARM/NAND_programmer_STM32/prog/kicad/nand_programmator.sch</source>
+    <source>${KIPRJMOD}/nand_programmator.sch</source>
     <date>Sun 05 Feb 2017 02:14:14 PM EET</date>
     <tool>Eeschema 4.0.5-e0-6337~49~ubuntu14.04.1</tool>
     <sheet number="1" name="/" tstamps="/">

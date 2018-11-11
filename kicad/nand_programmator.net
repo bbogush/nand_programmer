@@ -1,6 +1,6 @@
 (export (version D)
   (design
-    (source /media/D/Projects/ARM/NAND_programmer_STM32/nand_programmer/kicad/nand_programmator.sch)
+    (source ${KIPRJMOD}/nand_programmator.sch)
     (date "Tue Oct 30 22:24:28 2018")
     (tool "Eeschema 4.0.5-e0-6337~49~ubuntu14.04.1")
     (sheet (number 1) (name /) (tstamps /)
@@ -498,7 +498,7 @@
         (pin (num 6) (name shield) (type passive)))))
   (libraries
     (library (logical nand_programmator)
-      (uri /media/D/Projects/ARM/NAND_programmer_STM32/nand_programmer/kicad/sch_lib/nand_programmator.lib)))
+      (uri ${KIPRJMOD}/sch_lib/nand_programmator.lib)))
   (nets
     (net (code 1) (name NJRST)
       (node (ref U2) (pin 90))
