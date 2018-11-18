@@ -1,0 +1,17 @@
+"Id";"Designator";"Package";"Quantity";"Designation";"Supplier and ref";
+1;"BOOT0,BOOT1";"Switch_SPDT_P2.54mm_Vertical";2;"ESP1010";;;
+2;"R16,R2,R7,R8,R9,R10,R11,R12,R13,R14,R15";"R_0805_HandSoldering";11;"10k";;;
+3;"R1";"R_0805_HandSoldering";1;"10k";;;
+4;"C1,C2";"C_0805_HandSoldering";2;"22pF";;;
+5;"C3,C6";"C_0805_HandSoldering";2;"10uF";;;
+6;"C4,C5,C7,C8,C9,C10,C11,C12,C13,C14";"C_0805_HandSoldering";10;"0.1uF";;;
+7;"D1";"LED_0805";1;"RED";;;
+8;"P1";"USB_Mini-B";1;"USB_OTG";;;
+9;"P2";"TSOP-48";1;"TSOP-48_adapter";;;
+10;"P3";"IDC_Header_Straight_20pins";1;"JTAG";;;
+11;"R3";"R_0805_HandSoldering";1;"1k";;;
+12;"R4";"R_0805_HandSoldering";1;"1.5k";;;
+13;"R5,R6";"R_0805_HandSoldering";2;"22";;;
+14;"U1";"SOT-223";1;"LM1117-3.3";;;
+15;"U2";"LQFP-100_14x14mm_Pitch0.5mm";1;"STM32F103VCTx";;;
+16;"Y1";"Crystal_HC49-U_Vertical";1;"8MHz";;;
