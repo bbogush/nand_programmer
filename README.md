@@ -48,12 +48,18 @@ Linux based OS
 - git clone https://github.com/bbogush/nand_programmer.git
 - cd nand_programmer/firmware
 - make
-## Burn firmware
+## Burn firmware (JTAG)
 - connect JTAG (J-Link) to board.
 - sudo apt-get install openocd
 - cd ~/dev/nand_programmer/nand_programmer/firmware
 - make install
-- NOTE: first time flash of chip should be burnt via internal bootloader (TODO).
+- NOTE: first time flash of chip should be burnt via internal bootloader because JTAG interface is not active.
+## Burn firmware (internal bootloader)
+- download STM DFU programmer software.
+- set BOOT0 switch to 1 to start internal bootloader.
+- connect board to PC via USB interface.
+- flash firmware.
+- set BOOT0 switch to 0 to boot from flash.
 ## Build host application
 - Install Qt5.5.1
 - Open ~/dev/nand_programmer/nand_programmer/qt/qt.pro with QtCreator.
