@@ -234,12 +234,12 @@ $EndComp
 $Comp
 L nand_programmator:GNDD #PWR010
 U 1 1 5885825D
-P 1100 1500
-F 0 "#PWR010" H 1100 1250 50  0001 C CNN
-F 1 "GNDD" H 1100 1350 50  0000 C CNN
-F 2 "" H 1100 1500 50  0000 C CNN
-F 3 "" H 1100 1500 50  0000 C CNN
-	1    1100 1500
+P 600 1550
+F 0 "#PWR010" H 600 1300 50  0001 C CNN
+F 1 "GNDD" H 600 1400 50  0000 C CNN
+F 2 "" H 600 1550 50  0000 C CNN
+F 3 "" H 600 1550 50  0000 C CNN
+	1    600  1550
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -473,7 +473,7 @@ Text GLabel 7650 2700 2    60   Input ~ 0
 JTCK
 Text GLabel 7650 3150 2    60   Output ~ 0
 JTDO
-Text GLabel 1250 1200 0    60   Input ~ 0
+Text GLabel 1350 1200 0    60   Input ~ 0
 NRST
 Text GLabel 1300 6000 0    60   BiDi ~ 0
 FSMC_D0
@@ -807,19 +807,13 @@ Connection ~ 1250 1900
 Wire Wire Line
 	600  1900 600  2200
 Wire Wire Line
-	1100 1400 1100 1500
-Wire Wire Line
 	1500 1600 1550 1600
 Wire Wire Line
 	1400 750  1400 850 
 Wire Wire Line
 	1400 1150 1400 1200
 Wire Wire Line
-	1250 1200 1400 1200
-Wire Wire Line
 	1450 1400 1550 1400
-Wire Wire Line
-	1150 1400 1100 1400
 Wire Wire Line
 	3250 7150 3250 7300
 Wire Wire Line
@@ -956,7 +950,6 @@ Wire Wire Line
 	7550 3200 7550 3150
 Wire Wire Line
 	7550 3150 7650 3150
-Connection ~ 1400 1200
 Wire Wire Line
 	1300 4600 1550 4600
 Wire Wire Line
@@ -1357,4 +1350,93 @@ Wire Wire Line
 	2050 7350 2450 7350
 Wire Wire Line
 	900  6950 900  7000
+$Comp
+L Switch:SW_SPDT BOOT0
+U 1 1 5BE973A5
+P 900 1400
+F 0 "BOOT0" H 900 1075 50  0000 C CNN
+F 1 "SW_SPDT" H 900 1166 50  0000 C CNN
+F 2 "lib_fp:Switch_SPDT_P2.54mm_Vertical" H 900 1400 50  0001 C CNN
+F 3 "" H 900 1400 50  0001 C CNN
+	1    900  1400
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	1350 1200 1400 1200
+Connection ~ 1400 1200
+Wire Wire Line
+	1100 1400 1150 1400
+$Comp
+L nand_programmator:+3.3V #PWR024
+U 1 1 5C005D95
+P 600 1300
+F 0 "#PWR024" H 600 1150 50  0001 C CNN
+F 1 "+3.3V" H 615 1473 50  0000 C CNN
+F 2 "" H 600 1300 50  0000 C CNN
+F 3 "" H 600 1300 50  0000 C CNN
+	1    600  1300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	600  1300 700  1300
+Wire Wire Line
+	600  1550 600  1500
+Wire Wire Line
+	600  1500 700  1500
+$Comp
+L Switch:SW_SPDT BOOT1
+U 1 1 5C04095F
+P 8400 3000
+F 0 "BOOT1" H 8400 2675 50  0000 C CNN
+F 1 "SW_SPDT" H 8400 2766 50  0000 C CNN
+F 2 "lib_fp:Switch_SPDT_P2.54mm_Vertical" H 8400 3000 50  0001 C CNN
+F 3 "" H 8400 3000 50  0001 C CNN
+	1    8400 3000
+	1    0    0    1   
+$EndComp
+Wire Wire Line
+	7350 3100 7550 3100
+Wire Wire Line
+	7550 3100 7550 3000
+$Comp
+L nand_programmator:+3.3V #PWR029
+U 1 1 5C06866C
+P 8650 2900
+F 0 "#PWR029" H 8650 2750 50  0001 C CNN
+F 1 "+3.3V" V 8665 3028 50  0000 L CNN
+F 2 "" H 8650 2900 50  0000 C CNN
+F 3 "" H 8650 2900 50  0000 C CNN
+	1    8650 2900
+	0    1    1    0   
+$EndComp
+$Comp
+L nand_programmator:GNDD #PWR028
+U 1 1 5C06872D
+P 8600 3200
+F 0 "#PWR028" H 8600 2950 50  0001 C CNN
+F 1 "GNDD" V 8605 3072 50  0000 R CNN
+F 2 "" H 8600 3200 50  0000 C CNN
+F 3 "" H 8600 3200 50  0000 C CNN
+	1    8600 3200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8600 3100 8600 3200
+$Comp
+L nand_programmator:R R16
+U 1 1 5C0B8AF4
+P 8000 3000
+F 0 "R16" V 8080 3000 50  0000 C CNN
+F 1 "10k" V 8000 3000 50  0000 C CNN
+F 2 "lib_fp:R_0805_HandSoldering" V 7930 3000 50  0001 C CNN
+F 3 "" H 8000 3000 50  0000 C CNN
+	1    8000 3000
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	7550 3000 7850 3000
+Wire Wire Line
+	8650 2900 8600 2900
+Wire Wire Line
+	8150 3000 8200 3000
 $EndSCHEMATC
