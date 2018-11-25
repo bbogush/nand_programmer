@@ -44,7 +44,8 @@ Linux based OS
 - Go to https://drive.google.com/drive/folders/1zLtebfLW6CxaWMq0rr4EfEPmeXfGk-7n?usp=sharing
 - Press "Download All"
 - mkdir ~/dev/
-- mv ~/Downloads/nand_programmer*.zip ~/dev/
+- cd ~/dev/
+- mv ~/Downloads/nand_programmer*.zip ./
 - unzip nand_programmer-*.zip
 - cd nand_programmer/compiler/
 - tar -xvf gcc-arm-none-eabi-4_9-2015q1-20150306-linux.tar.bz2
