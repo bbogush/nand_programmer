@@ -70,6 +70,7 @@ typedef struct __attribute__((__packed__))
 {
     cmd_t cmd;
     uint32_t addr;
+    uint32_t len;
 } write_start_cmd_t;
 
 typedef struct __attribute__((__packed__))
@@ -167,6 +168,7 @@ typedef struct
 {
     usb_t usb;
     uint32_t addr;
+    uint32_t len;
     int addr_is_valid;
     page_t page;
     uint32_t bytes_written;
@@ -417,6 +419,7 @@ static int cmd_nand_write_start(prog_t *prog)
     }
 
     prog->addr = write_start_cmd->addr;
+    prog->len = write_start_cmd->len;
     prog->addr_is_valid = 1;
 
     prog->page.page = write_start_cmd->addr / chip_info->page_size;
@@ -552,7 +555,8 @@ static int cmd_nand_write_data(prog_t *prog)
     }
 
     prog->bytes_written += write_data_cmd->len;
-    if (prog->bytes_written - prog->bytes_ack >= chip_info->page_size)
+    if (prog->bytes_written - prog->bytes_ack >= chip_info->page_size ||
+        prog->bytes_written == prog->len)
     {
         if (send_write_ack(prog->bytes_written))
             return -1;

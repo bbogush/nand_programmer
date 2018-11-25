@@ -156,6 +156,7 @@ int Writer::writeStart()
 
     writeStartCmd.cmd.code = CMD_NAND_WRITE_S;
     writeStartCmd.addr = addr;
+    writeStartCmd.len = len;
 
     if (write((uint8_t *)&writeStartCmd, sizeof(WriteStartCmd)))
         return -1;
@@ -193,7 +194,7 @@ int Writer::writeData()
         bytesWritten += dataLen;
         len -= dataLen;
 
-        if (bytesWritten != pageLim)
+        if (len && bytesWritten != pageLim)
             continue;
 
         if (readAck(&ack))
