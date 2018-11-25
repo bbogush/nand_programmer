@@ -8,14 +8,11 @@ NAND Programmer based on STM32 processor.
 
 <img src="img/host_app_v1_0.jpeg">
 
-## Version
-Unreleased version.
-
 ## Features
 - USB interface
-- PC client software for Linux. Windows, Mac planned to be supported.
+- PC client software for Linux.
 - TSOP-48 socket for NAND chip
-- NAND read/write/erase support
+- NAND read,write and erase support
 - NAND read of chip ID support
 - Open KiCad PCB & Schematic
 - Open source code
@@ -23,9 +20,15 @@ Unreleased version.
 - Read speed: 640KBytes/s
 - Erase speed: 256MBytes/s
 
-### Supported chips
+### Tested chips
 - K9F2G08U0C
-- You are welcome to add others
+
+## Version
+### Release 1.0
+- Basic NAND operations support
+
+Binaries: https://drive.google.com/drive/folders/1d5hP6MKbkEBGQe_xIRl4-A5LPt_-9QIN
+
 
 ### License
 In general the sorce code, PCB and schematic are under GPLv3 license but with limitations of:
