@@ -56,12 +56,27 @@ Linux based OS
 - git clone https://github.com/bbogush/nand_programmer.git
 - cd nand_programmer/firmware
 - make
-## Burn firmware (JTAG)
+## Burn firmware
+### JTAG (J-Link)
 - connect JTAG (J-Link) to board.
 - sudo apt-get install openocd
 - cd ~/dev/nand_programmer/nand_programmer/firmware
-- make install
-- NOTE: first time flash of chip should be burnt via internal bootloader because JTAG interface is not active.
+- make program
+- NOTE: first time flash of chip should be burnt via internal bootloader (DFU )because JTAG interface is not active.
+### SWD (ST-Link)
+- sudo apt-get install libusb-1.0-0-dev
+- cd ~/dev/
+- git clone https://github.com/texane/stlink.git
+- cd stlink/
+- make release
+- cd build/Release
+- sudo make install
+- sudo cp ../../etc/udev/rules.d/* /etc/udev/rules.d/
+- sudo udevadm control --reload-rules
+- sudo udevadm trigger
+- connect ST-Link to board
+- cd ~/dev/nand_programmer/nand_programmer/firmware
+- st-flash write ./obj/prog.bin 0x8000000
 ## Burn firmware (internal bootloader)
 - download STM DFU programmer software.
 - set BOOT0 switch to 1 to start internal bootloader.
