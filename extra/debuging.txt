@@ -1,15 +1,31 @@
-start debugger
+debug (J-Link)
 ==============
 1. Start openocd server:
-#openocd -f openocd.cfg
-2. Connect to the server using telnet:
-#telnet 127.0.0.1 4444
+# cd ~/dev/nand_programmer/nand_programmer/
+# openocd -f extra/openocd.cfg
+2. In new terminal connect to the server using telnet:
+# telnet 127.0.0.1 4444
 3. Reset board:
->reset halt
-4. Start GDB: 
-#../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-gdb obj/prog.elf
+> reset halt
+4. In new terminal start GDB:
+# cd ~/dev/nand_programmer/
+# compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-gdb nand_programmer/firmware/obj/prog.elf
 5. Connect to board:
 >target remote localhost:3333
+> b main
+> continue
+
+debug (ST-Link)
+===============
+1. Start st-util: 
+# LD_LIBRARY_PATH=/usr/local/lib/ st-util
+2. In new terminal start gdb
+# cd ~/dev/nand_programmer/
+# compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-gdb nand_programmer/firmware/obj/prog.elf
+> tar extended-remote :4242
+> load
+> b main
+> continue
 
 useful commands
 ===============
