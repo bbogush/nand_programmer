@@ -5,9 +5,9 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title "NAND programmer"
+Title "NANDO"
 Date ""
-Rev "v1.0"
+Rev "v2.0"
 Comp ""
 Comment1 ""
 Comment2 ""
@@ -19,7 +19,7 @@ L nand_programmator:STM32F103VCTx U2
 U 1 1 5884C913
 P 4450 3700
 F 0 "U2" H 1750 6525 50  0000 L BNN
-F 1 "STM32F103VCTx" H 7150 6525 50  0000 R BNN
+F 1 "STM32F103VCT6" H 7150 6525 50  0000 R BNN
 F 2 "lib_fp:LQFP-100_14x14mm_Pitch0.5mm" H 7150 6475 50  0000 R TNN
 F 3 "" H 4450 3700 50  0000 C CNN
 	1    4450 3700
@@ -48,10 +48,10 @@ F 3 "" H 1650 6950 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:+5V #PWR01
+L nand_programmator:+5V #PWR04
 U 1 1 58851624
 P 900 6900
-F 0 "#PWR01" H 900 6750 50  0001 C CNN
+F 0 "#PWR04" H 900 6750 50  0001 C CNN
 F 1 "+5V" H 900 7040 50  0000 C CNN
 F 2 "" H 900 6900 50  0000 C CNN
 F 3 "" H 900 6900 50  0000 C CNN
@@ -59,10 +59,10 @@ F 3 "" H 900 6900 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:GNDD #PWR02
+L nand_programmator:GNDD #PWR07
 U 1 1 5885184B
 P 1650 7400
-F 0 "#PWR02" H 1650 7150 50  0001 C CNN
+F 0 "#PWR07" H 1650 7150 50  0001 C CNN
 F 1 "GNDD" H 1650 7250 50  0000 C CNN
 F 2 "" H 1650 7400 50  0000 C CNN
 F 3 "" H 1650 7400 50  0000 C CNN
@@ -81,10 +81,10 @@ F 3 "" H 1250 7150 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:+3.3V #PWR03
+L nand_programmator:+3.3V #PWR08
 U 1 1 58851AFE
 P 2450 6950
-F 0 "#PWR03" H 2450 6800 50  0001 C CNN
+F 0 "#PWR08" H 2450 6800 50  0001 C CNN
 F 1 "+3.3V" H 2450 7090 50  0000 C CNN
 F 2 "" H 2450 6950 50  0000 C CNN
 F 3 "" H 2450 6950 50  0000 C CNN
@@ -92,10 +92,10 @@ F 3 "" H 2450 6950 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:+3.3V #PWR04
+L nand_programmator:+3.3V #PWR011
 U 1 1 58851FD8
 P 4750 700
-F 0 "#PWR04" H 4750 550 50  0001 C CNN
+F 0 "#PWR011" H 4750 550 50  0001 C CNN
 F 1 "+3.3V" H 4750 840 50  0000 C CNN
 F 2 "" H 4750 700 50  0000 C CNN
 F 3 "" H 4750 700 50  0000 C CNN
@@ -103,10 +103,10 @@ F 3 "" H 4750 700 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:GNDD #PWR05
+L nand_programmator:GNDD #PWR012
 U 1 1 5885248D
 P 4750 6600
-F 0 "#PWR05" H 4750 6350 50  0001 C CNN
+F 0 "#PWR012" H 4750 6350 50  0001 C CNN
 F 1 "GNDD" H 4750 6450 50  0000 C CNN
 F 2 "" H 4750 6600 50  0000 C CNN
 F 3 "" H 4750 6600 50  0000 C CNN
@@ -114,10 +114,10 @@ F 3 "" H 4750 6600 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:+5V #PWR06
+L nand_programmator:+5V #PWR021
 U 1 1 58853126
 P 8750 5600
-F 0 "#PWR06" H 8750 5450 50  0001 C CNN
+F 0 "#PWR021" H 8750 5450 50  0001 C CNN
 F 1 "+5V" H 8750 5740 50  0000 C CNN
 F 2 "" H 8750 5600 50  0000 C CNN
 F 3 "" H 8750 5600 50  0000 C CNN
@@ -125,10 +125,10 @@ F 3 "" H 8750 5600 50  0000 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:GNDD #PWR07
+L nand_programmator:GNDD #PWR022
 U 1 1 58853209
 P 8750 6300
-F 0 "#PWR07" H 8750 6050 50  0001 C CNN
+F 0 "#PWR022" H 8750 6050 50  0001 C CNN
 F 1 "GNDD" H 8750 6150 50  0000 C CNN
 F 2 "" H 8750 6300 50  0000 C CNN
 F 3 "" H 8750 6300 50  0000 C CNN
@@ -136,10 +136,10 @@ F 3 "" H 8750 6300 50  0000 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:R R4
+L nand_programmator:R R5
 U 1 1 5885374A
 P 8150 5850
-F 0 "R4" V 8230 5850 50  0000 C CNN
+F 0 "R5" V 8230 5850 50  0000 C CNN
 F 1 "1.5k" V 8150 5850 50  0000 C CNN
 F 2 "lib_fp:R_0805_HandSoldering" V 8080 5850 50  0001 C CNN
 F 3 "" H 8150 5850 50  0000 C CNN
@@ -149,12 +149,12 @@ $EndComp
 Text GLabel 8400 5250 1    60   BiDi ~ 0
 USB_DP
 Text GLabel 8600 5250 1    60   BiDi ~ 0
-USB_DM
+USB_DN
 $Comp
-L nand_programmator:R R6
+L nand_programmator:R R7
 U 1 1 58854FF3
 P 8600 5500
-F 0 "R6" V 8680 5500 50  0000 C CNN
+F 0 "R7" V 8680 5500 50  0000 C CNN
 F 1 "22" V 8600 5500 50  0000 C CNN
 F 2 "lib_fp:R_0805_HandSoldering" V 8530 5500 50  0001 C CNN
 F 3 "" H 8600 5500 50  0000 C CNN
@@ -162,10 +162,10 @@ F 3 "" H 8600 5500 50  0000 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:R R5
+L nand_programmator:R R6
 U 1 1 5885503E
 P 8400 5500
-F 0 "R5" V 8480 5500 50  0000 C CNN
+F 0 "R6" V 8480 5500 50  0000 C CNN
 F 1 "22" V 8400 5500 50  0000 C CNN
 F 2 "lib_fp:R_0805_HandSoldering" V 8330 5500 50  0001 C CNN
 F 3 "" H 8400 5500 50  0000 C CNN
@@ -173,10 +173,10 @@ F 3 "" H 8400 5500 50  0000 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:+3.3V #PWR08
+L nand_programmator:+3.3V #PWR015
 U 1 1 588553B9
 P 7900 5800
-F 0 "#PWR08" H 7900 5650 50  0001 C CNN
+F 0 "#PWR015" H 7900 5650 50  0001 C CNN
 F 1 "+3.3V" H 7900 5940 50  0000 C CNN
 F 2 "" H 7900 5800 50  0000 C CNN
 F 3 "" H 7900 5800 50  0000 C CNN
@@ -184,20 +184,9 @@ F 3 "" H 7900 5800 50  0000 C CNN
 	-1   0    0    -1  
 $EndComp
 Text GLabel 7650 2250 2    60   BiDi ~ 0
-USB_DM
+USB_DN
 Text GLabel 7650 2400 2    60   BiDi ~ 0
 USB_DP
-$Comp
-L nand_programmator:Crystal Y1
-U 1 1 58856392
-P 1250 2050
-F 0 "Y1" H 1250 2200 50  0000 C CNN
-F 1 "8MHz" H 1250 1900 50  0000 C CNN
-F 2 "lib_fp:Crystal_HC49-U_Vertical" H 1250 2050 50  0001 C CNN
-F 3 "" H 1250 2050 50  0000 C CNN
-	1    1250 2050
-	0    1    1    0   
-$EndComp
 $Comp
 L nand_programmator:C C1
 U 1 1 58857883
@@ -221,10 +210,10 @@ F 3 "" H 850 2200 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L nand_programmator:GNDD #PWR09
+L nand_programmator:GNDD #PWR03
 U 1 1 58857997
 P 600 2300
-F 0 "#PWR09" H 600 2050 50  0001 C CNN
+F 0 "#PWR03" H 600 2050 50  0001 C CNN
 F 1 "GNDD" H 600 2150 50  0000 C CNN
 F 2 "" H 600 2300 50  0000 C CNN
 F 3 "" H 600 2300 50  0000 C CNN
@@ -232,10 +221,10 @@ F 3 "" H 600 2300 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:GNDD #PWR010
+L nand_programmator:GNDD #PWR02
 U 1 1 5885825D
 P 600 1550
-F 0 "#PWR010" H 600 1300 50  0001 C CNN
+F 0 "#PWR02" H 600 1300 50  0001 C CNN
 F 1 "GNDD" H 600 1400 50  0000 C CNN
 F 2 "" H 600 1550 50  0000 C CNN
 F 3 "" H 600 1550 50  0000 C CNN
@@ -243,10 +232,10 @@ F 3 "" H 600 1550 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:+3.3V #PWR011
+L nand_programmator:+3.3V #PWR06
 U 1 1 58858301
 P 1500 1600
-F 0 "#PWR011" H 1500 1450 50  0001 C CNN
+F 0 "#PWR06" H 1500 1450 50  0001 C CNN
 F 1 "+3.3V" H 1500 1740 50  0000 C CNN
 F 2 "" H 1500 1600 50  0000 C CNN
 F 3 "" H 1500 1600 50  0000 C CNN
@@ -265,26 +254,15 @@ F 3 "" H 1400 1000 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:+3.3V #PWR012
+L nand_programmator:+3.3V #PWR05
 U 1 1 58858683
 P 1400 750
-F 0 "#PWR012" H 1400 600 50  0001 C CNN
+F 0 "#PWR05" H 1400 600 50  0001 C CNN
 F 1 "+3.3V" H 1400 890 50  0000 C CNN
 F 2 "" H 1400 750 50  0000 C CNN
 F 3 "" H 1400 750 50  0000 C CNN
 	1    1400 750 
 	1    0    0    -1  
-$EndComp
-$Comp
-L nand_programmator:R R1
-U 1 1 588CFC6E
-P 1300 1400
-F 0 "R1" V 1380 1400 50  0000 C CNN
-F 1 "10k" V 1300 1400 50  0000 C CNN
-F 2 "Resistors_SMD:R_0805_HandSoldering" V 1230 1400 50  0001 C CNN
-F 3 "" H 1300 1400 50  0000 C CNN
-	1    1300 1400
-	0    1    1    0   
 $EndComp
 $Comp
 L nand_programmator:LED D1
@@ -298,10 +276,10 @@ F 3 "" H 3900 7300 50  0000 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:+3.3V #PWR013
+L nand_programmator:+3.3V #PWR09
 U 1 1 588D23AE
 P 3250 7150
-F 0 "#PWR013" H 3250 7000 50  0001 C CNN
+F 0 "#PWR09" H 3250 7000 50  0001 C CNN
 F 1 "+3.3V" H 3250 7290 50  0000 C CNN
 F 2 "" H 3250 7150 50  0000 C CNN
 F 3 "" H 3250 7150 50  0000 C CNN
@@ -320,161 +298,24 @@ F 3 "" H 3500 7300 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L nand_programmator:GNDD #PWR014
+L nand_programmator:GNDD #PWR010
 U 1 1 588D2529
 P 4200 7350
-F 0 "#PWR014" H 4200 7100 50  0001 C CNN
+F 0 "#PWR010" H 4200 7100 50  0001 C CNN
 F 1 "GNDD" H 4200 7200 50  0000 C CNN
 F 2 "" H 4200 7350 50  0000 C CNN
 F 3 "" H 4200 7350 50  0000 C CNN
 	1    4200 7350
 	1    0    0    -1  
 $EndComp
-$Comp
-L nand_programmator:CONN_02X10 P3
-U 1 1 588D3A90
-P 10650 4600
-F 0 "P3" H 10650 5150 50  0000 C CNN
-F 1 "JTAG" V 10650 4600 50  0000 C CNN
-F 2 "lib_fp:IDC_Header_Straight_20pins" H 10650 3400 50  0001 C CNN
-F 3 "" H 10650 3400 50  0000 C CNN
-	1    10650 4600
-	1    0    0    -1  
-$EndComp
-$Comp
-L nand_programmator:GNDD #PWR015
-U 1 1 588D3C13
-P 11000 5150
-F 0 "#PWR015" H 11000 4900 50  0001 C CNN
-F 1 "GNDD" H 11000 5000 50  0000 C CNN
-F 2 "" H 11000 5150 50  0000 C CNN
-F 3 "" H 11000 5150 50  0000 C CNN
-	1    11000 5150
-	1    0    0    -1  
-$EndComp
-$Comp
-L nand_programmator:+3.3V #PWR016
-U 1 1 588D406D
-P 11000 3950
-F 0 "#PWR016" H 11000 3800 50  0001 C CNN
-F 1 "+3.3V" H 11000 4090 50  0000 C CNN
-F 2 "" H 11000 3950 50  0000 C CNN
-F 3 "" H 11000 3950 50  0000 C CNN
-	1    11000 3950
-	1    0    0    -1  
-$EndComp
-Text GLabel 9400 4150 0    60   Output ~ 0
-NJRST
-$Comp
-L nand_programmator:R R14
-U 1 1 588D49F9
-P 10250 3900
-F 0 "R14" V 10330 3900 50  0000 C CNN
-F 1 "10k" V 10250 3900 50  0000 C CNN
-F 2 "lib_fp:R_0805_HandSoldering" V 10180 3900 50  0001 C CNN
-F 3 "" H 10250 3900 50  0000 C CNN
-	1    10250 3900
-	1    0    0    -1  
-$EndComp
-$Comp
-L nand_programmator:+3.3V #PWR017
-U 1 1 588D4ACD
-P 10250 3600
-F 0 "#PWR017" H 10250 3450 50  0001 C CNN
-F 1 "+3.3V" H 10250 3740 50  0000 C CNN
-F 2 "" H 10250 3600 50  0000 C CNN
-F 3 "" H 10250 3600 50  0000 C CNN
-	1    10250 3600
-	1    0    0    -1  
-$EndComp
-Text GLabel 9400 4300 0    60   Output ~ 0
-JTDI
-$Comp
-L nand_programmator:R R12
-U 1 1 588D4EE7
-P 10050 3900
-F 0 "R12" V 10130 3900 50  0000 C CNN
-F 1 "10k" V 10050 3900 50  0000 C CNN
-F 2 "lib_fp:R_0805_HandSoldering" V 9980 3900 50  0001 C CNN
-F 3 "" H 10050 3900 50  0000 C CNN
-	1    10050 3900
-	1    0    0    -1  
-$EndComp
-Text GLabel 9400 4450 0    60   Output ~ 0
-JTMS
-$Comp
-L nand_programmator:R R11
-U 1 1 588D592C
-P 9850 3900
-F 0 "R11" V 9930 3900 50  0000 C CNN
-F 1 "10k" V 9850 3900 50  0000 C CNN
-F 2 "lib_fp:R_0805_HandSoldering" V 9780 3900 50  0001 C CNN
-F 3 "" H 9850 3900 50  0000 C CNN
-	1    9850 3900
-	1    0    0    -1  
-$EndComp
-Text GLabel 9400 4600 0    60   Output ~ 0
-JTCK
-$Comp
-L nand_programmator:R R13
-U 1 1 588D5DCF
-P 10050 5300
-F 0 "R13" V 10130 5300 50  0000 C CNN
-F 1 "10k" V 10050 5300 50  0000 C CNN
-F 2 "lib_fp:R_0805_HandSoldering" V 9980 5300 50  0001 C CNN
-F 3 "" H 10050 5300 50  0000 C CNN
-	1    10050 5300
-	1    0    0    -1  
-$EndComp
-$Comp
-L nand_programmator:GNDD #PWR018
-U 1 1 588D5EDD
-P 10050 5600
-F 0 "#PWR018" H 10050 5350 50  0001 C CNN
-F 1 "GNDD" H 10050 5450 50  0000 C CNN
-F 2 "" H 10050 5600 50  0000 C CNN
-F 3 "" H 10050 5600 50  0000 C CNN
-	1    10050 5600
-	1    0    0    -1  
-$EndComp
-$Comp
-L nand_programmator:R R15
-U 1 1 588D6377
-P 10250 5300
-F 0 "R15" V 10330 5300 50  0000 C CNN
-F 1 "10k" V 10250 5300 50  0000 C CNN
-F 2 "lib_fp:R_0805_HandSoldering" V 10180 5300 50  0001 C CNN
-F 3 "" H 10250 5300 50  0000 C CNN
-	1    10250 5300
-	1    0    0    -1  
-$EndComp
-Text GLabel 9400 4750 0    60   Input ~ 0
-JTDO
-$Comp
-L nand_programmator:R R10
-U 1 1 588D75D3
-P 9650 3900
-F 0 "R10" V 9730 3900 50  0000 C CNN
-F 1 "10k" V 9650 3900 50  0000 C CNN
-F 2 "lib_fp:R_0805_HandSoldering" V 9580 3900 50  0001 C CNN
-F 3 "" H 9650 3900 50  0000 C CNN
-	1    9650 3900
-	1    0    0    -1  
-$EndComp
-Text GLabel 9400 4900 0    60   Output ~ 0
-NRST
-Text GLabel 7650 3300 2    60   Input ~ 0
-NJRST
-Text GLabel 7700 2850 2    60   Input ~ 0
-JTDI
-Text GLabel 7650 2550 2    60   Input ~ 0
-JTMS
+Text GLabel 8400 4250 0    60   BiDi ~ 0
+SWDIO
+Text GLabel 8400 4050 0    60   Output ~ 0
+SWCLK
+Text GLabel 7650 2550 2    60   BiDi ~ 0
+SWDIO
 Text GLabel 7650 2700 2    60   Input ~ 0
-JTCK
-Text GLabel 7650 3150 2    60   Output ~ 0
-JTDO
-Text GLabel 1350 1200 0    60   Input ~ 0
-NRST
+SWCLK
 Text GLabel 1300 6000 0    60   BiDi ~ 0
 FSMC_D0
 Text GLabel 1300 6150 0    60   BiDi ~ 0
@@ -524,10 +365,10 @@ FSMC_NOE
 Text GLabel 9150 1300 0    60   Output ~ 0
 FSMC_NWAIT
 $Comp
-L nand_programmator:R R8
+L nand_programmator:R R12
 U 1 1 588EC712
 P 9250 1050
-F 0 "R8" V 9330 1050 50  0000 C CNN
+F 0 "R12" V 9330 1050 50  0000 C CNN
 F 1 "10k" V 9250 1050 50  0000 C CNN
 F 2 "lib_fp:R_0805_HandSoldering" V 9180 1050 50  0001 C CNN
 F 3 "" H 9250 1050 50  0000 C CNN
@@ -535,10 +376,10 @@ F 3 "" H 9250 1050 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:+3.3V #PWR019
+L nand_programmator:+3.3V #PWR026
 U 1 1 588EC76B
 P 9250 800
-F 0 "#PWR019" H 9250 650 50  0001 C CNN
+F 0 "#PWR026" H 9250 650 50  0001 C CNN
 F 1 "+3.3V" H 9250 940 50  0000 C CNN
 F 2 "" H 9250 800 50  0000 C CNN
 F 3 "" H 9250 800 50  0000 C CNN
@@ -546,10 +387,10 @@ F 3 "" H 9250 800 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:+3.3V #PWR020
+L nand_programmator:+3.3V #PWR027
 U 1 1 588ECFFC
 P 9250 1950
-F 0 "#PWR020" H 9250 1800 50  0001 C CNN
+F 0 "#PWR027" H 9250 1800 50  0001 C CNN
 F 1 "+3.3V" H 9250 2090 50  0000 C CNN
 F 2 "" H 9250 1950 50  0000 C CNN
 F 3 "" H 9250 1950 50  0000 C CNN
@@ -557,10 +398,10 @@ F 3 "" H 9250 1950 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:GNDD #PWR021
+L nand_programmator:GNDD #PWR028
 U 1 1 588ED731
 P 9250 2150
-F 0 "#PWR021" H 9250 1900 50  0001 C CNN
+F 0 "#PWR028" H 9250 1900 50  0001 C CNN
 F 1 "GNDD" H 9250 2000 50  0000 C CNN
 F 2 "" H 9250 2150 50  0000 C CNN
 F 3 "" H 9250 2150 50  0000 C CNN
@@ -576,10 +417,10 @@ FSMC_CLE
 Text GLabel 9100 2500 0    60   Input ~ 0
 FSMC_ALE
 $Comp
-L nand_programmator:R R7
+L nand_programmator:R R11
 U 1 1 588EF55B
 P 9150 3100
-F 0 "R7" V 9230 3100 50  0000 C CNN
+F 0 "R11" V 9230 3100 50  0000 C CNN
 F 1 "10k" V 9150 3100 50  0000 C CNN
 F 2 "lib_fp:R_0805_HandSoldering" V 9080 3100 50  0001 C CNN
 F 3 "" H 9150 3100 50  0000 C CNN
@@ -587,10 +428,10 @@ F 3 "" H 9150 3100 50  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L nand_programmator:R R9
+L nand_programmator:R R10
 U 1 1 588F3B03
 P 8750 1750
-F 0 "R9" V 8830 1750 50  0000 C CNN
+F 0 "R10" V 8830 1750 50  0000 C CNN
 F 1 "10k" V 8750 1750 50  0000 C CNN
 F 2 "lib_fp:R_0805_HandSoldering" V 8680 1750 50  0001 C CNN
 F 3 "" H 8750 1750 50  0000 C CNN
@@ -598,10 +439,10 @@ F 3 "" H 8750 1750 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L nand_programmator:GNDD #PWR022
+L nand_programmator:GNDD #PWR030
 U 1 1 588F4BB2
 P 10600 2150
-F 0 "#PWR022" H 10600 1900 50  0001 C CNN
+F 0 "#PWR030" H 10600 1900 50  0001 C CNN
 F 1 "GNDD" H 10600 2000 50  0000 C CNN
 F 2 "" H 10600 2150 50  0000 C CNN
 F 3 "" H 10600 2150 50  0000 C CNN
@@ -609,10 +450,10 @@ F 3 "" H 10600 2150 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:+3.3V #PWR023
+L nand_programmator:+3.3V #PWR029
 U 1 1 588F4C2E
 P 10600 1950
-F 0 "#PWR023" H 10600 1800 50  0001 C CNN
+F 0 "#PWR029" H 10600 1800 50  0001 C CNN
 F 1 "+3.3V" H 10600 2090 50  0000 C CNN
 F 2 "" H 10600 1950 50  0000 C CNN
 F 3 "" H 10600 1950 50  0000 C CNN
@@ -697,10 +538,10 @@ F 3 "" H 6550 7250 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:GNDD #PWR025
+L nand_programmator:GNDD #PWR014
 U 1 1 5891BBFE
 P 6550 7500
-F 0 "#PWR025" H 6550 7250 50  0001 C CNN
+F 0 "#PWR014" H 6550 7250 50  0001 C CNN
 F 1 "GNDD" H 6550 7350 50  0000 C CNN
 F 2 "" H 6550 7500 50  0000 C CNN
 F 3 "" H 6550 7500 50  0000 C CNN
@@ -708,10 +549,10 @@ F 3 "" H 6550 7500 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:+3.3V #PWR026
+L nand_programmator:+3.3V #PWR025
 U 1 1 588F4456
 P 9150 2900
-F 0 "#PWR026" H 9150 2750 50  0001 C CNN
+F 0 "#PWR025" H 9150 2750 50  0001 C CNN
 F 1 "+3.3V" H 9150 3040 50  0000 C CNN
 F 2 "" H 9150 2900 50  0000 C CNN
 F 3 "" H 9150 2900 50  0000 C CNN
@@ -790,10 +631,6 @@ Wire Wire Line
 Wire Wire Line
 	1450 2000 1450 1900
 Wire Wire Line
-	1450 1900 1250 1900
-Wire Wire Line
-	1000 2200 1250 2200
-Wire Wire Line
 	1450 2200 1450 2100
 Wire Wire Line
 	1450 2100 1550 2100
@@ -802,10 +639,8 @@ Wire Wire Line
 Wire Wire Line
 	700  2200 600  2200
 Connection ~ 600  2200
-Connection ~ 1250 2200
-Connection ~ 1250 1900
 Wire Wire Line
-	600  1900 600  2200
+	600  1900 600  2050
 Wire Wire Line
 	1500 1600 1550 1600
 Wire Wire Line
@@ -827,108 +662,6 @@ Wire Wire Line
 Wire Wire Line
 	7900 5800 7900 5850
 Wire Wire Line
-	10900 4250 11000 4250
-Wire Wire Line
-	11000 4250 11000 4350
-Wire Wire Line
-	10900 5050 11000 5050
-Connection ~ 11000 5050
-Wire Wire Line
-	10900 4950 11000 4950
-Connection ~ 11000 4950
-Wire Wire Line
-	10900 4850 11000 4850
-Connection ~ 11000 4850
-Wire Wire Line
-	10900 4750 11000 4750
-Connection ~ 11000 4750
-Wire Wire Line
-	10900 4650 11000 4650
-Connection ~ 11000 4650
-Wire Wire Line
-	10900 4550 11000 4550
-Connection ~ 11000 4550
-Wire Wire Line
-	10900 4450 11000 4450
-Connection ~ 11000 4450
-Wire Wire Line
-	10900 4350 11000 4350
-Connection ~ 11000 4350
-Wire Wire Line
-	11000 3950 11000 4000
-Wire Wire Line
-	11000 4150 10900 4150
-Wire Wire Line
-	10400 4150 10400 4000
-Wire Wire Line
-	10400 4000 11000 4000
-Connection ~ 11000 4000
-Wire Wire Line
-	10250 3600 10250 3700
-Wire Wire Line
-	10050 3700 10050 3750
-Wire Wire Line
-	9650 3700 9850 3700
-Connection ~ 10250 3700
-Wire Wire Line
-	9850 3750 9850 3700
-Connection ~ 10050 3700
-Wire Wire Line
-	10050 5450 10050 5550
-Connection ~ 10050 5550
-Wire Wire Line
-	10250 5450 10250 5550
-Wire Wire Line
-	10250 5550 10050 5550
-Wire Wire Line
-	9650 3750 9650 3700
-Connection ~ 9850 3700
-Wire Wire Line
-	10350 4850 10400 4850
-Wire Wire Line
-	9400 4750 9650 4750
-Wire Wire Line
-	10250 5150 10250 4650
-Wire Wire Line
-	10250 4650 10400 4650
-Wire Wire Line
-	10050 4550 10050 4600
-Wire Wire Line
-	9400 4450 9850 4450
-Wire Wire Line
-	10250 4250 10400 4250
-Wire Wire Line
-	10250 4050 10250 4150
-Connection ~ 10250 4150
-Wire Wire Line
-	9400 4150 10250 4150
-Wire Wire Line
-	10050 4050 10050 4300
-Connection ~ 10050 4300
-Wire Wire Line
-	9850 4050 9850 4450
-Connection ~ 9850 4450
-Wire Wire Line
-	10050 4350 10400 4350
-Wire Wire Line
-	10050 4300 9400 4300
-Wire Wire Line
-	10400 4550 10050 4550
-Wire Wire Line
-	10050 4600 9400 4600
-Connection ~ 10050 4600
-Wire Wire Line
-	9650 4050 9650 4750
-Connection ~ 9650 4750
-Wire Wire Line
-	10350 4850 10350 4900
-Wire Wire Line
-	10350 4900 9400 4900
-Wire Wire Line
-	7350 3300 7650 3300
-Wire Wire Line
-	7350 2700 7500 2700
-Wire Wire Line
 	7550 2500 7350 2500
 Wire Wire Line
 	7550 2500 7550 2550
@@ -940,16 +673,6 @@ Wire Wire Line
 	7550 2600 7550 2700
 Wire Wire Line
 	7550 2700 7650 2700
-Wire Wire Line
-	7500 2700 7500 2850
-Wire Wire Line
-	7500 2850 7700 2850
-Wire Wire Line
-	7350 3200 7550 3200
-Wire Wire Line
-	7550 3200 7550 3150
-Wire Wire Line
-	7550 3150 7650 3150
 Wire Wire Line
 	1300 4600 1550 4600
 Wire Wire Line
@@ -1204,10 +927,10 @@ Wire Wire Line
 Wire Wire Line
 	8850 2100 9250 2100
 $Comp
-L nand_programmator:+3.3V #PWR027
+L nand_programmator:+3.3V #PWR018
 U 1 1 5890602E
 P 8450 1700
-F 0 "#PWR027" H 8450 1550 50  0001 C CNN
+F 0 "#PWR018" H 8450 1550 50  0001 C CNN
 F 1 "+3.3V" H 8450 1840 50  0000 C CNN
 F 2 "" H 8450 1700 50  0000 C CNN
 F 3 "" H 8450 1700 50  0000 C CNN
@@ -1223,17 +946,17 @@ L nand_programmator:TSOP-48_adapter P2
 U 1 1 588E58D7
 P 9900 1600
 F 0 "P2" H 9900 -100 60  0000 C CNN
-F 1 "TSOP-48_adapter" H 9900 2450 60  0000 C CNN
+F 1 "TSOP-48_socket" H 9900 2450 60  0000 C CNN
 F 2 "lib_fp:TSOP-48" H 9900 2450 60  0001 C CNN
 F 3 "" H 9900 2450 60  0001 C CNN
 	1    9900 1600
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:+3.3V #PWR0101
+L nand_programmator:+3.3V #PWR013
 U 1 1 5895143A
 P 6550 7000
-F 0 "#PWR0101" H 6550 6850 50  0001 C CNN
+F 0 "#PWR013" H 6550 6850 50  0001 C CNN
 F 1 "+3.3V" H 6550 7140 50  0000 C CNN
 F 2 "" H 6550 7000 50  0000 C CNN
 F 3 "" H 6550 7000 50  0000 C CNN
@@ -1270,46 +993,6 @@ Wire Wire Line
 	8750 6250 8750 6300
 Wire Wire Line
 	600  2200 600  2300
-Wire Wire Line
-	1250 2200 1450 2200
-Wire Wire Line
-	1250 1900 1000 1900
-Wire Wire Line
-	11000 5050 11000 5150
-Wire Wire Line
-	11000 4950 11000 5050
-Wire Wire Line
-	11000 4850 11000 4950
-Wire Wire Line
-	11000 4750 11000 4850
-Wire Wire Line
-	11000 4650 11000 4750
-Wire Wire Line
-	11000 4550 11000 4650
-Wire Wire Line
-	11000 4450 11000 4550
-Wire Wire Line
-	11000 4350 11000 4450
-Wire Wire Line
-	11000 4000 11000 4150
-Wire Wire Line
-	10250 3700 10250 3750
-Wire Wire Line
-	10050 3700 10250 3700
-Wire Wire Line
-	10050 5550 10050 5600
-Wire Wire Line
-	9850 3700 10050 3700
-Wire Wire Line
-	10250 4150 10250 4250
-Wire Wire Line
-	10050 4300 10050 4350
-Wire Wire Line
-	9850 4450 10400 4450
-Wire Wire Line
-	10050 4600 10050 5150
-Wire Wire Line
-	9650 4750 10400 4750
 Wire Wire Line
 	1400 1200 1550 1200
 Wire Wire Line
@@ -1355,22 +1038,19 @@ L Switch:SW_SPDT BOOT0
 U 1 1 5BE973A5
 P 900 1400
 F 0 "BOOT0" H 900 1075 50  0000 C CNN
-F 1 "SW_SPDT" H 900 1166 50  0000 C CNN
+F 1 "SPDT_ESP1010" H 900 1166 50  0000 R CNN
 F 2 "lib_fp:Switch_SPDT_P2.54mm_Vertical" H 900 1400 50  0001 C CNN
 F 3 "" H 900 1400 50  0001 C CNN
 	1    900  1400
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
-	1350 1200 1400 1200
-Connection ~ 1400 1200
-Wire Wire Line
 	1100 1400 1150 1400
 $Comp
-L nand_programmator:+3.3V #PWR024
+L nand_programmator:+3.3V #PWR01
 U 1 1 5C005D95
 P 600 1300
-F 0 "#PWR024" H 600 1150 50  0001 C CNN
+F 0 "#PWR01" H 600 1150 50  0001 C CNN
 F 1 "+3.3V" H 615 1473 50  0000 C CNN
 F 2 "" H 600 1300 50  0000 C CNN
 F 3 "" H 600 1300 50  0000 C CNN
@@ -1384,59 +1064,310 @@ Wire Wire Line
 Wire Wire Line
 	600  1500 700  1500
 $Comp
-L Switch:SW_SPDT BOOT1
-U 1 1 5C04095F
-P 8400 3000
-F 0 "BOOT1" H 8400 2675 50  0000 C CNN
-F 1 "SW_SPDT" H 8400 2766 50  0000 C CNN
-F 2 "lib_fp:Switch_SPDT_P2.54mm_Vertical" H 8400 3000 50  0001 C CNN
-F 3 "" H 8400 3000 50  0001 C CNN
-	1    8400 3000
+L nand_programmator:GNDD #PWR016
+U 1 1 5C06872D
+P 7950 3100
+F 0 "#PWR016" H 7950 2850 50  0001 C CNN
+F 1 "GNDD" V 7955 2972 50  0000 R CNN
+F 2 "" H 7950 3100 50  0000 C CNN
+F 3 "" H 7950 3100 50  0000 C CNN
+	1    7950 3100
+	1    0    0    -1  
+$EndComp
+$Comp
+L nand_programmator:R R4
+U 1 1 5C0B8AF4
+P 7750 3100
+F 0 "R4" V 7830 3100 50  0000 C CNN
+F 1 "10k" V 7750 3100 50  0000 C CNN
+F 2 "lib_fp:R_0805_HandSoldering" V 7680 3100 50  0001 C CNN
+F 3 "" H 7750 3100 50  0000 C CNN
+	1    7750 3100
+	0    1    1    0   
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x04 J1
+U 1 1 5C069405
+P 9150 4050
+F 0 "J1" H 9230 4042 50  0000 L CNN
+F 1 "Conn_01x04" H 9230 3951 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 9150 4050 50  0001 C CNN
+F 3 "~" H 9150 4050 50  0001 C CNN
+	1    9150 4050
+	1    0    0    -1  
+$EndComp
+$Comp
+L nand_programmator:+3.3V #PWR023
+U 1 1 5C091AF2
+P 8900 3900
+F 0 "#PWR023" H 8900 3750 50  0001 C CNN
+F 1 "+3.3V" H 8900 4040 50  0000 C CNN
+F 2 "" H 8900 3900 50  0000 C CNN
+F 3 "" H 8900 3900 50  0000 C CNN
+	1    8900 3900
+	1    0    0    -1  
+$EndComp
+$Comp
+L nand_programmator:GNDD #PWR019
+U 1 1 5C27F907
+P 8450 3750
+F 0 "#PWR019" H 8450 3500 50  0001 C CNN
+F 1 "GNDD" H 8455 3577 50  0000 C CNN
+F 2 "" H 8450 3750 50  0000 C CNN
+F 3 "" H 8450 3750 50  0000 C CNN
+	1    8450 3750
+	1    0    0    -1  
+$EndComp
+$Comp
+L nand_programmator:R R8
+U 1 1 5C2FEBFB
+P 8650 3850
+F 0 "R8" V 8730 3850 50  0000 C CNN
+F 1 "10k" V 8650 3850 50  0000 C CNN
+F 2 "lib_fp:R_0805_HandSoldering" V 8580 3850 50  0001 C CNN
+F 3 "" H 8650 3850 50  0000 C CNN
+	1    8650 3850
+	1    0    0    -1  
+$EndComp
+$Comp
+L nand_programmator:R R9
+U 1 1 5C48B28F
+P 8650 4450
+F 0 "R9" V 8730 4450 50  0000 C CNN
+F 1 "10k" V 8650 4450 50  0000 C CNN
+F 2 "lib_fp:R_0805_HandSoldering" V 8580 4450 50  0001 C CNN
+F 3 "" H 8650 4450 50  0000 C CNN
+	1    8650 4450
 	1    0    0    1   
 $EndComp
 Wire Wire Line
-	7350 3100 7550 3100
+	8400 4050 8650 4050
 Wire Wire Line
-	7550 3100 7550 3000
+	8900 3900 8900 3950
+Wire Wire Line
+	8900 3950 8950 3950
+Wire Wire Line
+	8450 3750 8450 3700
+Wire Wire Line
+	8650 4000 8650 4050
+Connection ~ 8650 4050
+Wire Wire Line
+	8650 4050 8950 4050
+Wire Wire Line
+	8400 4250 8650 4250
 $Comp
-L nand_programmator:+3.3V #PWR029
-U 1 1 5C06866C
-P 8650 2900
-F 0 "#PWR029" H 8650 2750 50  0001 C CNN
-F 1 "+3.3V" V 8665 3028 50  0000 L CNN
-F 2 "" H 8650 2900 50  0000 C CNN
-F 3 "" H 8650 2900 50  0000 C CNN
-	1    8650 2900
-	0    1    1    0   
-$EndComp
-$Comp
-L nand_programmator:GNDD #PWR028
-U 1 1 5C06872D
-P 8600 3200
-F 0 "#PWR028" H 8600 2950 50  0001 C CNN
-F 1 "GNDD" V 8605 3072 50  0000 R CNN
-F 2 "" H 8600 3200 50  0000 C CNN
-F 3 "" H 8600 3200 50  0000 C CNN
-	1    8600 3200
+L nand_programmator:GNDD #PWR024
+U 1 1 5CC873DE
+P 8900 4300
+F 0 "#PWR024" H 8900 4050 50  0001 C CNN
+F 1 "GNDD" H 8905 4127 50  0000 C CNN
+F 2 "" H 8900 4300 50  0000 C CNN
+F 3 "" H 8900 4300 50  0000 C CNN
+	1    8900 4300
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	8600 3100 8600 3200
+	8900 4300 8900 4150
+Wire Wire Line
+	8900 4150 8950 4150
+Wire Wire Line
+	8650 4300 8650 4250
+Connection ~ 8650 4250
+Wire Wire Line
+	8650 4250 8950 4250
 $Comp
-L nand_programmator:R R16
-U 1 1 5C0B8AF4
-P 8000 3000
-F 0 "R16" V 8080 3000 50  0000 C CNN
-F 1 "10k" V 8000 3000 50  0000 C CNN
-F 2 "lib_fp:R_0805_HandSoldering" V 7930 3000 50  0001 C CNN
-F 3 "" H 8000 3000 50  0000 C CNN
-	1    8000 3000
-	0    1    1    0   
+L nand_programmator:+3.3V #PWR020
+U 1 1 5CD08965
+P 8450 4550
+F 0 "#PWR020" H 8450 4400 50  0001 C CNN
+F 1 "+3.3V" H 8450 4690 50  0000 C CNN
+F 2 "" H 8450 4550 50  0000 C CNN
+F 3 "" H 8450 4550 50  0000 C CNN
+	1    8450 4550
+	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	7550 3000 7850 3000
+	8450 4550 8450 4600
 Wire Wire Line
-	8650 2900 8600 2900
+	8450 4600 8650 4600
 Wire Wire Line
-	8150 3000 8200 3000
+	8450 3700 8650 3700
+Wire Wire Line
+	7900 3100 7950 3100
+Wire Wire Line
+	7350 3100 7600 3100
+$Comp
+L Connector_Generic:Conn_01x03 J2
+U 1 1 5D0A1D76
+P 8100 1900
+F 0 "J2" H 8180 1942 50  0000 L CNN
+F 1 "Conn_01x03" H 8180 1851 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 8100 1900 50  0001 C CNN
+F 3 "~" H 8100 1900 50  0001 C CNN
+	1    8100 1900
+	1    0    0    -1  
+$EndComp
+$Comp
+L nand_programmator:GNDD #PWR031
+U 1 1 5D0AECED
+P 7750 1550
+F 0 "#PWR031" H 7750 1300 50  0001 C CNN
+F 1 "GNDD" V 7755 1422 50  0000 R CNN
+F 2 "" H 7750 1550 50  0000 C CNN
+F 3 "" H 7750 1550 50  0000 C CNN
+	1    7750 1550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7350 2200 7550 2200
+Wire Wire Line
+	7750 1550 7750 1500
+Wire Wire Line
+	7550 2200 7550 2000
+Wire Wire Line
+	7550 2000 7900 2000
+Wire Wire Line
+	7900 1900 7500 1900
+Wire Wire Line
+	7500 1900 7500 2100
+Wire Wire Line
+	7500 2100 7350 2100
+Wire Wire Line
+	7750 1500 7900 1500
+Wire Wire Line
+	7900 1500 7900 1800
+$Comp
+L nand_programmator:LED D2
+U 1 1 5D1A0E8C
+P 8150 700
+F 0 "D2" H 8150 800 50  0000 C CNN
+F 1 "GREEN" H 8150 600 50  0000 C CNN
+F 2 "lib_fp:LED_0805" H 8150 700 50  0001 C CNN
+F 3 "" H 8150 700 50  0000 C CNN
+	1    8150 700 
+	-1   0    0    -1  
+$EndComp
+$Comp
+L nand_programmator:R R13
+U 1 1 5D1A0E93
+P 7750 700
+F 0 "R13" V 7830 700 50  0000 C CNN
+F 1 "1k" V 7750 700 50  0000 C CNN
+F 2 "lib_fp:R_0805_HandSoldering" V 7680 700 50  0001 C CNN
+F 3 "" H 7750 700 50  0000 C CNN
+	1    7750 700 
+	0    1    1    0   
+$EndComp
+$Comp
+L nand_programmator:GNDD #PWR032
+U 1 1 5D1A0E9A
+P 8450 750
+F 0 "#PWR032" H 8450 500 50  0001 C CNN
+F 1 "GNDD" H 8450 600 50  0000 C CNN
+F 2 "" H 8450 750 50  0000 C CNN
+F 3 "" H 8450 750 50  0000 C CNN
+	1    8450 750 
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7900 700  8000 700 
+Wire Wire Line
+	8300 700  8450 700 
+Wire Wire Line
+	8450 700  8450 750 
+$Comp
+L nand_programmator:LED D3
+U 1 1 5D1AEE1F
+P 8150 1000
+F 0 "D3" H 8150 1100 50  0000 C CNN
+F 1 "GREEN" H 8150 900 50  0000 C CNN
+F 2 "lib_fp:LED_0805" H 8150 1000 50  0001 C CNN
+F 3 "" H 8150 1000 50  0000 C CNN
+	1    8150 1000
+	-1   0    0    -1  
+$EndComp
+$Comp
+L nand_programmator:R R14
+U 1 1 5D1AEE26
+P 7750 1000
+F 0 "R14" V 7830 1000 50  0000 C CNN
+F 1 "1k" V 7750 1000 50  0000 C CNN
+F 2 "lib_fp:R_0805_HandSoldering" V 7680 1000 50  0001 C CNN
+F 3 "" H 7750 1000 50  0000 C CNN
+	1    7750 1000
+	0    1    1    0   
+$EndComp
+$Comp
+L nand_programmator:GNDD #PWR033
+U 1 1 5D1AEE2D
+P 8450 1050
+F 0 "#PWR033" H 8450 800 50  0001 C CNN
+F 1 "GNDD" H 8450 900 50  0000 C CNN
+F 2 "" H 8450 1050 50  0000 C CNN
+F 3 "" H 8450 1050 50  0000 C CNN
+	1    8450 1050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7900 1000 8000 1000
+Wire Wire Line
+	8300 1000 8450 1000
+Wire Wire Line
+	8450 1000 8450 1050
+Wire Wire Line
+	7600 1000 7600 1300
+Wire Wire Line
+	7600 1300 7350 1300
+Wire Wire Line
+	7350 1200 7550 1200
+Wire Wire Line
+	7550 1200 7550 700 
+Wire Wire Line
+	7550 700  7600 700 
+Text Label 8600 5750 0    60   ~ 0
+USB_N
+Text Label 8600 5850 0    60   ~ 0
+USB_P
+$Comp
+L Device:Crystal_GND24 Y1
+U 1 1 5C102083
+P 1150 2050
+F 0 "Y1" V 1341 2096 50  0000 L TNN
+F 1 "Crystal_GND24_8MHz_16pF_KX-9A" H 1341 2005 50  0000 R TNN
+F 2 "Crystal:Crystal_SMD_5032-4Pin_5.0x3.2mm" H 1150 2050 50  0001 C CNN
+F 3 "~" H 1150 2050 50  0001 C CNN
+	1    1150 2050
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	1000 1900 1150 1900
+Wire Wire Line
+	1000 2200 1150 2200
+Connection ~ 1150 1900
+Wire Wire Line
+	1150 1900 1450 1900
+Connection ~ 1150 2200
+Wire Wire Line
+	1150 2200 1450 2200
+Wire Wire Line
+	950  2050 600  2050
+Connection ~ 600  2050
+Wire Wire Line
+	600  2050 600  2200
+Wire Wire Line
+	1350 2050 1350 2300
+Wire Wire Line
+	1350 2300 600  2300
+Connection ~ 600  2300
+$Comp
+L nand_programmator:R R1
+U 1 1 5C14282F
+P 1300 1400
+F 0 "R1" V 1380 1400 50  0000 C CNN
+F 1 "10k" V 1300 1400 50  0000 C CNN
+F 2 "lib_fp:R_0805_HandSoldering" V 1230 1400 50  0001 C CNN
+F 3 "" H 1300 1400 50  0000 C CNN
+	1    1300 1400
+	0    1    1    0   
+$EndComp
 $EndSCHEMATC
