@@ -1091,7 +1091,7 @@ U 1 1 5C069405
 P 9150 4050
 F 0 "J1" H 9230 4042 50  0000 L CNN
 F 1 "Conn_01x04" H 9230 3951 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 9150 4050 50  0001 C CNN
+F 2 "lib_fp:PinHeader_1x04_P2.54mm_Vertical" H 9150 4050 50  0001 C CNN
 F 3 "~" H 9150 4050 50  0001 C CNN
 	1    9150 4050
 	1    0    0    -1  
@@ -1202,7 +1202,7 @@ U 1 1 5D0A1D76
 P 8100 1900
 F 0 "J2" H 8180 1942 50  0000 L CNN
 F 1 "Conn_01x03" H 8180 1851 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 8100 1900 50  0001 C CNN
+F 2 "lib_fp:PinHeader_1x03_P2.54mm_Vertical" H 8100 1900 50  0001 C CNN
 F 3 "~" H 8100 1900 50  0001 C CNN
 	1    8100 1900
 	1    0    0    -1  
@@ -1334,7 +1334,7 @@ U 1 1 5C102083
 P 1150 2050
 F 0 "Y1" V 1341 2096 50  0000 L TNN
 F 1 "Crystal_GND24_8MHz_16pF_KX-9A" H 1341 2005 50  0000 R TNN
-F 2 "Crystal:Crystal_SMD_5032-4Pin_5.0x3.2mm" H 1150 2050 50  0001 C CNN
+F 2 "lib_fp:Crystal_SMD_5032-4Pin_5.0x3.2mm" H 1150 2050 50  0001 C CNN
 F 3 "~" H 1150 2050 50  0001 C CNN
 	1    1150 2050
 	0    -1   -1   0   
