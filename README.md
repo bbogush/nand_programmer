@@ -1,8 +1,7 @@
-# nand_programmer
-NAND programmer
+# NANDO (NANDopen) programmer
 
-# General
-NAND Programmer based on STM32 processor.
+## General
+NANDO is open source NAND programmer based on STM32 processor.
 
 <img src="img/board_v1_0.jpg" width="600">
 
