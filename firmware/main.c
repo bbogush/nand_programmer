@@ -12,11 +12,12 @@
 #include <usb_lib.h>
 #include <usb_pwr.h>
 #include "hw_config.h"
+/* LED */
+#include "led.h"
 /* STD */
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
-#include <stdbool.h>
 
 #ifdef DEBUG
     #define DEBUG_PRINT printf
@@ -229,39 +230,6 @@ static void jtag_init()
 {
     /* Enable JTAG in low power mode */
     DBGMCU_Config(DBGMCU_SLEEP | DBGMCU_STANDBY | DBGMCU_STOP, ENABLE);
-}
-
-static void led_init()
-{
-    GPIO_InitTypeDef led_gpio;
-
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, 1);
-
-    led_gpio.GPIO_Mode = GPIO_Mode_Out_PP;
-    led_gpio.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;    
-    led_gpio.GPIO_Speed = GPIO_Speed_2MHz;
-
-    GPIO_Init(GPIOA, &led_gpio);
-
-    GPIO_ResetBits(GPIOA, GPIO_Pin_0 | GPIO_Pin_1);
-}
-
-static void led_set(GPIO_TypeDef* gpiox, uint16_t pin, bool on)
-{
-    if (on)
-        GPIO_SetBits(gpiox, pin);
-    else
-        GPIO_ResetBits(gpiox, pin);
-}
-
-static void led_wr_set(bool on)
-{
-    led_set(GPIOA, GPIO_Pin_0, on);
-}
-
-static void led_rd_set(bool on)
-{
-    led_set(GPIOA, GPIO_Pin_1, on);
 }
 
 static void usb_init(usb_t *usb)

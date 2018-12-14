@@ -51,7 +51,8 @@ USB_SRCS=hw_config.c stm32_it.c usb_prop.c usb_desc.c usb_istr.c usb_pwr.c \
   usb_endp.c
 
 
-SRCS=main.c system_stm32f10x.c syscalls.c fsmc_nand.c chip_db.c $(USB_SRCS)
+SRCS=main.c system_stm32f10x.c syscalls.c fsmc_nand.c chip_db.c led.c \
+  $(USB_SRCS)
 
 OBJS=$(addprefix $(OBJ_DIR),$(SRCS:.c=.o)) \
   $(addprefix $(OBJ_DIR),$(STARTUP:.s=.o))
