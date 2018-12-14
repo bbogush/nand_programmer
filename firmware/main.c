@@ -16,6 +16,8 @@
 #include "led.h"
 /* UART */
 #include "uart.h"
+/* JTAG */
+#include "jtag.h"
 /* STD */
 #include <stdio.h>
 #include <string.h>
@@ -182,12 +184,6 @@ typedef struct
 } prog_t;
 
 uint8_t usb_send_buf[USB_BUF_SIZE];
-
-static void jtag_init()
-{
-    /* Enable JTAG in low power mode */
-    DBGMCU_Config(DBGMCU_SLEEP | DBGMCU_STANDBY | DBGMCU_STOP, ENABLE);
-}
 
 static void usb_init(usb_t *usb)
 {
