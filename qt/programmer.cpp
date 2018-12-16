@@ -169,6 +169,30 @@ void Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
     writer.start();
 }
 
+void Programmer::readChipBadBlocksCb(int ret)
+{
+    QObject::disconnect(&reader, SIGNAL(result(int)), this,
+        SLOT(readChipBadBlocksCb(int)));
+    serialPortConnect();
+    emit readChipBadBlocksCompleted(ret);
+}
+
+void Programmer::readChipBadBlocks()
+{
+    Cmd cmd = { .code = CMD_NAND_READ_BB };
+
+    QObject::connect(&reader, SIGNAL(result(int)), this,
+        SLOT(readChipBadBlocksCb(int)));
+
+    /* Serial port object cannot be used in other thread */
+    serialPortDisconnect();
+    writeData.clear();
+    writeData.append((const char *)&cmd, sizeof(cmd));
+    reader.init(usbDevName, SERIAL_PORT_SPEED, NULL, 0,
+        (uint8_t *)writeData.constData(), writeData.size());
+    reader.start();
+}
+
 void Programmer::selectChipCb(int ret)
 {
     QObject::disconnect(&reader, SIGNAL(result(int)), this,

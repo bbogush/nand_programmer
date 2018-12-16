@@ -41,6 +41,7 @@ private slots:
     void slotProgReadCompleted(int status);
     void slotProgWriteCompleted(int status);
     void slotProgEraseCompleted(int status);
+    void slotProgReadBadBlocksCompleted(int status);
     void slotProgSelectCompleted(int status);
 
 public slots:
@@ -50,6 +51,7 @@ public slots:
     void slotProgErase();
     void slotProgRead();
     void slotProgWrite();
+    void slotProgReadBadBlocks();
     void slotSelectChip(int selectedChipNum);
     void slotSettingsProgrammer();
 };

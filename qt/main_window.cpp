@@ -79,6 +79,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotProgRead()));
     connect(ui->actionWrite, SIGNAL(triggered()), this,
         SLOT(slotProgWrite()));
+    connect(ui->actionReadBadBlocks, SIGNAL(triggered()), this,
+        SLOT(slotProgReadBadBlocks()));
     connect(ui->actionProgrammer, SIGNAL(triggered()), this,
         SLOT(slotSettingsProgrammer()));
 }
@@ -150,6 +152,7 @@ void MainWindow::setUiStateSelected(bool isSelected)
     ui->actionErase->setEnabled(isSelected);
     ui->actionRead->setEnabled(isSelected);
     ui->actionWrite->setEnabled(isSelected);
+    ui->actionReadBadBlocks->setEnabled(isSelected);
 }
 
 void MainWindow::slotProgConnect()
@@ -289,6 +292,23 @@ void MainWindow::slotProgWrite()
         SLOT(slotProgWriteCompleted(int)));
 
     prog->writeChip(buffer, START_ADDRESS, bufferSize, pageSize);
+}
+
+void MainWindow::slotProgReadBadBlocksCompleted(int status)
+{
+    disconnect(prog, SIGNAL(readChipBadBlocksCompleted(int)), this,
+        SLOT(slotProgReadBadBlocksCompleted(int)));
+
+    if (!status)
+        qInfo() << "Bad blocks have been successfully read";
+}
+
+void MainWindow::slotProgReadBadBlocks()
+{
+    connect(prog, SIGNAL(readChipBadBlocksCompleted(int)), this,
+        SLOT(slotProgReadBadBlocksCompleted(int)));
+
+    prog->readChipBadBlocks();
 }
 
 void MainWindow::slotProgSelectCompleted(int status)

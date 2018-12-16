@@ -44,6 +44,7 @@ public:
     void readChip(uint8_t *buf, uint32_t addr, uint32_t len);
     void writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
         uint32_t pageSize);
+    void readChipBadBlocks();
     void selectChip(uint32_t chipNum);
 
 signals:
@@ -51,6 +52,7 @@ signals:
     void writeChipCompleted(int ret);
     void readChipCompleted(int ret);
     void eraseChipCompleted(int ret);
+    void readChipBadBlocksCompleted(int ret);
     void selectChipCompleted(int ret);
 
 private slots:
@@ -58,6 +60,7 @@ private slots:
     void writeCb(int ret);
     void readCb(int ret);
     void eraseChipCb(int ret);
+    void readChipBadBlocksCb(int ret);
     void selectChipCb(int ret);
     void logCb(QtMsgType msgType, QString msg);
 };

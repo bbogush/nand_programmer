@@ -12,6 +12,7 @@ enum
     CMD_NAND_WRITE_D = 0x04,
     CMD_NAND_WRITE_E = 0x05,
     CMD_NAND_SELECT  = 0x06,
+    CMD_NAND_READ_BB = 0x07,
 };
 
 typedef struct __attribute__((__packed__))
