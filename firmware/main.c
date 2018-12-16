@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 #ifdef DEBUG
     #define DEBUG_PRINT printf
@@ -36,6 +37,8 @@
 #define NAND_TIMEOUT 0x1000000
 #define SEND_TIMEOUT 0x1000000
 
+#define NAND_GOOD_BLOCK_MARK 0xFF
+
 enum
 {
     CMD_NAND_READ_ID = 0x00,
@@ -45,6 +48,7 @@ enum
     CMD_NAND_WRITE_D = 0x04,
     CMD_NAND_WRITE_E = 0x05,
     CMD_NAND_SELECT  = 0x06,
+    CMD_NAND_READ_BB = 0x07,
 };
 
 enum
@@ -692,6 +696,72 @@ static int cmd_nand_select(prog_t *prog)
     return make_ok_status(&prog->usb);
 }
 
+static int read_bad_block_info_from_page(prog_t *prog, uint32_t block,
+    uint32_t page, chip_info_t *chip_info, bool *is_bad)
+{
+    uint8_t bad_block_data;
+    uint32_t status, addr = block * chip_info->block_size;
+
+    status = nand_read_data(&bad_block_data, page, chip_info->page_size,
+        sizeof(bad_block_data));
+    switch (status)
+    {
+    case NAND_READY:
+        break;
+    case NAND_ERROR:
+        ERROR_PRINT("NAND read bad block info error at 0x%lx\r\n", addr);
+        return make_error_status(&prog->usb, ERR_NAND_RD);
+    case NAND_TIMEOUT_ERROR:
+        ERROR_PRINT("NAND read timeout at 0x%lx\r\n", addr);
+        return make_error_status(&prog->usb, ERR_NAND_RD);
+    default:
+        ERROR_PRINT("Unknown NAND status\r\n");
+        return make_error_status(&prog->usb, ERR_NAND_RD);
+    }
+
+    if (bad_block_data != NAND_GOOD_BLOCK_MARK)
+    {
+        *is_bad = true;
+        if (send_bad_block_info(addr))
+            return -1;
+    }
+    else
+        *is_bad = false;
+
+    return 0;
+}
+
+static int cmd_read_bad_blocks(prog_t *prog)
+{
+    bool is_bad;
+    uint32_t block, block_num, page_num, page;
+    chip_info_t *chip_info = chip_info_selected_get();
+
+    block_num = chip_info->size / chip_info->block_size;
+    page_num = chip_info->block_size / chip_info->page_size;
+
+    /* Bad block - not 0xFF value in the first or second page in the block at
+     * zero offset in the page spare area
+     */
+    for (block = 0; block < block_num; block++)
+    {
+        page = block * page_num;
+        if (read_bad_block_info_from_page(prog, block, page, chip_info,
+            &is_bad))
+        {
+            return -1;
+        }
+
+        if (!is_bad && read_bad_block_info_from_page(prog, block, page + 1,
+            chip_info, &is_bad))
+        {
+            return -1;
+        }
+    }
+
+    return make_ok_status(&prog->usb);
+}
+
 static int usb_cmd_handler(prog_t *prog)
 {
     cmd_t *cmd = (cmd_t *)prog->usb.rx_buf;
@@ -727,6 +797,11 @@ static int usb_cmd_handler(prog_t *prog)
         break;
     case CMD_NAND_SELECT:
         ret = cmd_nand_select(prog);
+        break;
+    case CMD_NAND_READ_BB:
+        led_rd_set(true);
+        ret = cmd_read_bad_blocks(prog);
+        led_rd_set(false);
         break;
     default:
         break;
