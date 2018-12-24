@@ -847,7 +847,6 @@ int main()
 
     printf("JTAG init...");
     jtag_init();
-    printf("send resp.\r\n");
     printf("done.\r\n");
 
     printf("LED init...");
