@@ -18,6 +18,8 @@
 #include "uart.h"
 /* JTAG */
 #include "jtag.h"
+/* Version */
+#include "version.h"
 /* STD */
 #include <stdio.h>
 #include <string.h>
@@ -841,7 +843,7 @@ int main()
     static prog_t prog;
 
     uart_init();
-    printf("\r\nNAND programmer ver: 1.0\r\n");
+    printf("\r\nNAND programmer ver: "SW_VERSION"\r\n");
 
     printf("JTAG init...");
     jtag_init();
