@@ -198,6 +198,7 @@ static void usb_init(usb_t *usb)
     Set_USBClock();
     USB_Interrupts_Config();
     USB_Init();
+    while (!USB_IsDeviceConfigured());    
 
     usb->tx_buf = (uint8_t *)usb_send_buf;
     usb->tx_buf_size = USB_BUF_SIZE;
@@ -835,10 +836,6 @@ int main()
     printf("USB init...");
     usb_init(&prog.usb);
     printf("done.\r\n");
-
-    printf("USB configuring...");
-    while (!USB_IsDeviceConfigured());
-    printf("done.\r\n)");
 
     CDC_Receive_DATA();
 
