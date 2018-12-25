@@ -6,12 +6,14 @@
 /* NAND */
 #include "fsmc_nand.h"
 #include "chip_db.h"
+#include "nand_programmer.h"
 /* SPL */
 #include <stm32f10x.h>
 /* USB */
 #include <usb_lib.h>
 #include <usb_pwr.h>
 #include "hw_config.h"
+#include "cdc.h"
 /* LED */
 #include "led.h"
 /* UART */
@@ -20,24 +22,18 @@
 #include "jtag.h"
 /* Version */
 #include "version.h"
+/* Utils */
+#include "log.h"
 /* STD */
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
 #include <stdbool.h>
 
-#ifdef DEBUG
-    #define DEBUG_PRINT printf
-#else
-    #define DEBUG_PRINT(...)
-#endif
-#define ERROR_PRINT(fmt, args...) printf("ERROR: "fmt, ## args)
-
 #define USB_BUF_SIZE 64
 #define MAX_PAGE_SIZE 0x0800
 #define WRITE_ACK_BYTES 1984
 #define NAND_TIMEOUT 0x1000000
-#define SEND_TIMEOUT 0x1000000
 
 #define NAND_GOOD_BLOCK_MARK 0xFF
 
@@ -190,6 +186,8 @@ typedef struct
     chip_info_t *chip_info;
 } prog_t;
 
+static np_comm_cb_t *np_comm_cb;
+
 uint8_t usb_send_buf[USB_BUF_SIZE];
 
 static void usb_init(usb_t *usb)
@@ -245,11 +243,8 @@ static int send_bad_block_info(uint32_t addr)
     resp_t resp_header = { RESP_STATUS, STATUS_BAD_BLOCK };
     resp_bad_block_t bad_block = { resp_header, addr };
 
-    if (!CDC_Send_DATA((uint8_t *)&bad_block, sizeof(bad_block)))
-    {
-        ERROR_PRINT("Failed to send data\r\n");
+    if (np_comm_cb->send((uint8_t *)&bad_block, sizeof(bad_block)))
         return -1;
-    }
 
     return 0;
 }
@@ -344,11 +339,8 @@ static int send_write_ack(uint32_t bytes_ack)
     resp_t resp_header = { RESP_STATUS, STATUS_WRITE_ACK };
     resp_write_ack_t write_ack = { resp_header, bytes_ack };
 
-    if (!CDC_Send_DATA((uint8_t *)&write_ack, sizeof(write_ack)))
-    {
-        ERROR_PRINT("Failed to send data over CDC\r\n");
+    if (np_comm_cb->send((uint8_t *)&write_ack, sizeof(write_ack)))
         return -1;
-    }
 
     return 0;
 }
@@ -436,20 +428,8 @@ static int nand_write(prog_t *prog, chip_info_t *chip_info)
 
 static int send_status(prog_t *prog, int len)
 {
-    uint32_t timeout = SEND_TIMEOUT;
-
-    if (!CDC_IsPacketSent())
-    {
-        DEBUG_PRINT("Wait for previous CDC TX\r\n");
-        while (!CDC_IsPacketSent() && --timeout);
-        if (!timeout)
-        {
-            ERROR_PRINT("Failed to send status, CDC is busy\r\n");
-            return -1;
-        }
-    }
-
-    CDC_Send_DATA(prog->usb.tx_buf, len);
+    if (np_comm_cb)
+        np_comm_cb->send(prog->usb.tx_buf, len);
 
     return 0;
 }
@@ -625,10 +605,14 @@ static int cmd_nand_read(prog_t *prog)
  
             memcpy(resp->data, page.buf + page.offset, write_len);
 
-            while (!CDC_IsPacketSent());
+            while (!np_comm_cb->send_ready());
 
             resp->info = write_len;
-            CDC_Send_DATA(prog->usb.tx_buf, resp_header_size + write_len);
+            if (np_comm_cb->send(prog->usb.tx_buf,
+                resp_header_size + write_len))
+            {
+                return -1;
+            }
 
             page.offset += write_len;
             read_cmd->len -= write_len;
@@ -796,17 +780,22 @@ static void cmd_handler(prog_t *prog)
 {
     int len;
 
-    while ((prog->usb.rx_buf = USB_Data_Peek()))
+    do
     {
+        np_comm_cb->peek(&prog->usb.rx_buf);
+
+        if (!prog->usb.rx_buf)
+            break;
+
         len = usb_cmd_handler(prog);
-        USB_Data_Get();
-        USB_DataRx_Sched();
+
+        np_comm_cb->consume();
 
         if (len <= 0)
             continue;
 
         send_status(prog, len);
-    }
+    } while (true);
 }
 
 static void nand_handler(prog_t *prog)
@@ -816,6 +805,19 @@ static void nand_handler(prog_t *prog)
         if (nand_handle_status(prog))
             send_status(prog, make_error_status(&prog->usb, ERR_NAND_WR));
     }
+}
+
+int np_comm_register(np_comm_cb_t *cb)
+{
+    np_comm_cb = cb;
+
+    return 0;
+}
+
+void np_comm_unregister(np_comm_cb_t *cb)
+{
+    if (np_comm_cb == cb)
+        np_comm_cb = NULL;
 }
 
 int main()
@@ -837,7 +839,9 @@ int main()
     usb_init(&prog.usb);
     printf("done.\r\n");
 
-    CDC_Receive_DATA();
+    printf("CDC init...");
+    cdc_init();
+    printf("done.\r\n");
 
     while (1)
     {
