@@ -37,14 +37,16 @@ enum
 {
     NP_ERR_ADDR_EXCEEDED  = 0x00,
     NP_ERR_ADDR_INVALID   = 0x01,
-    NP_ERR_NAND_WR        = 0x02,
-    NP_ERR_NAND_RD        = 0x03,
-    NP_ERR_NAND_ERASE     = 0x04,
-    NP_ERR_CHIP_NOT_SEL   = 0x05,
-    NP_ERR_CHIP_NOT_FOUND = 0x06,
-    NP_ERR_CMD_DATA_SIZE  = 0x07,
-    NP_ERR_CMD_INVALID    = 0x08,
-    NP_ERR_BUF_OVERFLOW   = 0x09,
+    NP_ERR_ADDR_NOT_ALIGN = 0x02,
+    NP_ERR_NAND_WR        = 0x03,
+    NP_ERR_NAND_RD        = 0x04,
+    NP_ERR_NAND_ERASE     = 0x05,
+    NP_ERR_CHIP_NOT_SEL   = 0x06,
+    NP_ERR_CHIP_NOT_FOUND = 0x07,
+    NP_ERR_CMD_DATA_SIZE  = 0x08,
+    NP_ERR_CMD_INVALID    = 0x09,
+    NP_ERR_BUF_OVERFLOW   = 0x0a,
+    NP_ERR_LEN_NOT_ALIGN  = 0x0b,
 };
 
 typedef struct __attribute__((__packed__))
@@ -228,9 +230,10 @@ static int np_cmd_nand_read_id(np_prog_t *prog)
     return 0;
 }
 
-static int np_nand_erase(uint32_t page, uint32_t addr)
+static int np_nand_erase(np_prog_t *prog, uint32_t page)
 {
     uint32_t status;
+    uint32_t addr = page * prog->chip_info->page_size;
     
     DEBUG_PRINT("NAND erase at 0x%lx\r\n", addr);
 
@@ -256,37 +259,40 @@ static int np_nand_erase(uint32_t page, uint32_t addr)
 
 static int np_cmd_nand_erase(np_prog_t *prog)
 {
-    uint32_t addr, page, pages_in_block;
+    uint32_t addr, page, pages_in_block, len;
     np_erase_cmd_t *erase_cmd = (np_erase_cmd_t *)prog->rx_buf;
+
+    len = erase_cmd->len;
+    addr = erase_cmd->addr;
+
+    DEBUG_PRINT("Erase at 0x%lx %lx bytes command\r\n", addr, len);
 
     led_wr_set(true);
 
-    DEBUG_PRINT("Erase at 0x%lx %lx bytes command\r\n", erase_cmd->addr,
-        erase_cmd->len);
+    if (addr & (prog->chip_info->block_size - 1))
+        return np_send_error(NP_ERR_ADDR_NOT_ALIGN);
 
-    addr = erase_cmd->addr & ~(prog->chip_info->block_size - 1);
-    erase_cmd->len += erase_cmd->addr - addr;
+    if (len & (prog->chip_info->block_size - 1))
+        return np_send_error(NP_ERR_LEN_NOT_ALIGN);
+
+    if (addr + len > prog->chip_info->size)
+    {
+        ERROR_PRINT("Erase address exceded 0x%lx+0x%lx is more then chip size "
+            "0x%lx\r\n", addr, len, prog->chip_info->size);
+        return np_send_error(NP_ERR_ADDR_EXCEEDED);
+    }
 
     page = addr / prog->chip_info->page_size;
     pages_in_block = prog->chip_info->block_size / prog->chip_info->page_size;
 
-    while (erase_cmd->len)
+    while (len)
     {
-        if (addr >= prog->chip_info->size)
-        {
-            ERROR_PRINT("Erase address 0x%lx is more then chip size 0x%lx\r\n",
-                addr, prog->chip_info->size);
-            return np_send_error(NP_ERR_ADDR_EXCEEDED);
-        }
-
-        if (np_nand_erase(page, addr))
+        if (np_nand_erase(prog, page))
             return np_send_error(NP_ERR_NAND_ERASE);
 
-        if (erase_cmd->len >= prog->chip_info->block_size)
-            erase_cmd->len -= prog->chip_info->block_size;
-        else
-            erase_cmd->len = 0;
-        addr += prog->chip_info->block_size;
+        if (len >= prog->chip_info->block_size)
+            len -= prog->chip_info->block_size;
+
         page += pages_in_block;
     }
 
