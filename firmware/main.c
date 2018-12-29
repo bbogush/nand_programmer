@@ -30,7 +30,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#define NP_USB_BUF_SIZE 64
+#define NP_PACKET_BUF_SIZE 64
 #define NP_MAX_PAGE_SIZE 0x0800
 #define NP_WRITE_ACK_BYTES 1984
 #define NP_NAND_TIMEOUT 0x1000000
@@ -169,14 +169,6 @@ typedef struct
 typedef struct
 {
     uint8_t *rx_buf;
-    uint8_t rx_buf_size;
-    uint8_t *tx_buf;
-    uint8_t tx_buf_size;
-} np_usb_t;
-
-typedef struct
-{
-    np_usb_t usb;
     uint32_t addr;
     uint32_t len;
     int addr_is_valid;
@@ -196,19 +188,15 @@ typedef struct
 
 static np_comm_cb_t *np_comm_cb;
 
-uint8_t np_usb_send_buf[NP_USB_BUF_SIZE];
+uint8_t np_packet_send_buf[NP_PACKET_BUF_SIZE];
 
-static void np_usb_init(np_usb_t *usb)
+static void np_usb_init()
 {
     Set_System();
     Set_USBClock();
     USB_Interrupts_Config();
     USB_Init();
-    while (!USB_IsDeviceConfigured());    
-
-    usb->tx_buf = (uint8_t *)np_usb_send_buf;
-    usb->tx_buf_size = NP_USB_BUF_SIZE;
-    usb->rx_buf_size = NP_USB_BUF_SIZE;
+    while (!USB_IsDeviceConfigured());
 }
 
 static int np_send_ok_status()
@@ -254,7 +242,7 @@ static int np_cmd_nand_read_id(np_prog_t *prog)
 
     DEBUG_PRINT("Read ID command\r\n");
 
-    if (prog->usb.tx_buf_size < resp_len)
+    if (NP_PACKET_BUF_SIZE < resp_len)
     {
         ERROR_PRINT("Response size is more then TX buffer size\r\n");
         return np_send_error(NP_ERR_BUF_OVERFLOW);
@@ -301,7 +289,7 @@ static int np_nand_erase(uint32_t page, uint32_t addr)
 static int np_cmd_nand_erase(np_prog_t *prog)
 {
     uint32_t addr, page, pages_in_block;
-    np_erase_cmd_t *erase_cmd = (np_erase_cmd_t *)prog->usb.rx_buf;
+    np_erase_cmd_t *erase_cmd = (np_erase_cmd_t *)prog->rx_buf;
 
     led_wr_set(true);
 
@@ -353,7 +341,7 @@ static int np_send_write_ack(uint32_t bytes_ack)
 static int np_cmd_nand_write_start(np_prog_t *prog)
 {
     np_write_start_cmd_t *write_start_cmd =
-        (np_write_start_cmd_t *)prog->usb.rx_buf;
+        (np_write_start_cmd_t *)prog->rx_buf;
 
     DEBUG_PRINT("Write at 0x%lx command\r\n", write_start_cmd->addr);
 
@@ -436,10 +424,10 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
 {
     uint32_t write_len, bytes_left;
     np_write_data_cmd_t *write_data_cmd =
-        (np_write_data_cmd_t *)prog->usb.rx_buf;
+        (np_write_data_cmd_t *)prog->rx_buf;
 
     if (write_data_cmd->len + offsetof(np_write_data_cmd_t, data) >
-        prog->usb.rx_buf_size)
+        NP_PACKET_BUF_SIZE)
     {
         ERROR_PRINT("Data size is wrong %d\r\n", write_data_cmd->len);
         return np_send_error(NP_ERR_CMD_DATA_SIZE);
@@ -514,7 +502,7 @@ Exit:
 
 static int np_cmd_nand_write(np_prog_t *prog)
 {
-    np_cmd_t *cmd = (np_cmd_t *)prog->usb.rx_buf;
+    np_cmd_t *cmd = (np_cmd_t *)prog->rx_buf;
     int ret = 0;
 
     switch (cmd->code)
@@ -570,9 +558,9 @@ static int np_cmd_nand_read(np_prog_t *prog)
     static np_page_t page;
     uint32_t write_len;
     uint32_t resp_header_size = offsetof(np_resp_t, data);
-    uint32_t tx_data_len = prog->usb.tx_buf_size - resp_header_size;
-    np_read_cmd_t *read_cmd = (np_read_cmd_t *)prog->usb.rx_buf;
-    np_resp_t *resp = (np_resp_t *)prog->usb.tx_buf;
+    uint32_t tx_data_len = sizeof(np_packet_send_buf) - resp_header_size;
+    np_read_cmd_t *read_cmd = (np_read_cmd_t *)prog->rx_buf;
+    np_resp_t *resp = (np_resp_t *)np_packet_send_buf;
 
     led_rd_set(true);
 
@@ -612,7 +600,7 @@ static int np_cmd_nand_read(np_prog_t *prog)
             while (!np_comm_cb->send_ready());
 
             resp->info = write_len;
-            if (np_comm_cb->send(prog->usb.tx_buf,
+            if (np_comm_cb->send(np_packet_send_buf,
                 resp_header_size + write_len))
             {
                 return -1;
@@ -643,7 +631,7 @@ static int np_cmd_nand_read(np_prog_t *prog)
 
 static int np_cmd_nand_select(np_prog_t *prog)
 {
-    np_select_cmd_t *select_cmd = (np_select_cmd_t *)prog->usb.rx_buf;
+    np_select_cmd_t *select_cmd = (np_select_cmd_t *)prog->rx_buf;
 
     DEBUG_PRINT("Chip select ID %lu command\r\n", select_cmd->chip_num);
 
@@ -751,7 +739,7 @@ static bool np_cmd_is_valid(int cmd)
 
 static int np_cmd_handler(np_prog_t *prog)
 {
-    np_cmd_t *cmd = (np_cmd_t *)prog->usb.rx_buf;
+    np_cmd_t *cmd = (np_cmd_t *)prog->rx_buf;
 
     if (!prog->chip_info && cmd->code != NP_CMD_NAND_SELECT)
     {
@@ -775,9 +763,9 @@ static void np_packet_handler(np_prog_t *prog)
 {
     do
     {
-        np_comm_cb->peek(&prog->usb.rx_buf);
+        np_comm_cb->peek(&prog->rx_buf);
 
-        if (!prog->usb.rx_buf)
+        if (!prog->rx_buf)
             break;
 
         np_cmd_handler(prog);
@@ -825,7 +813,7 @@ int main()
     printf("done.\r\n");
 
     printf("USB init...");
-    np_usb_init(&prog.usb);
+    np_usb_init();
     printf("done.\r\n");
 
     printf("CDC init...");
