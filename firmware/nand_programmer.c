@@ -209,14 +209,12 @@ static int np_send_bad_block_info(uint32_t addr)
     return 0;
 }
 
-static int np_cmd_nand_read_id(np_prog_t *prog)
+static int _np_cmd_nand_read_id(np_prog_t *prog)
 {
     np_resp_id_t resp;
     size_t resp_len = sizeof(resp);
 
     DEBUG_PRINT("Read ID command\r\n");
-
-    led_rd_set(true);
 
     resp.header.code = NP_RESP_DATA;
     resp.header.info = resp_len - sizeof(resp.header);
@@ -225,9 +223,18 @@ static int np_cmd_nand_read_id(np_prog_t *prog)
     if (np_comm_cb)
         np_comm_cb->send((uint8_t *)&resp, resp_len);
 
+    return 0;
+}
+
+static int np_cmd_nand_read_id(np_prog_t *prog)
+{
+    int ret;
+
+    led_rd_set(true);
+    ret = _np_cmd_nand_read_id(prog);
     led_rd_set(false);
 
-    return 0;
+    return ret;
 }
 
 static int np_nand_erase(np_prog_t *prog, uint32_t page)
@@ -257,7 +264,7 @@ static int np_nand_erase(np_prog_t *prog, uint32_t page)
     return 0;
 }
 
-static int np_cmd_nand_erase(np_prog_t *prog)
+static int _np_cmd_nand_erase(np_prog_t *prog)
 {
     uint32_t addr, page, pages_in_block, len;
     np_erase_cmd_t *erase_cmd = (np_erase_cmd_t *)prog->rx_buf;
@@ -266,8 +273,6 @@ static int np_cmd_nand_erase(np_prog_t *prog)
     addr = erase_cmd->addr;
 
     DEBUG_PRINT("Erase at 0x%lx %lx bytes command\r\n", addr, len);
-
-    led_wr_set(true);
 
     if (addr & (prog->chip_info->block_size - 1))
         return np_send_error(NP_ERR_ADDR_NOT_ALIGN);
@@ -296,9 +301,18 @@ static int np_cmd_nand_erase(np_prog_t *prog)
         page += pages_in_block;
     }
 
+    return np_send_ok_status();
+}
+
+static int np_cmd_nand_erase(np_prog_t *prog)
+{
+    int ret;
+
+    led_wr_set(true);
+    ret = _np_cmd_nand_erase(prog);
     led_wr_set(false);
 
-    return np_send_ok_status();
+    return ret;
 }
 
 static int np_send_write_ack(uint32_t bytes_ack)
@@ -526,7 +540,7 @@ static int np_nand_read(uint32_t addr, np_page_t *page,
     return 0;
 }
 
-static int np_cmd_nand_read(np_prog_t *prog)
+static int _np_cmd_nand_read(np_prog_t *prog)
 {
     uint32_t addr;
     static np_page_t page;
@@ -535,8 +549,6 @@ static int np_cmd_nand_read(np_prog_t *prog)
     uint32_t tx_data_len = sizeof(np_packet_send_buf) - resp_header_size;
     np_read_cmd_t *read_cmd = (np_read_cmd_t *)prog->rx_buf;
     np_resp_t *resp = (np_resp_t *)np_packet_send_buf;
-
-    led_rd_set(true);
 
     DEBUG_PRINT("Read at 0x%lx %lx bytes command\r\n", read_cmd->addr,
         read_cmd->len);
@@ -598,9 +610,18 @@ static int np_cmd_nand_read(np_prog_t *prog)
         }
     }
 
+    return 0;
+}
+
+static int np_cmd_nand_read(np_prog_t *prog)
+{
+    int ret;
+
+    led_rd_set(true);
+    ret = _np_cmd_nand_read(prog);
     led_rd_set(false);
 
-    return 0;
+    return ret;
 }
 
 static int np_cmd_nand_select(np_prog_t *prog)
@@ -660,12 +681,10 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
     return 0;
 }
 
-static int np_cmd_read_bad_blocks(np_prog_t *prog)
+static int _np_cmd_read_bad_blocks(np_prog_t *prog)
 {
     bool is_bad;
     uint32_t block, block_num, page_num, page;
-
-    led_rd_set(true);
 
     block_num = prog->chip_info->size / prog->chip_info->block_size;
     page_num = prog->chip_info->block_size / prog->chip_info->page_size;
@@ -689,9 +708,18 @@ static int np_cmd_read_bad_blocks(np_prog_t *prog)
         }
     }
 
+    return np_send_ok_status();
+}
+
+int np_cmd_read_bad_blocks(np_prog_t *prog)
+{
+    int ret;
+
+    led_rd_set(true);    
+    ret = _np_cmd_read_bad_blocks(prog);
     led_rd_set(false);
 
-    return np_send_ok_status();
+    return ret;
 }
 
 static np_cmd_handler_t cmd_handler[] =
