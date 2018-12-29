@@ -7,7 +7,6 @@
 #define _LED_H_
 
 #include <stdbool.h>
-#include "stm32f10x.h"
 
 void led_init();
 void led_wr_set(bool on);

@@ -3,8 +3,8 @@
  *  it under the terms of the GNU General Public License version 3.
  */
 
-#include <stm32f10x.h>
 #include "uart.h"
+#include <stm32f10x.h>
 
 void uart_init()
 {

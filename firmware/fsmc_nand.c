@@ -5,6 +5,7 @@
 
 #include "fsmc_nand.h"
 #include "chip_db.h"
+#include <stm32f10x.h>
 
 #define FSMC_Bank_NAND     FSMC_Bank2_NAND
 #define Bank_NAND_ADDR     Bank2_NAND_ADDR 

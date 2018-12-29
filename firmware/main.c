@@ -3,26 +3,17 @@
  *  it under the terms of the GNU General Public License version 3.
  */
 
-/* NAND */
 #include "fsmc_nand.h"
 #include "chip_db.h"
 #include "nand_programmer.h"
-/* SPL */
-#include <stm32f10x.h>
-/* USB */
 #include "usb.h"
 #include "cdc.h"
-/* LED */
 #include "led.h"
-/* UART */
 #include "uart.h"
-/* JTAG */
 #include "jtag.h"
-/* Version */
 #include "version.h"
-/* Utils */
 #include "log.h"
-/* STD */
+#include <stm32f10x.h>
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>

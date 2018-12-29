@@ -6,8 +6,6 @@
 #ifndef _FSMC_NAND_H_
 #define _FSMC_NAND_H_
 
-#include "stm32f10x.h"
-
 typedef struct
 {
     uint8_t maker_id;
