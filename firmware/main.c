@@ -30,88 +30,88 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#define USB_BUF_SIZE 64
-#define MAX_PAGE_SIZE 0x0800
-#define WRITE_ACK_BYTES 1984
-#define NAND_TIMEOUT 0x1000000
+#define NP_USB_BUF_SIZE 64
+#define NP_MAX_PAGE_SIZE 0x0800
+#define NP_WRITE_ACK_BYTES 1984
+#define NP_NAND_TIMEOUT 0x1000000
 
-#define NAND_GOOD_BLOCK_MARK 0xFF
+#define NP_NAND_GOOD_BLOCK_MARK 0xFF
 
 enum
 {
-    CMD_NAND_READ_ID = 0x00,
-    CMD_NAND_ERASE   = 0x01,
-    CMD_NAND_READ    = 0x02,
-    CMD_NAND_WRITE_S = 0x03,
-    CMD_NAND_WRITE_D = 0x04,
-    CMD_NAND_WRITE_E = 0x05,
-    CMD_NAND_SELECT  = 0x06,
-    CMD_NAND_READ_BB = 0x07,
-    CMD_NAND_LAST    = 0x08,
+    NP_CMD_NAND_READ_ID = 0x00,
+    NP_CMD_NAND_ERASE   = 0x01,
+    NP_CMD_NAND_READ    = 0x02,
+    NP_CMD_NAND_WRITE_S = 0x03,
+    NP_CMD_NAND_WRITE_D = 0x04,
+    NP_CMD_NAND_WRITE_E = 0x05,
+    NP_CMD_NAND_SELECT  = 0x06,
+    NP_CMD_NAND_READ_BB = 0x07,
+    NP_CMD_NAND_LAST    = 0x08,
 };
 
 enum
 {
-    ERR_ADDR_EXCEEDED  = 0x00,
-    ERR_ADDR_INVALID   = 0x01,
-    ERR_NAND_WR        = 0x02,
-    ERR_NAND_RD        = 0x03,
-    ERR_NAND_ERASE     = 0x04,
-    ERR_CHIP_NOT_SEL   = 0x05,
-    ERR_CHIP_NOT_FOUND = 0x06,
-    ERR_CMD_DATA_SIZE  = 0x07,
-    ERR_CMD_INVALID    = 0x08,
-    ERR_BUF_OVERFLOW   = 0x09,
+    NP_ERR_ADDR_EXCEEDED  = 0x00,
+    NP_ERR_ADDR_INVALID   = 0x01,
+    NP_ERR_NAND_WR        = 0x02,
+    NP_ERR_NAND_RD        = 0x03,
+    NP_ERR_NAND_ERASE     = 0x04,
+    NP_ERR_CHIP_NOT_SEL   = 0x05,
+    NP_ERR_CHIP_NOT_FOUND = 0x06,
+    NP_ERR_CMD_DATA_SIZE  = 0x07,
+    NP_ERR_CMD_INVALID    = 0x08,
+    NP_ERR_BUF_OVERFLOW   = 0x09,
 };
 
 typedef struct __attribute__((__packed__))
 {
     uint8_t code;
-} cmd_t;
+} np_cmd_t;
 
 typedef struct __attribute__((__packed__))
 {
-    cmd_t cmd;
+    np_cmd_t cmd;
     uint32_t addr;
     uint32_t len;
-} erase_cmd_t;
+} np_erase_cmd_t;
 
 typedef struct __attribute__((__packed__))
 {
-    cmd_t cmd;
+    np_cmd_t cmd;
     uint32_t addr;
     uint32_t len;
-} write_start_cmd_t;
+} np_write_start_cmd_t;
 
 typedef struct __attribute__((__packed__))
 {
-    cmd_t cmd;
+    np_cmd_t cmd;
     uint8_t len;
     uint8_t data[];
-} write_data_cmd_t;
+} np_write_data_cmd_t;
 
 typedef struct __attribute__((__packed__))
 {
-    cmd_t cmd;
-} write_end_cmd_t;
+    np_cmd_t cmd;
+} np_write_end_cmd_t;
 
 typedef struct __attribute__((__packed__))
 {
-    cmd_t cmd;
+    np_cmd_t cmd;
     uint32_t addr;
     uint32_t len;
-} read_cmd_t;
+} np_read_cmd_t;
 
 typedef struct __attribute__((__packed__))
 {
-    cmd_t cmd;
+    np_cmd_t cmd;
     uint32_t chip_num;
-} select_cmd_t;
+} np_select_cmd_t;
 
 enum
 {
-    RESP_DATA   = 0x00,
-    RESP_STATUS = 0x01,
+    NP_RESP_DATA   = 0x00,
+    NP_RESP_STATUS = 0x01,
 };
 
 typedef struct __attribute__((__packed__))
@@ -119,52 +119,52 @@ typedef struct __attribute__((__packed__))
     uint8_t code;
     uint8_t info;
     uint8_t data[];
-} resp_t;
+} np_resp_t;
 
 enum
 {
-    STATUS_OK        = 0x00,
-    STATUS_ERROR     = 0x01,
-    STATUS_BAD_BLOCK = 0x02,
-    STATUS_WRITE_ACK = 0x03,
+    NP_STATUS_OK        = 0x00,
+    NP_STATUS_ERROR     = 0x01,
+    NP_STATUS_BAD_BLOCK = 0x02,
+    NP_STATUS_WRITE_ACK = 0x03,
 };
 
 typedef struct __attribute__((__packed__))
 {
-    resp_t header;
+    np_resp_t header;
     nand_id_t nand_id;
-} resp_id_t;
+} np_resp_id_t;
 
 typedef struct __attribute__((__packed__))
 {
-    resp_t header;
+    np_resp_t header;
     uint32_t addr;
-} resp_bad_block_t;
+} np_resp_bad_block_t;
 
 typedef struct __attribute__((__packed__))
 {
-    resp_t header;
+    np_resp_t header;
     uint32_t bytes_ack;
-} resp_write_ack_t;
+} np_resp_write_ack_t;
 
 typedef struct __attribute__((__packed__))
 {
-    resp_t header;
+    np_resp_t header;
     uint8_t err_code;
-} resp_err_t;
+} np_resp_err_t;
 
 typedef struct
 {
     uint32_t addr;
     int is_valid;
-} prog_addr_t;
+} np_prog_addr_t;
 
 typedef struct
 {
-    uint8_t buf[MAX_PAGE_SIZE];
+    uint8_t buf[NP_MAX_PAGE_SIZE];
     uint32_t page;
     uint32_t offset;
-} page_t;
+} np_page_t;
 
 typedef struct
 {
@@ -172,33 +172,33 @@ typedef struct
     uint8_t rx_buf_size;
     uint8_t *tx_buf;
     uint8_t tx_buf_size;
-} usb_t;
+} np_usb_t;
 
 typedef struct
 {
-    usb_t usb;
+    np_usb_t usb;
     uint32_t addr;
     uint32_t len;
     int addr_is_valid;
-    page_t page;
+    np_page_t page;
     uint32_t bytes_written;
     uint32_t bytes_ack;
     int nand_wr_in_progress;
     uint32_t nand_timeout;
     chip_info_t *chip_info;
-} prog_t;
+} np_prog_t;
 
 typedef struct
 {
     int id;
-    int (*exec)(prog_t *prog);
-} cmd_handler_t;
+    int (*exec)(np_prog_t *prog);
+} np_cmd_handler_t;
 
 static np_comm_cb_t *np_comm_cb;
 
-uint8_t usb_send_buf[USB_BUF_SIZE];
+uint8_t np_usb_send_buf[NP_USB_BUF_SIZE];
 
-static void usb_init(usb_t *usb)
+static void np_usb_init(np_usb_t *usb)
 {
     Set_System();
     Set_USBClock();
@@ -206,14 +206,14 @@ static void usb_init(usb_t *usb)
     USB_Init();
     while (!USB_IsDeviceConfigured());    
 
-    usb->tx_buf = (uint8_t *)usb_send_buf;
-    usb->tx_buf_size = USB_BUF_SIZE;
-    usb->rx_buf_size = USB_BUF_SIZE;
+    usb->tx_buf = (uint8_t *)np_usb_send_buf;
+    usb->tx_buf_size = NP_USB_BUF_SIZE;
+    usb->rx_buf_size = NP_USB_BUF_SIZE;
 }
 
-static int send_ok_status()
+static int np_send_ok_status()
 {
-    resp_t status = { RESP_STATUS, STATUS_OK };
+    np_resp_t status = { NP_RESP_STATUS, NP_STATUS_OK };
     size_t len = sizeof(status);
 
     if (np_comm_cb)
@@ -222,10 +222,10 @@ static int send_ok_status()
     return 0;
 }
 
-static int send_error(uint8_t err_code)
+static int np_send_error(uint8_t err_code)
 {
-    resp_t status = { RESP_STATUS, STATUS_ERROR };
-    resp_err_t err_status = { status, err_code };
+    np_resp_t status = { NP_RESP_STATUS, NP_STATUS_ERROR };
+    np_resp_err_t err_status = { status, err_code };
     size_t len = sizeof(err_status);
 
     if (np_comm_cb)
@@ -234,10 +234,10 @@ static int send_error(uint8_t err_code)
     return -1;
 }
 
-static int send_bad_block_info(uint32_t addr)
+static int np_send_bad_block_info(uint32_t addr)
 {
-    resp_t resp_header = { RESP_STATUS, STATUS_BAD_BLOCK };
-    resp_bad_block_t bad_block = { resp_header, addr };
+    np_resp_t resp_header = { NP_RESP_STATUS, NP_STATUS_BAD_BLOCK };
+    np_resp_bad_block_t bad_block = { resp_header, addr };
 
     if (np_comm_cb->send((uint8_t *)&bad_block, sizeof(bad_block)))
         return -1;
@@ -245,9 +245,9 @@ static int send_bad_block_info(uint32_t addr)
     return 0;
 }
 
-static int cmd_nand_read_id(prog_t *prog)
+static int np_cmd_nand_read_id(np_prog_t *prog)
 {
-    resp_id_t resp;
+    np_resp_id_t resp;
     size_t resp_len = sizeof(resp);
 
     led_rd_set(true);
@@ -257,10 +257,10 @@ static int cmd_nand_read_id(prog_t *prog)
     if (prog->usb.tx_buf_size < resp_len)
     {
         ERROR_PRINT("Response size is more then TX buffer size\r\n");
-        return send_error(ERR_BUF_OVERFLOW);
+        return np_send_error(NP_ERR_BUF_OVERFLOW);
     }
 
-    resp.header.code = RESP_DATA;
+    resp.header.code = NP_RESP_DATA;
     resp.header.info = resp_len - sizeof(resp.header);
     nand_read_id(&resp.nand_id);
 
@@ -272,7 +272,7 @@ static int cmd_nand_read_id(prog_t *prog)
     return 0;
 }
 
-static int nand_erase(uint32_t page, uint32_t addr)
+static int np_nand_erase(uint32_t page, uint32_t addr)
 {
     uint32_t status;
     
@@ -284,7 +284,7 @@ static int nand_erase(uint32_t page, uint32_t addr)
     case NAND_READY:
         break;
     case NAND_ERROR:
-        if (send_bad_block_info(addr))
+        if (np_send_bad_block_info(addr))
             return -1;
         break;
     case NAND_TIMEOUT_ERROR:
@@ -298,10 +298,10 @@ static int nand_erase(uint32_t page, uint32_t addr)
     return 0;
 }
 
-static int cmd_nand_erase(prog_t *prog)
+static int np_cmd_nand_erase(np_prog_t *prog)
 {
     uint32_t addr, page, pages_in_block;
-    erase_cmd_t *erase_cmd = (erase_cmd_t *)prog->usb.rx_buf;
+    np_erase_cmd_t *erase_cmd = (np_erase_cmd_t *)prog->usb.rx_buf;
 
     led_wr_set(true);
 
@@ -320,11 +320,11 @@ static int cmd_nand_erase(prog_t *prog)
         {
             ERROR_PRINT("Erase address 0x%lx is more then chip size 0x%lx\r\n",
                 addr, prog->chip_info->size);
-            return send_error(ERR_ADDR_EXCEEDED);
+            return np_send_error(NP_ERR_ADDR_EXCEEDED);
         }
 
-        if (nand_erase(page, addr))
-            return send_error(ERR_NAND_ERASE);
+        if (np_nand_erase(page, addr))
+            return np_send_error(NP_ERR_NAND_ERASE);
 
         if (erase_cmd->len >= prog->chip_info->block_size)
             erase_cmd->len -= prog->chip_info->block_size;
@@ -336,13 +336,13 @@ static int cmd_nand_erase(prog_t *prog)
 
     led_wr_set(false);
 
-    return send_ok_status();
+    return np_send_ok_status();
 }
 
-static int send_write_ack(uint32_t bytes_ack)
+static int np_send_write_ack(uint32_t bytes_ack)
 {
-    resp_t resp_header = { RESP_STATUS, STATUS_WRITE_ACK };
-    resp_write_ack_t write_ack = { resp_header, bytes_ack };
+    np_resp_t resp_header = { NP_RESP_STATUS, NP_STATUS_WRITE_ACK };
+    np_resp_write_ack_t write_ack = { resp_header, bytes_ack };
 
     if (np_comm_cb->send((uint8_t *)&write_ack, sizeof(write_ack)))
         return -1;
@@ -350,9 +350,10 @@ static int send_write_ack(uint32_t bytes_ack)
     return 0;
 }
 
-static int cmd_nand_write_start(prog_t *prog)
+static int np_cmd_nand_write_start(np_prog_t *prog)
 {
-    write_start_cmd_t *write_start_cmd = (write_start_cmd_t *)prog->usb.rx_buf;
+    np_write_start_cmd_t *write_start_cmd =
+        (np_write_start_cmd_t *)prog->usb.rx_buf;
 
     DEBUG_PRINT("Write at 0x%lx command\r\n", write_start_cmd->addr);
 
@@ -360,7 +361,7 @@ static int cmd_nand_write_start(prog_t *prog)
     {
         ERROR_PRINT("Write address 0x%lx is more then chip size 0x%lx\r\n",
             write_start_cmd->addr, prog->chip_info->size);
-        return send_error(ERR_ADDR_EXCEEDED);
+        return np_send_error(NP_ERR_ADDR_EXCEEDED);
     }
 
     prog->addr = write_start_cmd->addr;
@@ -374,22 +375,22 @@ static int cmd_nand_write_start(prog_t *prog)
     prog->bytes_written = 0;
     prog->bytes_ack = 0;
 
-    return send_ok_status();
+    return np_send_ok_status();
 }
 
-static int nand_handle_status(prog_t *prog)
+static int np_nand_handle_status(np_prog_t *prog)
 {
     switch (nand_read_status())
     {
     case NAND_ERROR:
-        if (send_bad_block_info(prog->addr))
+        if (np_send_bad_block_info(prog->addr))
             return -1;
     case NAND_READY:
         prog->nand_wr_in_progress = 0;
         prog->nand_timeout = 0;
         break;
     case NAND_BUSY:
-        if (++prog->nand_timeout == NAND_TIMEOUT)
+        if (++prog->nand_timeout == NP_NAND_TIMEOUT)
         {
             ERROR_PRINT("NAND write timeout at 0x%lx\r\n", prog->addr);
             prog->nand_wr_in_progress = 0;
@@ -407,14 +408,14 @@ static int nand_handle_status(prog_t *prog)
     return 0;
 }
 
-static int nand_write(prog_t *prog, chip_info_t *chip_info)
+static int np_nand_write(np_prog_t *prog, chip_info_t *chip_info)
 {   
     if (prog->nand_wr_in_progress)
     {
         DEBUG_PRINT("Wait for previous NAND write\r\n");
         do
         {
-            if (nand_handle_status(prog))
+            if (np_nand_handle_status(prog))
                 return -1;
         }
         while (prog->nand_wr_in_progress);
@@ -431,22 +432,23 @@ static int nand_write(prog_t *prog, chip_info_t *chip_info)
     return 0;
 }
 
-static int cmd_nand_write_data(prog_t *prog)
+static int np_cmd_nand_write_data(np_prog_t *prog)
 {
     uint32_t write_len, bytes_left;
-    write_data_cmd_t *write_data_cmd = (write_data_cmd_t *)prog->usb.rx_buf;
+    np_write_data_cmd_t *write_data_cmd =
+        (np_write_data_cmd_t *)prog->usb.rx_buf;
 
-    if (write_data_cmd->len + offsetof(write_data_cmd_t, data) >
+    if (write_data_cmd->len + offsetof(np_write_data_cmd_t, data) >
         prog->usb.rx_buf_size)
     {
         ERROR_PRINT("Data size is wrong %d\r\n", write_data_cmd->len);
-        return send_error(ERR_CMD_DATA_SIZE);
+        return np_send_error(NP_ERR_CMD_DATA_SIZE);
     }
 
     if (!prog->addr_is_valid)
     {
         ERROR_PRINT("Write address is not set\r\n");
-        return send_error(ERR_ADDR_INVALID);
+        return np_send_error(NP_ERR_ADDR_INVALID);
     }
 
     if (prog->page.offset + write_data_cmd->len > prog->chip_info->page_size)
@@ -459,8 +461,8 @@ static int cmd_nand_write_data(prog_t *prog)
 
     if (prog->page.offset == prog->chip_info->page_size)
     {
-        if (nand_write(prog, prog->chip_info))
-            return send_error(ERR_NAND_WR);
+        if (np_nand_write(prog, prog->chip_info))
+            return np_send_error(NP_ERR_NAND_WR);
 
         prog->addr += prog->chip_info->page_size;
         if (prog->addr >= prog->chip_info->size)
@@ -482,7 +484,7 @@ static int cmd_nand_write_data(prog_t *prog)
     if (prog->bytes_written - prog->bytes_ack >= prog->chip_info->page_size ||
         prog->bytes_written == prog->len)
     {
-        if (send_write_ack(prog->bytes_written))
+        if (np_send_write_ack(prog->bytes_written))
             return -1;
         prog->bytes_ack = prog->bytes_written;
     }
@@ -490,7 +492,7 @@ static int cmd_nand_write_data(prog_t *prog)
     return 0;
 }
 
-static int cmd_nand_write_end(prog_t *prog)
+static int np_cmd_nand_write_end(np_prog_t *prog)
 {
     if (!prog->page.offset)
         goto Exit;
@@ -498,34 +500,34 @@ static int cmd_nand_write_end(prog_t *prog)
     if (!prog->addr_is_valid)
     {
         ERROR_PRINT("Write address is not set\r\n");
-        return send_error(ERR_ADDR_INVALID);
+        return np_send_error(NP_ERR_ADDR_INVALID);
     }
 
     prog->addr_is_valid = 0;
 
-    if (nand_write(prog, prog->chip_info))
-        return send_error(ERR_NAND_WR);
+    if (np_nand_write(prog, prog->chip_info))
+        return np_send_error(NP_ERR_NAND_WR);
 
 Exit:
-    return send_ok_status();
+    return np_send_ok_status();
 }
 
-static int cmd_nand_write(prog_t *prog)
+static int np_cmd_nand_write(np_prog_t *prog)
 {
-    cmd_t *cmd = (cmd_t *)prog->usb.rx_buf;
+    np_cmd_t *cmd = (np_cmd_t *)prog->usb.rx_buf;
     int ret = 0;
 
     switch (cmd->code)
     {
-    case CMD_NAND_WRITE_S:
+    case NP_CMD_NAND_WRITE_S:
         led_wr_set(true);
-        ret = cmd_nand_write_start(prog);
+        ret = np_cmd_nand_write_start(prog);
         break;
-    case CMD_NAND_WRITE_D:
-        ret = cmd_nand_write_data(prog);
+    case NP_CMD_NAND_WRITE_D:
+        ret = np_cmd_nand_write_data(prog);
         break;
-    case CMD_NAND_WRITE_E:
-        ret = cmd_nand_write_end(prog);
+    case NP_CMD_NAND_WRITE_E:
+        ret = np_cmd_nand_write_end(prog);
         led_wr_set(false);
         break;
     default:
@@ -535,7 +537,8 @@ static int cmd_nand_write(prog_t *prog)
     return ret;
 }
 
-static int nand_read(uint32_t addr, page_t *page, chip_info_t *chip_info)
+static int np_nand_read(uint32_t addr, np_page_t *page,
+    chip_info_t *chip_info)
 {
     uint32_t status;
 
@@ -547,7 +550,7 @@ static int nand_read(uint32_t addr, page_t *page, chip_info_t *chip_info)
     case NAND_READY:
         break;
     case NAND_ERROR:
-        if (send_bad_block_info(addr))
+        if (np_send_bad_block_info(addr))
             return -1;
         break;
     case NAND_TIMEOUT_ERROR:
@@ -561,15 +564,15 @@ static int nand_read(uint32_t addr, page_t *page, chip_info_t *chip_info)
     return 0;
 }
 
-static int cmd_nand_read(prog_t *prog)
+static int np_cmd_nand_read(np_prog_t *prog)
 {
     uint32_t addr;
-    static page_t page;
+    static np_page_t page;
     uint32_t write_len;
-    uint32_t resp_header_size = offsetof(resp_t, data);
+    uint32_t resp_header_size = offsetof(np_resp_t, data);
     uint32_t tx_data_len = prog->usb.tx_buf_size - resp_header_size;
-    read_cmd_t *read_cmd = (read_cmd_t *)prog->usb.rx_buf;
-    resp_t *resp = (resp_t *)prog->usb.tx_buf;
+    np_read_cmd_t *read_cmd = (np_read_cmd_t *)prog->usb.rx_buf;
+    np_resp_t *resp = (np_resp_t *)prog->usb.tx_buf;
 
     led_rd_set(true);
 
@@ -580,19 +583,19 @@ static int cmd_nand_read(prog_t *prog)
     {
         ERROR_PRINT("Read address 0x%lx is more then chip size 0x%lx\r\n",
             read_cmd->addr, prog->chip_info->size);
-        return send_error(ERR_ADDR_EXCEEDED);
+        return np_send_error(NP_ERR_ADDR_EXCEEDED);
     }
 
     addr = read_cmd->addr;
     page.page = addr / prog->chip_info->page_size;
     page.offset = addr % prog->chip_info->page_size;
 
-    resp->code = RESP_DATA;
+    resp->code = NP_RESP_DATA;
 
     while (read_cmd->len)
     {
-        if (nand_read(addr, &page, prog->chip_info))
-            return send_error(ERR_NAND_RD);
+        if (np_nand_read(addr, &page, prog->chip_info))
+            return np_send_error(NP_ERR_NAND_RD);
 
         while (page.offset < prog->chip_info->page_size && read_cmd->len)
         {
@@ -626,7 +629,7 @@ static int cmd_nand_read(prog_t *prog)
             {
                 ERROR_PRINT("Read address 0x%lx is more then chip size 0x%lx",
                     addr, prog->chip_info->page_size);
-                return send_error(ERR_ADDR_EXCEEDED);
+                return np_send_error(NP_ERR_ADDR_EXCEEDED);
             }
             page.page++;
             page.offset = 0;
@@ -638,9 +641,9 @@ static int cmd_nand_read(prog_t *prog)
     return 0;
 }
 
-static int cmd_nand_select(prog_t *prog)
+static int np_cmd_nand_select(np_prog_t *prog)
 {
-    select_cmd_t *select_cmd = (select_cmd_t *)prog->usb.rx_buf;
+    np_select_cmd_t *select_cmd = (np_select_cmd_t *)prog->usb.rx_buf;
 
     DEBUG_PRINT("Chip select ID %lu command\r\n", select_cmd->chip_num);
 
@@ -654,13 +657,13 @@ static int cmd_nand_select(prog_t *prog)
         prog->chip_info = NULL;
 
         ERROR_PRINT("Chip ID %lu not found\r\n", select_cmd->chip_num);
-        return send_error(ERR_CHIP_NOT_FOUND);
+        return np_send_error(NP_ERR_CHIP_NOT_FOUND);
     }
 
-    return send_ok_status();
+    return np_send_ok_status();
 }
 
-static int read_bad_block_info_from_page(prog_t *prog, uint32_t block,
+static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
     uint32_t page, chip_info_t *chip_info, bool *is_bad)
 {
     uint8_t bad_block_data;
@@ -674,19 +677,19 @@ static int read_bad_block_info_from_page(prog_t *prog, uint32_t block,
         break;
     case NAND_ERROR:
         ERROR_PRINT("NAND read bad block info error at 0x%lx\r\n", addr);
-        return send_error(ERR_NAND_RD);
+        return np_send_error(NP_ERR_NAND_RD);
     case NAND_TIMEOUT_ERROR:
         ERROR_PRINT("NAND read timeout at 0x%lx\r\n", addr);
-        return send_error(ERR_NAND_RD);
+        return np_send_error(NP_ERR_NAND_RD);
     default:
         ERROR_PRINT("Unknown NAND status\r\n");
-        return send_error(ERR_NAND_RD);
+        return np_send_error(NP_ERR_NAND_RD);
     }
 
-    if (bad_block_data != NAND_GOOD_BLOCK_MARK)
+    if (bad_block_data != NP_NAND_GOOD_BLOCK_MARK)
     {
         *is_bad = true;
-        if (send_bad_block_info(addr))
+        if (np_send_bad_block_info(addr))
             return -1;
     }
     else
@@ -695,7 +698,7 @@ static int read_bad_block_info_from_page(prog_t *prog, uint32_t block,
     return 0;
 }
 
-static int cmd_read_bad_blocks(prog_t *prog)
+static int np_cmd_read_bad_blocks(np_prog_t *prog)
 {
     bool is_bad;
     uint32_t block, block_num, page_num, page;
@@ -711,13 +714,13 @@ static int cmd_read_bad_blocks(prog_t *prog)
     for (block = 0; block < block_num; block++)
     {
         page = block * page_num;
-        if (read_bad_block_info_from_page(prog, block, page, prog->chip_info,
+        if (np_read_bad_block_info_from_page(prog, block, page, prog->chip_info,
             &is_bad))
         {
             return -1;
         }
 
-        if (!is_bad && read_bad_block_info_from_page(prog, block, page + 1,
+        if (!is_bad && np_read_bad_block_info_from_page(prog, block, page + 1,
             prog->chip_info, &is_bad))
         {
             return -1;
@@ -726,40 +729,40 @@ static int cmd_read_bad_blocks(prog_t *prog)
 
     led_rd_set(false);
 
-    return send_ok_status();
+    return np_send_ok_status();
 }
 
-static cmd_handler_t cmd_handler[] =
+static np_cmd_handler_t cmd_handler[] =
 {
-    { CMD_NAND_READ_ID, cmd_nand_read_id },
-    { CMD_NAND_ERASE, cmd_nand_erase },
-    { CMD_NAND_READ, cmd_nand_read },
-    { CMD_NAND_WRITE_S, cmd_nand_write },
-    { CMD_NAND_WRITE_D, cmd_nand_write },
-    { CMD_NAND_WRITE_E, cmd_nand_write },
-    { CMD_NAND_SELECT, cmd_nand_select },
-    { CMD_NAND_READ_BB, cmd_read_bad_blocks },
+    { NP_CMD_NAND_READ_ID, np_cmd_nand_read_id },
+    { NP_CMD_NAND_ERASE, np_cmd_nand_erase },
+    { NP_CMD_NAND_READ, np_cmd_nand_read },
+    { NP_CMD_NAND_WRITE_S, np_cmd_nand_write },
+    { NP_CMD_NAND_WRITE_D, np_cmd_nand_write },
+    { NP_CMD_NAND_WRITE_E, np_cmd_nand_write },
+    { NP_CMD_NAND_SELECT, np_cmd_nand_select },
+    { NP_CMD_NAND_READ_BB, np_cmd_read_bad_blocks },
 };
 
 static bool np_cmd_is_valid(int cmd)
 {
-    return cmd >= 0 && cmd < CMD_NAND_LAST;
+    return cmd >= 0 && cmd < NP_CMD_NAND_LAST;
 }
 
-static int np_cmd_handler(prog_t *prog)
+static int np_cmd_handler(np_prog_t *prog)
 {
-    cmd_t *cmd = (cmd_t *)prog->usb.rx_buf;
+    np_cmd_t *cmd = (np_cmd_t *)prog->usb.rx_buf;
 
-    if (!prog->chip_info && cmd->code != CMD_NAND_SELECT)
+    if (!prog->chip_info && cmd->code != NP_CMD_NAND_SELECT)
     {
         ERROR_PRINT("Chip is not selected\r\n");
-        return send_error(ERR_CHIP_NOT_SEL);
+        return np_send_error(NP_ERR_CHIP_NOT_SEL);
     }
 
     if (!np_cmd_is_valid(cmd->code))
     {
         ERROR_PRINT("Invalid cmd code %d\r\n", cmd->code);
-        return send_error(ERR_CMD_INVALID);
+        return np_send_error(NP_ERR_CMD_INVALID);
     }
 
     if (cmd_handler[cmd->code].exec(prog))
@@ -768,7 +771,7 @@ static int np_cmd_handler(prog_t *prog)
     return 0;
 }
 
-static void np_packet_handler(prog_t *prog)
+static void np_packet_handler(np_prog_t *prog)
 {
     do
     {
@@ -784,12 +787,12 @@ static void np_packet_handler(prog_t *prog)
     while (1);
 }
 
-static void nand_handler(prog_t *prog)
+static void np_nand_handler(np_prog_t *prog)
 {
     if (prog->nand_wr_in_progress)
     {
-        if (nand_handle_status(prog))
-            send_error(ERR_NAND_WR);
+        if (np_nand_handle_status(prog))
+            np_send_error(NP_ERR_NAND_WR);
     }
 }
 
@@ -808,7 +811,7 @@ void np_comm_unregister(np_comm_cb_t *cb)
 
 int main()
 {
-    static prog_t prog;
+    static np_prog_t prog;
 
     uart_init();
     printf("\r\nNAND programmer ver: "SW_VERSION"\r\n");
@@ -822,7 +825,7 @@ int main()
     printf("done.\r\n");
 
     printf("USB init...");
-    usb_init(&prog.usb);
+    np_usb_init(&prog.usb);
     printf("done.\r\n");
 
     printf("CDC init...");
@@ -832,7 +835,7 @@ int main()
     while (1)
     {
         np_packet_handler(&prog);
-        nand_handler(&prog);
+        np_nand_handler(&prog);
     }
 
     return 0;
