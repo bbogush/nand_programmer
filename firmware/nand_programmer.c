@@ -195,7 +195,7 @@ static int np_send_error(uint8_t err_code)
     if (np_comm_cb)
         np_comm_cb->send((uint8_t *)&err_status, len);
 
-    return -1;
+    return 0;
 }
 
 static int np_send_bad_block_info(uint32_t addr)
@@ -275,16 +275,23 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
     DEBUG_PRINT("Erase at 0x%lx %lx bytes command\r\n", addr, len);
 
     if (addr & (prog->chip_info->block_size - 1))
-        return np_send_error(NP_ERR_ADDR_NOT_ALIGN);
+    {
+        np_send_error(NP_ERR_ADDR_NOT_ALIGN);
+        return -1;
+    }
 
     if (len & (prog->chip_info->block_size - 1))
-        return np_send_error(NP_ERR_LEN_NOT_ALIGN);
+    {
+        np_send_error(NP_ERR_LEN_NOT_ALIGN);
+        return -1;
+    }
 
     if (addr + len > prog->chip_info->size)
     {
         ERROR_PRINT("Erase address exceded 0x%lx+0x%lx is more then chip size "
             "0x%lx\r\n", addr, len, prog->chip_info->size);
-        return np_send_error(NP_ERR_ADDR_EXCEEDED);
+        np_send_error(NP_ERR_ADDR_EXCEEDED);
+        return -1;
     }
 
     page = addr / prog->chip_info->page_size;
@@ -293,7 +300,10 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
     while (len)
     {
         if (np_nand_erase(prog, page))
-            return np_send_error(NP_ERR_NAND_ERASE);
+        {
+            np_send_error(NP_ERR_NAND_ERASE);
+            return -1;
+        }
 
         if (len >= prog->chip_info->block_size)
             len -= prog->chip_info->block_size;
@@ -337,7 +347,8 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
     {
         ERROR_PRINT("Write address 0x%lx is more then chip size 0x%lx\r\n",
             write_start_cmd->addr, prog->chip_info->size);
-        return np_send_error(NP_ERR_ADDR_EXCEEDED);
+        np_send_error(NP_ERR_ADDR_EXCEEDED);
+        return -1;
     }
 
     prog->addr = write_start_cmd->addr;
@@ -418,13 +429,15 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
         NP_PACKET_BUF_SIZE)
     {
         ERROR_PRINT("Data size is wrong %d\r\n", write_data_cmd->len);
-        return np_send_error(NP_ERR_CMD_DATA_SIZE);
+        np_send_error(NP_ERR_CMD_DATA_SIZE);
+        return -1;
     }
 
     if (!prog->addr_is_valid)
     {
         ERROR_PRINT("Write address is not set\r\n");
-        return np_send_error(NP_ERR_ADDR_INVALID);
+        np_send_error(NP_ERR_ADDR_INVALID);
+        return -1;
     }
 
     if (prog->page.offset + write_data_cmd->len > prog->chip_info->page_size)
@@ -438,7 +451,10 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
     if (prog->page.offset == prog->chip_info->page_size)
     {
         if (np_nand_write(prog, prog->chip_info))
-            return np_send_error(NP_ERR_NAND_WR);
+        {
+            np_send_error(NP_ERR_NAND_WR);
+            return -1;
+        }
 
         prog->addr += prog->chip_info->page_size;
         if (prog->addr >= prog->chip_info->size)
@@ -476,13 +492,17 @@ static int np_cmd_nand_write_end(np_prog_t *prog)
     if (!prog->addr_is_valid)
     {
         ERROR_PRINT("Write address is not set\r\n");
-        return np_send_error(NP_ERR_ADDR_INVALID);
+        np_send_error(NP_ERR_ADDR_INVALID);
+        return -1;
     }
 
     prog->addr_is_valid = 0;
 
     if (np_nand_write(prog, prog->chip_info))
-        return np_send_error(NP_ERR_NAND_WR);
+    {
+        np_send_error(NP_ERR_NAND_WR);
+        return -1;
+    }
 
 Exit:
     return np_send_ok_status();
@@ -557,7 +577,8 @@ static int _np_cmd_nand_read(np_prog_t *prog)
     {
         ERROR_PRINT("Read address 0x%lx is more then chip size 0x%lx\r\n",
             read_cmd->addr, prog->chip_info->size);
-        return np_send_error(NP_ERR_ADDR_EXCEEDED);
+        np_send_error(NP_ERR_ADDR_EXCEEDED);
+        return -1;
     }
 
     addr = read_cmd->addr;
@@ -569,7 +590,10 @@ static int _np_cmd_nand_read(np_prog_t *prog)
     while (read_cmd->len)
     {
         if (np_nand_read(addr, &page, prog->chip_info))
-            return np_send_error(NP_ERR_NAND_RD);
+        {
+            np_send_error(NP_ERR_NAND_RD);
+            return -1;
+        }
 
         while (page.offset < prog->chip_info->page_size && read_cmd->len)
         {
@@ -603,7 +627,8 @@ static int _np_cmd_nand_read(np_prog_t *prog)
             {
                 ERROR_PRINT("Read address 0x%lx is more then chip size 0x%lx",
                     addr, prog->chip_info->page_size);
-                return np_send_error(NP_ERR_ADDR_EXCEEDED);
+                np_send_error(NP_ERR_ADDR_EXCEEDED);
+                return -1;
             }
             page.page++;
             page.offset = 0;
@@ -640,7 +665,8 @@ static int np_cmd_nand_select(np_prog_t *prog)
         prog->chip_info = NULL;
 
         ERROR_PRINT("Chip ID %lu not found\r\n", select_cmd->chip_num);
-        return np_send_error(NP_ERR_CHIP_NOT_FOUND);
+        np_send_error(NP_ERR_CHIP_NOT_FOUND);
+        return -1;
     }
 
     return np_send_ok_status();
@@ -660,13 +686,16 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
         break;
     case NAND_ERROR:
         ERROR_PRINT("NAND read bad block info error at 0x%lx\r\n", addr);
-        return np_send_error(NP_ERR_NAND_RD);
+        np_send_error(NP_ERR_NAND_RD);
+        return -1;
     case NAND_TIMEOUT_ERROR:
         ERROR_PRINT("NAND read timeout at 0x%lx\r\n", addr);
-        return np_send_error(NP_ERR_NAND_RD);
+        np_send_error(NP_ERR_NAND_RD);
+        return -1;
     default:
         ERROR_PRINT("Unknown NAND status\r\n");
-        return np_send_error(NP_ERR_NAND_RD);
+        np_send_error(NP_ERR_NAND_RD);
+        return -1;
     }
 
     if (bad_block_data != NP_NAND_GOOD_BLOCK_MARK)
@@ -746,13 +775,15 @@ static int np_cmd_handler(np_prog_t *prog)
     if (!prog->chip_info && cmd->code != NP_CMD_NAND_SELECT)
     {
         ERROR_PRINT("Chip is not selected\r\n");
-        return np_send_error(NP_ERR_CHIP_NOT_SEL);
+        np_send_error(NP_ERR_CHIP_NOT_SEL);
+        return -1;
     }
 
     if (!np_cmd_is_valid(cmd->code))
     {
         ERROR_PRINT("Invalid cmd code %d\r\n", cmd->code);
-        return np_send_error(NP_ERR_CMD_INVALID);
+        np_send_error(NP_ERR_CMD_INVALID);
+        return -1;
     }
 
     if (cmd_handler[cmd->code].exec(prog))
