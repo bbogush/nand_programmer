@@ -47,6 +47,7 @@ enum
     CMD_NAND_WRITE_E = 0x05,
     CMD_NAND_SELECT  = 0x06,
     CMD_NAND_READ_BB = 0x07,
+    CMD_NAND_LAST    = 0x08,
 };
 
 enum
@@ -59,7 +60,8 @@ enum
     ERR_CHIP_NOT_SEL   = 0x05,
     ERR_CHIP_NOT_FOUND = 0x06,
     ERR_CMD_DATA_SIZE  = 0x07,
-    ERR_BUF_OVERFLOW   = 0x08,
+    ERR_CMD_INVALID    = 0x08,
+    ERR_BUF_OVERFLOW   = 0x09,
 };
 
 typedef struct __attribute__((__packed__))
@@ -186,6 +188,12 @@ typedef struct
     chip_info_t *chip_info;
 } prog_t;
 
+typedef struct
+{
+    int id;
+    int (*exec)(prog_t *prog);
+} cmd_handler_t;
+
 static np_comm_cb_t *np_comm_cb;
 
 uint8_t usb_send_buf[USB_BUF_SIZE];
@@ -242,6 +250,8 @@ static int cmd_nand_read_id(prog_t *prog)
     resp_id_t resp;
     size_t resp_len = sizeof(resp);
 
+    led_rd_set(true);
+
     DEBUG_PRINT("Read ID command\r\n");
 
     if (prog->usb.tx_buf_size < resp_len)
@@ -256,6 +266,8 @@ static int cmd_nand_read_id(prog_t *prog)
 
     if (np_comm_cb)
         np_comm_cb->send((uint8_t *)&resp, resp_len);
+
+    led_rd_set(false);
 
     return 0;
 }
@@ -291,6 +303,8 @@ static int cmd_nand_erase(prog_t *prog)
     uint32_t addr, page, pages_in_block;
     erase_cmd_t *erase_cmd = (erase_cmd_t *)prog->usb.rx_buf;
 
+    led_wr_set(true);
+
     DEBUG_PRINT("Erase at 0x%lx %lx bytes command\r\n", erase_cmd->addr,
         erase_cmd->len);
 
@@ -319,6 +333,8 @@ static int cmd_nand_erase(prog_t *prog)
         addr += prog->chip_info->block_size;
         page += pages_in_block;
     }
+
+    led_wr_set(false);
 
     return send_ok_status();
 }
@@ -502,6 +518,7 @@ static int cmd_nand_write(prog_t *prog)
     switch (cmd->code)
     {
     case CMD_NAND_WRITE_S:
+        led_wr_set(true);
         ret = cmd_nand_write_start(prog);
         break;
     case CMD_NAND_WRITE_D:
@@ -509,6 +526,7 @@ static int cmd_nand_write(prog_t *prog)
         break;
     case CMD_NAND_WRITE_E:
         ret = cmd_nand_write_end(prog);
+        led_wr_set(false);
         break;
     default:
         break;
@@ -552,6 +570,8 @@ static int cmd_nand_read(prog_t *prog)
     uint32_t tx_data_len = prog->usb.tx_buf_size - resp_header_size;
     read_cmd_t *read_cmd = (read_cmd_t *)prog->usb.rx_buf;
     resp_t *resp = (resp_t *)prog->usb.tx_buf;
+
+    led_rd_set(true);
 
     DEBUG_PRINT("Read at 0x%lx %lx bytes command\r\n", read_cmd->addr,
         read_cmd->len);
@@ -612,6 +632,8 @@ static int cmd_nand_read(prog_t *prog)
             page.offset = 0;
         }
     }
+
+    led_rd_set(false);
 
     return 0;
 }
@@ -678,6 +700,8 @@ static int cmd_read_bad_blocks(prog_t *prog)
     bool is_bad;
     uint32_t block, block_num, page_num, page;
 
+    led_rd_set(true);
+
     block_num = prog->chip_info->size / prog->chip_info->block_size;
     page_num = prog->chip_info->block_size / prog->chip_info->page_size;
 
@@ -700,13 +724,31 @@ static int cmd_read_bad_blocks(prog_t *prog)
         }
     }
 
+    led_rd_set(false);
+
     return send_ok_status();
 }
 
-static int usb_cmd_handler(prog_t *prog)
+static cmd_handler_t cmd_handler[] =
+{
+    { CMD_NAND_READ_ID, cmd_nand_read_id },
+    { CMD_NAND_ERASE, cmd_nand_erase },
+    { CMD_NAND_READ, cmd_nand_read },
+    { CMD_NAND_WRITE_S, cmd_nand_write },
+    { CMD_NAND_WRITE_D, cmd_nand_write },
+    { CMD_NAND_WRITE_E, cmd_nand_write },
+    { CMD_NAND_SELECT, cmd_nand_select },
+    { CMD_NAND_READ_BB, cmd_read_bad_blocks },
+};
+
+static bool np_cmd_is_valid(int cmd)
+{
+    return cmd >= 0 && cmd < CMD_NAND_LAST;
+}
+
+static int np_cmd_handler(prog_t *prog)
 {
     cmd_t *cmd = (cmd_t *)prog->usb.rx_buf;
-    int ret = -1;
 
     if (!prog->chip_info && cmd->code != CMD_NAND_SELECT)
     {
@@ -714,50 +756,19 @@ static int usb_cmd_handler(prog_t *prog)
         return send_error(ERR_CHIP_NOT_SEL);
     }
 
-    switch (cmd->code)
+    if (!np_cmd_is_valid(cmd->code))
     {
-    case CMD_NAND_READ_ID:
-        led_rd_set(true);
-        ret = cmd_nand_read_id(prog);
-        led_rd_set(false);
-        break;
-    case CMD_NAND_ERASE:
-        led_wr_set(true);
-        ret = cmd_nand_erase(prog);
-        led_wr_set(false);
-        break;
-    case CMD_NAND_READ:
-        led_rd_set(true);
-        ret = cmd_nand_read(prog);
-        led_rd_set(false);
-        break;
-    case CMD_NAND_WRITE_S:
-        led_wr_set(true);
-        ret = cmd_nand_write(prog);
-        break;
-    case CMD_NAND_WRITE_D:
-        ret = cmd_nand_write(prog);
-        break;
-    case CMD_NAND_WRITE_E:
-        ret = cmd_nand_write(prog);
-        led_wr_set(false);
-        break;
-    case CMD_NAND_SELECT:
-        ret = cmd_nand_select(prog);
-        break;
-    case CMD_NAND_READ_BB:
-        led_rd_set(true);
-        ret = cmd_read_bad_blocks(prog);
-        led_rd_set(false);
-        break;
-    default:
-        break;
+        ERROR_PRINT("Invalid cmd code %d\r\n", cmd->code);
+        return send_error(ERR_CMD_INVALID);
     }
 
-    return ret;
+    if (cmd_handler[cmd->code].exec(prog))
+        return -1;
+
+    return 0;
 }
 
-static void cmd_handler(prog_t *prog)
+static void np_packet_handler(prog_t *prog)
 {
     do
     {
@@ -766,10 +777,11 @@ static void cmd_handler(prog_t *prog)
         if (!prog->usb.rx_buf)
             break;
 
-        usb_cmd_handler(prog);
+        np_cmd_handler(prog);
 
         np_comm_cb->consume();
-    } while (true);
+    }
+    while (1);
 }
 
 static void nand_handler(prog_t *prog)
@@ -819,7 +831,7 @@ int main()
 
     while (1)
     {
-        cmd_handler(&prog);
+        np_packet_handler(&prog);
         nand_handler(&prog);
     }
 
