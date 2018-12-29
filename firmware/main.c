@@ -10,9 +10,7 @@
 /* SPL */
 #include <stm32f10x.h>
 /* USB */
-#include <usb_lib.h>
-#include <usb_pwr.h>
-#include "hw_config.h"
+#include "usb.h"
 #include "cdc.h"
 /* LED */
 #include "led.h"
@@ -189,15 +187,6 @@ typedef struct
 static np_comm_cb_t *np_comm_cb;
 
 uint8_t np_packet_send_buf[NP_PACKET_BUF_SIZE];
-
-static void np_usb_init()
-{
-    Set_System();
-    Set_USBClock();
-    USB_Interrupts_Config();
-    USB_Init();
-    while (!USB_IsDeviceConfigured());
-}
 
 static int np_send_ok_status()
 {
@@ -813,7 +802,7 @@ int main()
     printf("done.\r\n");
 
     printf("USB init...");
-    np_usb_init();
+    usb_init();
     printf("done.\r\n");
 
     printf("CDC init...");

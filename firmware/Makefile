@@ -48,7 +48,7 @@ vpath %.s $(SRC_DIR)
 
 STARTUP=startup_stm32f10x_hd.s
 USB_SRCS=hw_config.c stm32_it.c usb_prop.c usb_desc.c usb_istr.c usb_pwr.c \
-  usb_endp.c
+  usb_endp.c usb.c
 
 
 SRCS=main.c system_stm32f10x.c syscalls.c fsmc_nand.c chip_db.c led.c uart.c \
