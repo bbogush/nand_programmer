@@ -35,18 +35,19 @@ enum
 
 enum
 {
-    NP_ERR_ADDR_EXCEEDED  = 0x00,
-    NP_ERR_ADDR_INVALID   = 0x01,
-    NP_ERR_ADDR_NOT_ALIGN = 0x02,
-    NP_ERR_NAND_WR        = 0x03,
-    NP_ERR_NAND_RD        = 0x04,
-    NP_ERR_NAND_ERASE     = 0x05,
-    NP_ERR_CHIP_NOT_SEL   = 0x06,
-    NP_ERR_CHIP_NOT_FOUND = 0x07,
-    NP_ERR_CMD_DATA_SIZE  = 0x08,
-    NP_ERR_CMD_INVALID    = 0x09,
-    NP_ERR_BUF_OVERFLOW   = 0x0a,
-    NP_ERR_LEN_NOT_ALIGN  = 0x0b,
+    NP_ERR_INTERNAL       = -1,
+    NP_ERR_ADDR_EXCEEDED  = -100,
+    NP_ERR_ADDR_INVALID   = -101,
+    NP_ERR_ADDR_NOT_ALIGN = -102,
+    NP_ERR_NAND_WR        = -103,
+    NP_ERR_NAND_RD        = -104,
+    NP_ERR_NAND_ERASE     = -105,
+    NP_ERR_CHIP_NOT_SEL   = -106,
+    NP_ERR_CHIP_NOT_FOUND = -107,
+    NP_ERR_CMD_DATA_SIZE  = -108,
+    NP_ERR_CMD_INVALID    = -109,
+    NP_ERR_BUF_OVERFLOW   = -110,
+    NP_ERR_LEN_NOT_ALIGN  = -111,
 };
 
 typedef struct __attribute__((__packed__))
@@ -276,22 +277,23 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
 
     if (addr & (prog->chip_info->block_size - 1))
     {
-        np_send_error(NP_ERR_ADDR_NOT_ALIGN);
-        return -1;
+        ERROR_PRINT("Address 0x%lx is not aligned to block size 0x%lx\r\n",
+            addr, prog->chip_info->block_size);
+        return NP_ERR_ADDR_NOT_ALIGN;
     }
 
     if (len & (prog->chip_info->block_size - 1))
     {
-        np_send_error(NP_ERR_LEN_NOT_ALIGN);
-        return -1;
+        ERROR_PRINT("Length 0x%lx is not aligned to block size 0x%lx\r\n",
+            len, prog->chip_info->block_size);
+        return NP_ERR_LEN_NOT_ALIGN;
     }
 
     if (addr + len > prog->chip_info->size)
     {
         ERROR_PRINT("Erase address exceded 0x%lx+0x%lx is more then chip size "
             "0x%lx\r\n", addr, len, prog->chip_info->size);
-        np_send_error(NP_ERR_ADDR_EXCEEDED);
-        return -1;
+        return NP_ERR_ADDR_EXCEEDED;
     }
 
     page = addr / prog->chip_info->page_size;
@@ -300,10 +302,7 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
     while (len)
     {
         if (np_nand_erase(prog, page))
-        {
-            np_send_error(NP_ERR_NAND_ERASE);
-            return -1;
-        }
+            return NP_ERR_NAND_ERASE;
 
         if (len >= prog->chip_info->block_size)
             len -= prog->chip_info->block_size;
@@ -347,8 +346,7 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
     {
         ERROR_PRINT("Write address 0x%lx is more then chip size 0x%lx\r\n",
             write_start_cmd->addr, prog->chip_info->size);
-        np_send_error(NP_ERR_ADDR_EXCEEDED);
-        return -1;
+        return NP_ERR_ADDR_EXCEEDED;
     }
 
     prog->addr = write_start_cmd->addr;
@@ -429,15 +427,13 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
         NP_PACKET_BUF_SIZE)
     {
         ERROR_PRINT("Data size is wrong %d\r\n", write_data_cmd->len);
-        np_send_error(NP_ERR_CMD_DATA_SIZE);
-        return -1;
+        return NP_ERR_CMD_DATA_SIZE;
     }
 
     if (!prog->addr_is_valid)
     {
         ERROR_PRINT("Write address is not set\r\n");
-        np_send_error(NP_ERR_ADDR_INVALID);
-        return -1;
+        return NP_ERR_ADDR_INVALID;
     }
 
     if (prog->page.offset + write_data_cmd->len > prog->chip_info->page_size)
@@ -451,10 +447,7 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
     if (prog->page.offset == prog->chip_info->page_size)
     {
         if (np_nand_write(prog, prog->chip_info))
-        {
-            np_send_error(NP_ERR_NAND_WR);
-            return -1;
-        }
+            return NP_ERR_NAND_WR;
 
         prog->addr += prog->chip_info->page_size;
         if (prog->addr >= prog->chip_info->size)
@@ -492,17 +485,13 @@ static int np_cmd_nand_write_end(np_prog_t *prog)
     if (!prog->addr_is_valid)
     {
         ERROR_PRINT("Write address is not set\r\n");
-        np_send_error(NP_ERR_ADDR_INVALID);
-        return -1;
+        return NP_ERR_ADDR_INVALID;
     }
 
     prog->addr_is_valid = 0;
 
     if (np_nand_write(prog, prog->chip_info))
-    {
-        np_send_error(NP_ERR_NAND_WR);
-        return -1;
-    }
+        return NP_ERR_NAND_WR;
 
 Exit:
     return np_send_ok_status();
@@ -577,8 +566,7 @@ static int _np_cmd_nand_read(np_prog_t *prog)
     {
         ERROR_PRINT("Read address 0x%lx is more then chip size 0x%lx\r\n",
             read_cmd->addr, prog->chip_info->size);
-        np_send_error(NP_ERR_ADDR_EXCEEDED);
-        return -1;
+        return NP_ERR_ADDR_EXCEEDED;
     }
 
     addr = read_cmd->addr;
@@ -590,10 +578,7 @@ static int _np_cmd_nand_read(np_prog_t *prog)
     while (read_cmd->len)
     {
         if (np_nand_read(addr, &page, prog->chip_info))
-        {
-            np_send_error(NP_ERR_NAND_RD);
-            return -1;
-        }
+            return NP_ERR_NAND_RD;
 
         while (page.offset < prog->chip_info->page_size && read_cmd->len)
         {
@@ -627,8 +612,7 @@ static int _np_cmd_nand_read(np_prog_t *prog)
             {
                 ERROR_PRINT("Read address 0x%lx is more then chip size 0x%lx",
                     addr, prog->chip_info->page_size);
-                np_send_error(NP_ERR_ADDR_EXCEEDED);
-                return -1;
+                return NP_ERR_ADDR_EXCEEDED;
             }
             page.page++;
             page.offset = 0;
@@ -665,8 +649,7 @@ static int np_cmd_nand_select(np_prog_t *prog)
         prog->chip_info = NULL;
 
         ERROR_PRINT("Chip ID %lu not found\r\n", select_cmd->chip_num);
-        np_send_error(NP_ERR_CHIP_NOT_FOUND);
-        return -1;
+        return NP_ERR_CHIP_NOT_FOUND;
     }
 
     return np_send_ok_status();
@@ -686,16 +669,13 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
         break;
     case NAND_ERROR:
         ERROR_PRINT("NAND read bad block info error at 0x%lx\r\n", addr);
-        np_send_error(NP_ERR_NAND_RD);
-        return -1;
+        return NP_ERR_NAND_RD;
     case NAND_TIMEOUT_ERROR:
         ERROR_PRINT("NAND read timeout at 0x%lx\r\n", addr);
-        np_send_error(NP_ERR_NAND_RD);
-        return -1;
+        return NP_ERR_NAND_RD;
     default:
         ERROR_PRINT("Unknown NAND status\r\n");
-        np_send_error(NP_ERR_NAND_RD);
-        return -1;
+        return NP_ERR_NAND_RD;
     }
 
     if (bad_block_data != NP_NAND_GOOD_BLOCK_MARK)
@@ -775,15 +755,13 @@ static int np_cmd_handler(np_prog_t *prog)
     if (!prog->chip_info && cmd->code != NP_CMD_NAND_SELECT)
     {
         ERROR_PRINT("Chip is not selected\r\n");
-        np_send_error(NP_ERR_CHIP_NOT_SEL);
-        return -1;
+        return NP_ERR_CHIP_NOT_SEL;
     }
 
     if (!np_cmd_is_valid(cmd->code))
     {
         ERROR_PRINT("Invalid cmd code %d\r\n", cmd->code);
-        np_send_error(NP_ERR_CMD_INVALID);
-        return -1;
+        return NP_ERR_CMD_INVALID;
     }
 
     if (cmd_handler[cmd->code].exec(prog))
@@ -794,6 +772,8 @@ static int np_cmd_handler(np_prog_t *prog)
 
 static void np_packet_handler(np_prog_t *prog)
 {
+    int ret;
+
     do
     {
         np_comm_cb->peek(&prog->rx_buf);
@@ -801,9 +781,12 @@ static void np_packet_handler(np_prog_t *prog)
         if (!prog->rx_buf)
             break;
 
-        np_cmd_handler(prog);
+        ret = np_cmd_handler(prog);
 
         np_comm_cb->consume();
+
+        if (ret < 0)
+            np_send_error(-ret);
     }
     while (1);
 }
