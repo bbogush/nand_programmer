@@ -20,7 +20,7 @@
 
 #define NP_NAND_GOOD_BLOCK_MARK 0xFF
 
-enum
+typedef enum
 {
     NP_CMD_NAND_READ_ID = 0x00,
     NP_CMD_NAND_ERASE   = 0x01,
@@ -31,7 +31,7 @@ enum
     NP_CMD_NAND_SELECT  = 0x06,
     NP_CMD_NAND_READ_BB = 0x07,
     NP_CMD_NAND_LAST    = 0x08,
-};
+} np_cmd_code_t;
 
 enum
 {
@@ -52,7 +52,7 @@ enum
 
 typedef struct __attribute__((__packed__))
 {
-    uint8_t code;
+    np_cmd_code_t code;
 } np_cmd_t;
 
 typedef struct __attribute__((__packed__))
@@ -743,9 +743,9 @@ static np_cmd_handler_t cmd_handler[] =
     { NP_CMD_NAND_READ_BB, np_cmd_read_bad_blocks },
 };
 
-static bool np_cmd_is_valid(int cmd)
+static bool np_cmd_is_valid(np_cmd_code_t code)
 {
-    return cmd >= 0 && cmd < NP_CMD_NAND_LAST;
+    return code >= 0 && code < NP_CMD_NAND_LAST;
 }
 
 static int np_cmd_handler(np_prog_t *prog)
