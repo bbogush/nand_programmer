@@ -212,15 +212,9 @@ static int np_cmd_nand_read_id(np_prog_t *prog)
     np_resp_id_t resp;
     size_t resp_len = sizeof(resp);
 
-    led_rd_set(true);
-
     DEBUG_PRINT("Read ID command\r\n");
 
-    if (NP_PACKET_BUF_SIZE < resp_len)
-    {
-        ERROR_PRINT("Response size is more then TX buffer size\r\n");
-        return np_send_error(NP_ERR_BUF_OVERFLOW);
-    }
+    led_rd_set(true);
 
     resp.header.code = NP_RESP_DATA;
     resp.header.info = resp_len - sizeof(resp.header);
