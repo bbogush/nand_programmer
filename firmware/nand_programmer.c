@@ -785,10 +785,7 @@ static int np_cmd_handler(np_prog_t *prog)
         return NP_ERR_CMD_INVALID;
     }
 
-    if (cmd_handler[cmd->code].exec(prog))
-        return -1;
-
-    return 0;
+    return cmd_handler[cmd->code].exec(prog);
 }
 
 static void np_packet_handler(np_prog_t *prog)
