@@ -570,7 +570,7 @@ static int _np_cmd_nand_read(np_prog_t *prog)
     len = read_cmd->len;    
     DEBUG_PRINT("Read at 0x%lx 0x%lx bytes command\r\n", addr, len);
 
-    if (addr + len >= prog->chip_info->size)
+    if (addr + len > prog->chip_info->size)
     {
         ERROR_PRINT("Read address 0x%lx+0x%lx is more then chip size 0x%lx\r\n",
             addr, len, prog->chip_info->size);
