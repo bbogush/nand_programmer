@@ -337,25 +337,42 @@ static int np_send_write_ack(uint32_t bytes_ack)
 
 static int np_cmd_nand_write_start(np_prog_t *prog)
 {
+    uint32_t addr, len;
+
     np_write_start_cmd_t *write_start_cmd =
         (np_write_start_cmd_t *)prog->rx_buf;
 
-    DEBUG_PRINT("Write at 0x%lx command\r\n", write_start_cmd->addr);
+    addr = write_start_cmd->addr;
+    len = write_start_cmd->len;
+    DEBUG_PRINT("Write at 0x%lx 0x%lx bytes command\r\n", addr, len);
 
-    if (write_start_cmd->addr >= prog->chip_info->size)
+    if (addr + len > prog->chip_info->size)
     {
-        ERROR_PRINT("Write address 0x%lx is more then chip size 0x%lx\r\n",
-            write_start_cmd->addr, prog->chip_info->size);
+        ERROR_PRINT("Write address 0x%lx+0x%lx is more then chip size "
+            "0x%lx\r\n", addr, len, prog->chip_info->size);
         return NP_ERR_ADDR_EXCEEDED;
     }
 
-    prog->addr = write_start_cmd->addr;
-    prog->len = write_start_cmd->len;
+    if (addr & (prog->chip_info->page_size - 1))
+    {
+        ERROR_PRINT("Address 0x%lx is not aligned to page size 0x%lx\r\n",
+            addr, prog->chip_info->page_size);
+        return NP_ERR_ADDR_NOT_ALIGN;
+    }
+
+    if (len & (prog->chip_info->page_size - 1))
+    {
+        ERROR_PRINT("Length 0x%lx is not aligned to page size 0x%lx\r\n",
+            len, prog->chip_info->page_size);
+        return NP_ERR_ADDR_NOT_ALIGN;
+    }
+
+    prog->addr = addr;
+    prog->len = len;
     prog->addr_is_valid = 1;
 
-    prog->page.page = write_start_cmd->addr / prog->chip_info->page_size;
-    prog->page.offset = write_start_cmd->addr % prog->chip_info->page_size;
-    memset(prog->page.buf, 0, sizeof(prog->page.buf));
+    prog->page.page = addr / prog->chip_info->page_size;
+    prog->page.offset = 0;
 
     prog->bytes_written = 0;
     prog->bytes_ack = 0;
@@ -419,14 +436,13 @@ static int np_nand_write(np_prog_t *prog, chip_info_t *chip_info)
 
 static int np_cmd_nand_write_data(np_prog_t *prog)
 {
-    uint32_t write_len, bytes_left;
-    np_write_data_cmd_t *write_data_cmd =
-        (np_write_data_cmd_t *)prog->rx_buf;
+    uint32_t write_len, bytes_left, len;
+    np_write_data_cmd_t *write_data_cmd = (np_write_data_cmd_t *)prog->rx_buf;
 
-    if (write_data_cmd->len + offsetof(np_write_data_cmd_t, data) >
-        NP_PACKET_BUF_SIZE)
+    len = write_data_cmd->len;
+    if (len + sizeof(np_write_data_cmd_t) > NP_PACKET_BUF_SIZE)
     {
-        ERROR_PRINT("Data size is wrong %d\r\n", write_data_cmd->len);
+        ERROR_PRINT("Data size is wrong 0x%lx\r\n", len);
         return NP_ERR_CMD_DATA_SIZE;
     }
 
@@ -436,10 +452,10 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
         return NP_ERR_ADDR_INVALID;
     }
 
-    if (prog->page.offset + write_data_cmd->len > prog->chip_info->page_size)
+    if (prog->page.offset + len > prog->chip_info->page_size)
         write_len = prog->chip_info->page_size - prog->page.offset;
     else
-        write_len = write_data_cmd->len;
+        write_len = len;
 
     memcpy(prog->page.buf + prog->page.offset, write_data_cmd->data, write_len);
     prog->page.offset += write_len;
@@ -455,17 +471,16 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
 
         prog->page.page++;
         prog->page.offset = 0;
-        memset(prog->page.buf, 0, prog->chip_info->page_size);
     }
 
-    bytes_left = write_data_cmd->len - write_len;
+    bytes_left = len - write_len;
     if (bytes_left)
     {
         memcpy(prog->page.buf, write_data_cmd->data + write_len, bytes_left);
         prog->page.offset += bytes_left;
     }
 
-    prog->bytes_written += write_data_cmd->len;
+    prog->bytes_written += len;
     if (prog->bytes_written - prog->bytes_ack >= prog->chip_info->page_size ||
         prog->bytes_written == prog->len)
     {
@@ -479,22 +494,15 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
 
 static int np_cmd_nand_write_end(np_prog_t *prog)
 {
-    if (!prog->page.offset)
-        goto Exit;
-
-    if (!prog->addr_is_valid)
-    {
-        ERROR_PRINT("Write address is not set\r\n");
-        return NP_ERR_ADDR_INVALID;
-    }
+    if (prog->page.offset)
+        goto Error;
 
     prog->addr_is_valid = 0;
 
-    if (np_nand_write(prog, prog->chip_info))
-        return NP_ERR_NAND_WR;
-
-Exit:
     return np_send_ok_status();
+
+Error:
+    return NP_ERR_NAND_WR;
 }
 
 static int np_cmd_nand_write(np_prog_t *prog)
