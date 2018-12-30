@@ -551,44 +551,57 @@ static int np_nand_read(uint32_t addr, np_page_t *page,
 
 static int _np_cmd_nand_read(np_prog_t *prog)
 {
-    uint32_t addr;
+    uint32_t addr, len, write_len;
     static np_page_t page;
-    uint32_t write_len;
     uint32_t resp_header_size = offsetof(np_resp_t, data);
     uint32_t tx_data_len = sizeof(np_packet_send_buf) - resp_header_size;
     np_read_cmd_t *read_cmd = (np_read_cmd_t *)prog->rx_buf;
     np_resp_t *resp = (np_resp_t *)np_packet_send_buf;
 
-    DEBUG_PRINT("Read at 0x%lx %lx bytes command\r\n", read_cmd->addr,
-        read_cmd->len);
+    addr = read_cmd->addr;
+    len = read_cmd->len;    
+    DEBUG_PRINT("Read at 0x%lx 0x%lx bytes command\r\n", addr, len);
 
-    if (read_cmd->addr >= prog->chip_info->size)
+    if (addr + len >= prog->chip_info->size)
     {
-        ERROR_PRINT("Read address 0x%lx is more then chip size 0x%lx\r\n",
-            read_cmd->addr, prog->chip_info->size);
+        ERROR_PRINT("Read address 0x%lx+0x%lx is more then chip size 0x%lx\r\n",
+            addr, len, prog->chip_info->size);
         return NP_ERR_ADDR_EXCEEDED;
     }
 
-    addr = read_cmd->addr;
+    if (addr & (prog->chip_info->page_size - 1))
+    {
+        ERROR_PRINT("Read address 0x%lx is not aligned to page size 0x%lx\r\n",
+            addr, prog->chip_info->page_size);
+        return NP_ERR_ADDR_NOT_ALIGN;
+    }
+
+    if (len & (prog->chip_info->page_size - 1))
+    {
+        ERROR_PRINT("Read length 0x%lx is not aligned to page size 0x%lx\r\n",
+            len, prog->chip_info->page_size);
+        return NP_ERR_LEN_NOT_ALIGN;
+    }
+
     page.page = addr / prog->chip_info->page_size;
-    page.offset = addr % prog->chip_info->page_size;
+    page.offset = 0;
 
     resp->code = NP_RESP_DATA;
 
-    while (read_cmd->len)
+    while (len)
     {
         if (np_nand_read(addr, &page, prog->chip_info))
             return NP_ERR_NAND_RD;
 
-        while (page.offset < prog->chip_info->page_size && read_cmd->len)
+        while (page.offset < prog->chip_info->page_size && len)
         {
             if (prog->chip_info->page_size - page.offset >= tx_data_len)
                 write_len = tx_data_len;
             else
                 write_len = prog->chip_info->page_size - page.offset;
 
-            if (write_len > read_cmd->len)
-                write_len = read_cmd->len;
+            if (write_len > len)
+                write_len = len;
  
             memcpy(resp->data, page.buf + page.offset, write_len);
 
@@ -602,10 +615,10 @@ static int _np_cmd_nand_read(np_prog_t *prog)
             }
 
             page.offset += write_len;
-            read_cmd->len -= write_len;
+            len -= write_len;
         }
 
-        if (read_cmd->len)
+        if (len)
         {
             addr += prog->chip_info->page_size;
             if (addr >= prog->chip_info->size)
