@@ -48,6 +48,7 @@ enum
     NP_ERR_CMD_INVALID    = -109,
     NP_ERR_BUF_OVERFLOW   = -110,
     NP_ERR_LEN_NOT_ALIGN  = -111,
+    NP_ERR_LEN_EXCEEDED   = -112,
 };
 
 typedef struct __attribute__((__packed__))
@@ -452,6 +453,13 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
         return NP_ERR_ADDR_INVALID;
     }
 
+    if (prog->addr >= prog->chip_info->size)
+    {
+        ERROR_PRINT("Write address 0x%lx is more then chip size 0x%lx\r\n",
+            prog->addr, prog->chip_info->size);
+        return NP_ERR_ADDR_EXCEEDED;
+    }
+
     if (prog->page.offset + len > prog->chip_info->page_size)
         write_len = prog->chip_info->page_size - prog->page.offset;
     else
@@ -466,9 +474,6 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
             return NP_ERR_NAND_WR;
 
         prog->addr += prog->chip_info->page_size;
-        if (prog->addr >= prog->chip_info->size)
-            prog->addr_is_valid = 0;
-
         prog->page.page++;
         prog->page.offset = 0;
     }
@@ -487,6 +492,13 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
         if (np_send_write_ack(prog->bytes_written))
             return -1;
         prog->bytes_ack = prog->bytes_written;
+    }
+
+    if (prog->bytes_written > prog->len)
+    {
+        ERROR_PRINT("Actual write data length 0x%lx is more then 0x%lx\r\n",
+            prog->bytes_written, prog->len);
+        return NP_ERR_LEN_EXCEEDED;
     }
 
     return 0;
