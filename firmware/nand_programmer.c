@@ -385,6 +385,12 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
         return NP_ERR_ADDR_NOT_ALIGN;
     }
 
+    if (!len)
+    {
+        ERROR_PRINT("Length is 0\r\n");
+        return NP_ERR_LEN_INVALID;
+    }
+
     if (len & (prog->chip_info->page_size - 1))
     {
         ERROR_PRINT("Length 0x%lx is not aligned to page size 0x%lx\r\n",
@@ -619,6 +625,12 @@ static int _np_cmd_nand_read(np_prog_t *prog)
         ERROR_PRINT("Read address 0x%lx is not aligned to page size 0x%lx\r\n",
             addr, prog->chip_info->page_size);
         return NP_ERR_ADDR_NOT_ALIGN;
+    }
+
+    if (!len)
+    {
+        ERROR_PRINT("Length is 0\r\n");
+        return NP_ERR_LEN_INVALID;
     }
 
     if (len & (prog->chip_info->page_size - 1))
