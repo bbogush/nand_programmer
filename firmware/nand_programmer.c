@@ -4,6 +4,7 @@
  */
 
 #include "nand_programmer.h"
+#include "nand_bad_block.h"
 #include "fsmc_nand.h"
 #include "chip_db.h"
 #include "led.h"
@@ -49,6 +50,7 @@ enum
     NP_ERR_BUF_OVERFLOW   = -110,
     NP_ERR_LEN_NOT_ALIGN  = -111,
     NP_ERR_LEN_EXCEEDED   = -112,
+    NP_ERR_LEN_INVALID    = -113,
 };
 
 typedef struct __attribute__((__packed__))
@@ -268,6 +270,7 @@ static int np_nand_erase(np_prog_t *prog, uint32_t page)
 
 static int _np_cmd_nand_erase(np_prog_t *prog)
 {
+    int is_bad;
     uint32_t addr, page, pages_in_block, len;
     np_erase_cmd_t *erase_cmd = (np_erase_cmd_t *)prog->rx_buf;
 
@@ -281,6 +284,12 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
         ERROR_PRINT("Address 0x%lx is not aligned to block size 0x%lx\r\n",
             addr, prog->chip_info->block_size);
         return NP_ERR_ADDR_NOT_ALIGN;
+    }
+
+    if (!len)
+    {
+        ERROR_PRINT("Length is 0\r\n");
+        return NP_ERR_LEN_INVALID;
     }
 
     if (len & (prog->chip_info->block_size - 1))
@@ -302,13 +311,28 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
 
     while (len)
     {
-        if (np_nand_erase(prog, page))
+        if (addr >= prog->chip_info->size)
+        {
+            ERROR_PRINT("Erase address 0x%lx is more then chip size 0x%lx\r\n",
+                addr, prog->chip_info->size);
+            return NP_ERR_ADDR_EXCEEDED;
+        }
+
+        if ((is_bad = nand_bad_block_table_lookup(addr)))
+        {
+            DEBUG_PRINT("Skipped bad block at 0x%lx\r\n", addr);
+            if (np_send_bad_block_info(addr))
+                return -1;
+        }
+
+        if (!is_bad && np_nand_erase(prog, page))
             return NP_ERR_NAND_ERASE;
 
-        if (len >= prog->chip_info->block_size)
-            len -= prog->chip_info->block_size;
-
+        addr += prog->chip_info->block_size;
         page += pages_in_block;
+        /* On partial erase do not count bad blocks */
+        if (!is_bad || (is_bad && erase_cmd->len == prog->chip_info->size))
+            len -= prog->chip_info->block_size;
     }
 
     return np_send_ok_status();
@@ -676,6 +700,7 @@ static int np_cmd_nand_select(np_prog_t *prog)
     if (!chip_select(select_cmd->chip_num))
     {
         nand_init();
+        nand_bad_block_table_init();
         prog->chip_info = chip_info_selected_get();
     }
     else
@@ -716,6 +741,8 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
     {
         *is_bad = true;
         if (np_send_bad_block_info(addr))
+            return -1;
+        if (nand_bad_block_table_add(addr))
             return -1;
     }
     else
