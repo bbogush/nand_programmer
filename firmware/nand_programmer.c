@@ -158,7 +158,7 @@ typedef struct
     uint8_t *rx_buf;
     uint32_t addr;
     uint32_t len;
-    int addr_is_valid;
+    int addr_is_set;
     np_page_t page;
     uint32_t bytes_written;
     uint32_t bytes_ack;
@@ -370,7 +370,7 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
 
     prog->addr = addr;
     prog->len = len;
-    prog->addr_is_valid = 1;
+    prog->addr_is_set = 1;
 
     prog->page.page = addr / prog->chip_info->page_size;
     prog->page.offset = 0;
@@ -447,7 +447,7 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
         return NP_ERR_CMD_DATA_SIZE;
     }
 
-    if (!prog->addr_is_valid)
+    if (!prog->addr_is_set)
     {
         ERROR_PRINT("Write address is not set\r\n");
         return NP_ERR_ADDR_INVALID;
@@ -506,15 +506,16 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
 
 static int np_cmd_nand_write_end(np_prog_t *prog)
 {
-    if (prog->page.offset)
-        goto Error;
+    prog->addr_is_set = 0;
 
-    prog->addr_is_valid = 0;
+    if (prog->page.offset)
+    {
+        ERROR_PRINT("Data of 0x%lx length was not written\r\n",
+            prog->page.offset);
+        return NP_ERR_NAND_WR;
+    }
 
     return np_send_ok_status();
-
-Error:
-    return NP_ERR_NAND_WR;
 }
 
 static int np_cmd_nand_write(np_prog_t *prog)
