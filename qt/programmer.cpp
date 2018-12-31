@@ -16,6 +16,7 @@
 Programmer::Programmer(QObject *parent) : QObject(parent)
 {
     usbDevName = USB_DEV_NAME;
+    skipBB = true;
     QObject::connect(&reader, SIGNAL(log(QtMsgType, QString)), this,
         SLOT(logCb(QtMsgType, QString)));
     QObject::connect(&writer, SIGNAL(log(QtMsgType, QString)), this,
@@ -79,6 +80,16 @@ QString Programmer::getUsbDevName()
     return usbDevName;
 }
 
+bool Programmer::isSkipBB()
+{
+    return skipBB;
+}
+
+void Programmer::setSkipBB(bool skip)
+{
+    skipBB = skip;
+}
+
 void Programmer::readChipIdCb(int ret)
 {
     emit readChipIdCompleted(ret);
@@ -114,7 +125,8 @@ void Programmer::eraseChipCb(int ret)
 void Programmer::eraseChip(uint32_t addr, uint32_t len)
 {
     Cmd cmd = { .code = CMD_NAND_ERASE };
-    EraseCmd eraseCmd = { .cmd = cmd, .addr = addr, .len = len };
+    EraseCmd eraseCmd = { .cmd = cmd, .addr = addr, .len = len,
+        .flags = { .skipBB = skipBB } };
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(eraseChipCb(int)));

@@ -22,9 +22,15 @@ typedef struct __attribute__((__packed__))
 
 typedef struct __attribute__((__packed__))
 {
+    uint8_t skipBB : 1;
+} CmdFlags;
+
+typedef struct __attribute__((__packed__))
+{
     Cmd cmd;
     uint32_t addr;
     uint32_t len;
+    CmdFlags flags;
 } EraseCmd;
 
 typedef struct __attribute__((__packed__))

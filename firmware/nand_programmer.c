@@ -60,9 +60,15 @@ typedef struct __attribute__((__packed__))
 
 typedef struct __attribute__((__packed__))
 {
+    uint8_t skip_bb : 1;
+} np_cmd_flags_t;
+
+typedef struct __attribute__((__packed__))
+{
     np_cmd_t cmd;
     uint32_t addr;
     uint32_t len;
+    np_cmd_flags_t flags;
 } np_erase_cmd_t;
 
 typedef struct __attribute__((__packed__))
@@ -270,9 +276,9 @@ static int np_nand_erase(np_prog_t *prog, uint32_t page)
 
 static int _np_cmd_nand_erase(np_prog_t *prog)
 {
-    int is_bad;
     uint32_t addr, page, pages_in_block, len;
     np_erase_cmd_t *erase_cmd = (np_erase_cmd_t *)prog->rx_buf;
+    bool is_bad = false, skip_bb = erase_cmd->flags.skip_bb;
 
     len = erase_cmd->len;
     addr = erase_cmd->addr;
@@ -318,7 +324,7 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
             return NP_ERR_ADDR_EXCEEDED;
         }
 
-        if ((is_bad = nand_bad_block_table_lookup(addr)))
+        if (skip_bb && (is_bad = nand_bad_block_table_lookup(addr)))
         {
             DEBUG_PRINT("Skipped bad block at 0x%lx\r\n", addr);
             if (np_send_bad_block_info(addr))

@@ -22,3 +22,13 @@ QString SettingsProgrammerDialog::getUsbDevName()
 {
     return ui->usbDevNameLineEdit->text();
 }
+
+void SettingsProgrammerDialog::setSkipBB(bool skip)
+{
+    ui->skipBBCheckBox->setChecked(skip);
+}
+
+bool SettingsProgrammerDialog::isSkipBB()
+{
+    return ui->skipBBCheckBox->isChecked();
+}

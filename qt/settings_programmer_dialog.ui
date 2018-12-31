@@ -29,7 +29,7 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -51,10 +51,25 @@
     </item>
    </layout>
   </widget>
+  <widget class="QCheckBox" name="skipBBCheckBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>60</y>
+     <width>101</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Skip bad blocks</string>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <zorder>layoutWidget</zorder>
   <zorder>buttonBox</zorder>
-  <zorder>usbDevNameLabel</zorder>
-  <zorder>usbDevNameLineEdit</zorder>
-  <zorder>usbDevNameLabel</zorder>
+  <zorder>skipBBCheckBox</zorder>
  </widget>
  <resources/>
  <connections>

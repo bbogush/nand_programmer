@@ -346,7 +346,11 @@ void MainWindow::slotSettingsProgrammer()
     SettingsProgrammerDialog progDialog(this);
 
     progDialog.setUsbDevName(prog->getUsbDevName());
+    progDialog.setSkipBB(prog->isSkipBB());
 
     if (progDialog.exec() == QDialog::Accepted)
+    {
         prog->setUsbDevName(progDialog.getUsbDevName());
+        prog->setSkipBB(progDialog.isSkipBB());
+    }
 }

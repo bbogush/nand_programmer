@@ -16,6 +16,8 @@ public:
     ~SettingsProgrammerDialog();
     void setUsbDevName(const QString &name);
     QString getUsbDevName();
+    void setSkipBB(bool skip);
+    bool isSkipBB();
 
 private:
     Ui::SettingsProgrammerDialog *ui;
