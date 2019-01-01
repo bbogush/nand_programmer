@@ -110,7 +110,8 @@ void Programmer::readChipId(ChipId *chipId)
     writeData.clear();
     writeData.append((const char *)&cmd, sizeof(cmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED, (uint8_t *)chipId,
-        sizeof(ChipId), (uint8_t *)writeData.constData(), writeData.size());
+        sizeof(ChipId), (uint8_t *)writeData.constData(), writeData.size(),
+        false, false);
     reader.start();
 }
 
@@ -136,7 +137,7 @@ void Programmer::eraseChip(uint32_t addr, uint32_t len)
     writeData.clear();
     writeData.append((const char *)&eraseCmd, sizeof(eraseCmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED, NULL, 0,
-        (uint8_t *)writeData.constData(), writeData.size());
+        (uint8_t *)writeData.constData(), writeData.size(), skipBB, false);
     reader.start();
 }
 
@@ -147,10 +148,12 @@ void Programmer::readCb(int ret)
     emit readChipCompleted(ret);
 }
 
-void Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
+void Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len,
+    bool isReadLess)
 {
     Cmd cmd = { .code = CMD_NAND_READ };
-    ReadCmd readCmd = { .cmd = cmd, .addr = addr, .len = len };
+    ReadCmd readCmd = { .cmd = cmd, .addr = addr, .len = len,
+        .flags = { .skipBB = skipBB} };
 
     QObject::connect(&reader, SIGNAL(result(int)), this, SLOT(readCb(int)));
 
@@ -159,7 +162,8 @@ void Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len)
     writeData.clear();
     writeData.append((const char *)&readCmd, sizeof(readCmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED, buf, len,
-        (uint8_t *)writeData.constData(), writeData.size());
+        (uint8_t *)writeData.constData(), writeData.size(), skipBB,
+        isReadLess);
     reader.start();
 }
 
@@ -201,7 +205,7 @@ void Programmer::readChipBadBlocks()
     writeData.clear();
     writeData.append((const char *)&cmd, sizeof(cmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED, NULL, 0,
-        (uint8_t *)writeData.constData(), writeData.size());
+        (uint8_t *)writeData.constData(), writeData.size(), false, false);
     reader.start();
 }
 
@@ -226,7 +230,7 @@ void Programmer::selectChip(uint32_t chipNum)
     writeData.clear();
     writeData.append((const char *)&selectCmd, sizeof(SelectCmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED, NULL, 0,
-        (uint8_t *)writeData.constData(), writeData.size());
+        (uint8_t *)writeData.constData(), writeData.size(), false, false);
     reader.start();
 }
 

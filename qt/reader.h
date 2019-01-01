@@ -21,6 +21,9 @@ class Reader : public QThread
     uint8_t *wbuf;
     uint32_t wlen;
     uint32_t readOffset;
+    uint32_t bytesRead;
+    bool isSkipBB;
+    bool isReadLess;
 
     int serialPortCreate();
     void serialPortDestroy();
@@ -40,7 +43,8 @@ class Reader : public QThread
 
 public:
     void init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
-        uint32_t rlen, uint8_t *wbuf, uint32_t wlen);
+        uint32_t rlen, uint8_t *wbuf, uint32_t wlen, bool isSkipBB,
+        bool isReadLess);
 signals:
     void result(int ret);
     void log(QtMsgType msgType, QString msg);

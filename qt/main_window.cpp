@@ -254,7 +254,7 @@ void MainWindow::slotProgRead()
         return;
     }
 
-    prog->readChip(buffer, START_ADDRESS, readSize);
+    prog->readChip(buffer, START_ADDRESS, readSize, true);
 }
 
 void MainWindow::slotProgWriteCompleted(int status)

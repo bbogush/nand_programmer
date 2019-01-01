@@ -95,6 +95,7 @@ typedef struct __attribute__((__packed__))
     np_cmd_t cmd;
     uint32_t addr;
     uint32_t len;
+    np_cmd_flags_t flags;
 } np_read_cmd_t;
 
 typedef struct __attribute__((__packed__))
@@ -134,6 +135,7 @@ typedef struct __attribute__((__packed__))
 {
     np_resp_t header;
     uint32_t addr;
+    uint32_t size;
 } np_resp_bad_block_t;
 
 typedef struct __attribute__((__packed__))
@@ -208,10 +210,10 @@ static int np_send_error(uint8_t err_code)
     return 0;
 }
 
-static int np_send_bad_block_info(uint32_t addr)
+static int np_send_bad_block_info(uint32_t addr, uint32_t size)
 {
     np_resp_t resp_header = { NP_RESP_STATUS, NP_STATUS_BAD_BLOCK };
-    np_resp_bad_block_t bad_block = { resp_header, addr };
+    np_resp_bad_block_t bad_block = { resp_header, addr, size };
 
     if (np_comm_cb->send((uint8_t *)&bad_block, sizeof(bad_block)))
         return -1;
@@ -260,7 +262,7 @@ static int np_nand_erase(np_prog_t *prog, uint32_t page)
     case NAND_READY:
         break;
     case NAND_ERROR:
-        if (np_send_bad_block_info(addr))
+        if (np_send_bad_block_info(addr, prog->chip_info->block_size))
             return -1;
         break;
     case NAND_TIMEOUT_ERROR:
@@ -327,7 +329,7 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
         if (skip_bb && (is_bad = nand_bad_block_table_lookup(addr)))
         {
             DEBUG_PRINT("Skipped bad block at 0x%lx\r\n", addr);
-            if (np_send_bad_block_info(addr))
+            if (np_send_bad_block_info(addr, prog->chip_info->block_size))
                 return -1;
         }
 
@@ -422,7 +424,7 @@ static int np_nand_handle_status(np_prog_t *prog)
     switch (nand_read_status())
     {
     case NAND_ERROR:
-        if (np_send_bad_block_info(prog->addr))
+        if (np_send_bad_block_info(prog->addr, prog->chip_info->block_size))
             return -1;
     case NAND_READY:
         prog->nand_wr_in_progress = 0;
@@ -592,7 +594,7 @@ static int np_nand_read(uint32_t addr, np_page_t *page,
     case NAND_READY:
         break;
     case NAND_ERROR:
-        if (np_send_bad_block_info(addr))
+        if (np_send_bad_block_info(addr, chip_info->block_size))
             return -1;
         break;
     case NAND_TIMEOUT_ERROR:
@@ -608,15 +610,16 @@ static int np_nand_read(uint32_t addr, np_page_t *page,
 
 static int _np_cmd_nand_read(np_prog_t *prog)
 {
-    uint32_t addr, len, write_len;
+    uint32_t addr, len, send_len;
     static np_page_t page;
     uint32_t resp_header_size = offsetof(np_resp_t, data);
     uint32_t tx_data_len = sizeof(np_packet_send_buf) - resp_header_size;
     np_read_cmd_t *read_cmd = (np_read_cmd_t *)prog->rx_buf;
+    bool skip_bb = read_cmd->flags.skip_bb;
     np_resp_t *resp = (np_resp_t *)np_packet_send_buf;
 
     addr = read_cmd->addr;
-    len = read_cmd->len;    
+    len = read_cmd->len;
     DEBUG_PRINT("Read at 0x%lx 0x%lx bytes command\r\n", addr, len);
 
     if (addr + len > prog->chip_info->size)
@@ -653,46 +656,59 @@ static int _np_cmd_nand_read(np_prog_t *prog)
 
     while (len)
     {
+        if (addr >= prog->chip_info->size)
+        {
+            ERROR_PRINT("Read address 0x%lx is more then chip size 0x%lx",
+                addr, prog->chip_info->page_size);
+            return NP_ERR_ADDR_EXCEEDED;
+        }
+
+        if (skip_bb && nand_bad_block_table_lookup(addr))
+        {
+            DEBUG_PRINT("Skipped bad block at 0x%lx\r\n", addr);
+            if (np_send_bad_block_info(addr, prog->chip_info->block_size))
+                return -1;
+
+            /* On partial read do not count bad blocks */
+            if (read_cmd->len == prog->chip_info->size)
+                len -= prog->chip_info->block_size;
+            addr += prog->chip_info->block_size;
+            page.page += prog->chip_info->block_size /
+                prog->chip_info->page_size;
+            continue;
+        }
+
         if (np_nand_read(addr, &page, prog->chip_info))
             return NP_ERR_NAND_RD;
 
         while (page.offset < prog->chip_info->page_size && len)
         {
             if (prog->chip_info->page_size - page.offset >= tx_data_len)
-                write_len = tx_data_len;
+                send_len = tx_data_len;
             else
-                write_len = prog->chip_info->page_size - page.offset;
+                send_len = prog->chip_info->page_size - page.offset;
 
-            if (write_len > len)
-                write_len = len;
- 
-            memcpy(resp->data, page.buf + page.offset, write_len);
+            if (send_len > len)
+                send_len = len;
+
+            memcpy(resp->data, page.buf + page.offset, send_len);
 
             while (!np_comm_cb->send_ready());
 
-            resp->info = write_len;
+            resp->info = send_len;
             if (np_comm_cb->send(np_packet_send_buf,
-                resp_header_size + write_len))
+                resp_header_size + send_len))
             {
                 return -1;
             }
 
-            page.offset += write_len;
-            len -= write_len;
+            page.offset += send_len;
+            len -= send_len;
         }
 
-        if (len)
-        {
-            addr += prog->chip_info->page_size;
-            if (addr >= prog->chip_info->size)
-            {
-                ERROR_PRINT("Read address 0x%lx is more then chip size 0x%lx",
-                    addr, prog->chip_info->page_size);
-                return NP_ERR_ADDR_EXCEEDED;
-            }
-            page.page++;
-            page.offset = 0;
-        }
+        addr += prog->chip_info->page_size;
+        page.offset = 0;
+        page.page++;
     }
 
     return 0;
@@ -758,7 +774,7 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
     if (bad_block_data != NP_NAND_GOOD_BLOCK_MARK)
     {
         *is_bad = true;
-        if (np_send_bad_block_info(addr))
+        if (np_send_bad_block_info(addr, prog->chip_info->block_size))
             return -1;
         if (nand_bad_block_table_add(addr))
             return -1;

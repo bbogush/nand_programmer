@@ -44,7 +44,7 @@ public:
     void setSkipBB(bool skip);
     void readChipId(ChipId *chipId);
     void eraseChip(uint32_t addr, uint32_t len);
-    void readChip(uint8_t *buf, uint32_t addr, uint32_t len);
+    void readChip(uint8_t *buf, uint32_t addr, uint32_t len, bool isReadLess);
     void writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
         uint32_t pageSize);
     void readChipBadBlocks();

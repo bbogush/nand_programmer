@@ -38,6 +38,7 @@ typedef struct __attribute__((__packed__))
     Cmd cmd;
     uint32_t addr;
     uint32_t len;
+    CmdFlags flags;
 } ReadCmd;
 
 typedef struct __attribute__((__packed__))
@@ -106,6 +107,7 @@ typedef struct __attribute__((__packed__))
 {
     RespHeader header;
     uint32_t addr;
+    uint32_t size;
 } RespBadBlock;
 
 typedef struct __attribute__((__packed__))

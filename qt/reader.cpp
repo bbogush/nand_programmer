@@ -15,7 +15,7 @@
 Q_DECLARE_METATYPE(QtMsgType)
 
 void Reader::init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
-    uint32_t rlen, uint8_t *wbuf, uint32_t wlen)
+    uint32_t rlen, uint8_t *wbuf, uint32_t wlen, bool isSkipBB, bool isReadLess)
 {
     this->portName = portName;
     this->baudRate = baudRate;
@@ -23,7 +23,10 @@ void Reader::init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
     this->rlen = rlen;
     this->wbuf = wbuf;
     this->wlen = wlen;
+    this->isSkipBB = isSkipBB;
+    this->isReadLess = isReadLess;
     readOffset = 0;
+    bytesRead = 0;
 }
 
 int Reader::write(uint8_t *data, uint32_t len)
@@ -79,8 +82,16 @@ int Reader::handleBadBlock(uint8_t *pbuf, uint32_t len)
     if (len < size)
         return 0;
 
-    logInfo(QString("Bad block at 0x%1").arg(badBlock->addr, 8, 16,
-        QLatin1Char('0')));
+    logInfo(QString("Bad block at 0x%1 size 0x%2").arg(badBlock->addr, 8, 16,
+        QLatin1Char('0')).arg(badBlock->size, 8, 16, QLatin1Char('0')));
+
+    if (rlen && isSkipBB && isReadLess)
+    {
+        if (bytesRead + badBlock->size > rlen)
+            bytesRead = rlen;
+        else
+            bytesRead += badBlock->size;
+    }
 
     return size;
 }
@@ -111,7 +122,7 @@ int Reader::handleStatus(uint8_t *pbuf, uint32_t len)
     case STATUS_OK:
         // Exit read loop
         if (!rlen)
-            readOffset = 1;
+            bytesRead = 1;
         break;
     default:
         logErr(QString("Wrong response header info %1").arg(header->info));
@@ -145,6 +156,7 @@ int Reader::handleData(uint8_t *pbuf, uint32_t len)
 
     memcpy(rbuf + readOffset, header->data, dataSize);
     readOffset += dataSize;
+    bytesRead += dataSize;
 
     return packetSize;
 }
@@ -207,10 +219,10 @@ int Reader::readData()
         if ((offset = handlePackets(pbuf, len)) < 0)
             return -1;
 
-        if (!readOffset)
+        if (!bytesRead)
             continue;
     }
-    while (rlen && rlen != readOffset);
+    while (rlen && rlen != bytesRead);
 
     return 0;
 }
