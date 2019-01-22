@@ -62,6 +62,7 @@ Linux based OS
 - connect JTAG (J-Link) to board.
 - sudo apt-get install openocd
 - cd ~/dev/nand_programmer/nand_programmer/firmware
+- chmod +x ../extra/program.sh
 - make program
 - NOTE: first time flash of chip should be burnt via internal bootloader (DFU )because JTAG interface is not active.
 ### SWD (ST-Link)
