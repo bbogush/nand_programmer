@@ -62,10 +62,10 @@ Linux based OS
 - cd ~/dev/
 - git clone https://github.com/texane/stlink.git
 - cd stlink/
-- make release
-- cd build/Release
+- mkdir -p build && cd build
+- cmake -DCMAKE_BUILD_TYPE=Release ..
 - sudo make install
-- sudo cp ../../etc/udev/rules.d/* /etc/udev/rules.d/
+- sudo cp ../etc/udev/rules.d/* /etc/udev/rules.d/
 - sudo udevadm control --reload-rules
 - sudo udevadm trigger
 - connect ST-Link to board
