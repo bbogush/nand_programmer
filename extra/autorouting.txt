@@ -1,0 +1,10 @@
+kicad: File -> Export -> Specctra DSN.
+Install Oracle java "sudo apt-get install oracle-java8-installer"
+Download freerouting jar from https://freerouting.org/freerouting/using-with-kicad
+Run freerouting "java -jar /opt/layout/bin/freeRouting.jar".
+Open *.dsn in freerouting util.
+Routing->Auto routing.
+When completed File->Export->Export Spectra Session File.
+kicad: File->Import->Specra session.
+
+
