@@ -90,8 +90,4 @@ distclean: clean
 	$(MAKE) -C $(SPL_PATH) clean
 
 program:
-	$(EXTRA_DIR)program.sh $(EXTRA_DIR)openocd.cfg $(PROG).hex
-
-erase:
-	$(EXTRA_DIR)erase.sh $(EXTRA_DIR)openocd.cfg
-
+	st-flash write $(PROG).bin 0x8000000
