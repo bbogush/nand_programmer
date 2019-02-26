@@ -592,6 +592,9 @@ static int np_cmd_nand_write(np_prog_t *prog)
         break;
     }
 
+    if (ret < 0)
+        led_wr_set(false);
+
     return ret;
 }
 
