@@ -76,6 +76,7 @@ typedef struct __attribute__((__packed__))
     np_cmd_t cmd;
     uint32_t addr;
     uint32_t len;
+    np_cmd_flags_t flags;
 } np_write_start_cmd_t;
 
 typedef struct __attribute__((__packed__))
@@ -172,6 +173,7 @@ typedef struct
     np_page_t page;
     uint32_t bytes_written;
     uint32_t bytes_ack;
+    int skip_bb;
     int nand_wr_in_progress;
     uint32_t nand_timeout;
     chip_info_t *chip_info;
@@ -415,6 +417,7 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
 
     prog->bytes_written = 0;
     prog->bytes_ack = 0;
+    prog->skip_bb = write_start_cmd->flags.skip_bb;
 
     return np_send_ok_status();
 }
@@ -491,13 +494,6 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
         return NP_ERR_ADDR_INVALID;
     }
 
-    if (prog->addr >= prog->chip_info->size)
-    {
-        ERROR_PRINT("Write address 0x%lx is more then chip size 0x%lx\r\n",
-            prog->addr, prog->chip_info->size);
-        return NP_ERR_ADDR_EXCEEDED;
-    }
-
     if (prog->page.offset + len > prog->chip_info->page_size)
         write_len = prog->chip_info->page_size - prog->page.offset;
     else
@@ -508,6 +504,24 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
 
     if (prog->page.offset == prog->chip_info->page_size)
     {
+        while (prog->skip_bb && nand_bad_block_table_lookup(prog->addr))
+        {
+            DEBUG_PRINT("Skipped bad block at 0x%lx\r\n", addr);
+            if (np_send_bad_block_info(prog->addr, prog->chip_info->block_size))
+                return -1;
+
+            prog->addr += prog->chip_info->block_size;
+            prog->page.page += prog->chip_info->block_size /
+                prog->chip_info->page_size;
+        }
+
+        if (prog->addr >= prog->chip_info->size)
+        {
+            ERROR_PRINT("Write address 0x%lx is more then chip size 0x%lx\r\n",
+                prog->addr, prog->chip_info->size);
+            return NP_ERR_ADDR_EXCEEDED;
+        }
+
         if (np_nand_write(prog, prog->chip_info))
             return NP_ERR_NAND_WR;
 

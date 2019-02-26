@@ -14,7 +14,7 @@
 Q_DECLARE_METATYPE(QtMsgType)
 
 void Writer::init(const QString &portName, qint32 baudRate, uint8_t *buf,
-    uint32_t addr, uint32_t len, uint32_t pageSize)
+    uint32_t addr, uint32_t len, uint32_t pageSize, bool skipBB)
 {
     this->portName = portName;
     this->baudRate = baudRate;
@@ -22,6 +22,9 @@ void Writer::init(const QString &portName, qint32 baudRate, uint8_t *buf,
     this->addr = addr;
     this->len = len;
     this->pageSize = pageSize;
+    this->skipBB = skipBB;
+    bytesWritten = 0;
+    bytesAcked = 0;
 }
 
 int Writer::write(uint8_t *data, uint32_t dataLen)
@@ -44,89 +47,9 @@ int Writer::write(uint8_t *data, uint32_t dataLen)
     return 0;
 }
 
-int Writer::handleWriteAck(RespHeader *header, uint32_t len, void *ackData)
-{
-    if (len != sizeof(RespWriteAck))
-    {
-        logErr(QString("Write ack response is too short %1").arg(len));
-        return -1;
-    }
-
-    *((uint32_t *)ackData) = ((RespWriteAck *)header)->ackBytes;
-
-    return 0;
-}
-
-int Writer::handleBadBlock(RespHeader *header, uint32_t len)
-{
-    RespBadBlock *badBlock = (RespBadBlock *)header;
-
-    if (len != sizeof(RespBadBlock))
-    {
-        logErr(QString("Bad block response is too short %1").arg(len));
-        return -1;
-    }
-
-    logInfo(QString("Bad block at 0x%1").arg(badBlock->addr, 8, 16,
-        QLatin1Char('0')));
-
-    return 0;
-}
-
-int Writer::handleError(RespHeader *header, uint32_t len)
-{
-    RespError *err = (RespError *)header;
-    size_t size = sizeof(RespError);
-
-    if (len < size)
-        return 0;
-
-    logErr(QString("Programmer sent error: %1").arg(err->errCode));
-
-    return -1;
-}
-
-int Writer::handleStatus(RespHeader *header, uint32_t len, void *ackData)
-{
-    uint8_t status = header->info;
-
-    switch (status)
-    {
-    case STATUS_OK:
-        break;
-    case STATUS_ERROR:
-        return handleError(header, len);
-    case STATUS_BAD_BLOCK:
-        handleBadBlock(header, len);
-        return -1;
-    case STATUS_WRITE_ACK:
-        if (handleWriteAck(header, len, ackData))
-            return -1;
-        break;
-    default:
-        logErr(QString("Wrong status received %1").arg(status));
-        return -1;
-    }
-
-    return 0;
-}
-
-int Writer::handleAck(RespHeader *header, uint32_t len, void *ackData)
-{
-    if (header->code != RESP_STATUS)
-    {
-        logErr(QString("Wrong response code %1").arg(header->code));
-        return -1;
-    }
-
-    return handleStatus(header, len, ackData);
-}
-
-int Writer::readAck(void *ackData)
+int Writer::read(uint8_t *data, uint32_t dataLen)
 {
     int ret;
-    uint8_t pbuf[BUF_SIZE];
-    unsigned int dataLen = sizeof(RespHeader);
 
     if (!serialPort->waitForReadyRead(READ_ACK_TIMEOUT))
     {
@@ -134,20 +57,143 @@ int Writer::readAck(void *ackData)
         return -1;
     }
 
-    ret = serialPort->read((char *)pbuf, BUF_SIZE);
+    ret = serialPort->read((char *)data, dataLen);
     if (ret < 0)
     {
         logErr("Failed to read ACK");
         return -1;
     }
-    else if ((uint32_t)ret < dataLen)
+
+    return ret;
+}
+
+int Writer::handleWriteAck(RespHeader *header, uint32_t len)
+{
+    int size = sizeof(RespWriteAck);
+
+    if (len < (uint32_t)size)
     {
-        logErr(QString("Response is too short, expected %1, received %2")
-            .arg(dataLen).arg(ret));
+        logErr(QString("Write ack response is too short %1").arg(len));
         return -1;
     }
 
-    return handleAck((RespHeader *)pbuf, ret, ackData);
+    bytesAcked = ((RespWriteAck *)header)->ackBytes;
+
+    if (bytesAcked != bytesWritten)
+    {
+        logErr(QString("Received wrong ack %1, expected %2 ").arg(bytesAcked)
+            .arg(bytesWritten));
+        return -1;
+    }
+
+    return size;
+}
+
+int Writer::handleBadBlock(RespHeader *header, uint32_t len)
+{
+    int size = sizeof(RespBadBlock);
+    RespBadBlock *badBlock = (RespBadBlock *)header;
+
+    if (len < (uint32_t)size)
+        return 0;
+
+    logInfo(QString("Bad block at 0x%1").arg(badBlock->addr, 8, 16,
+        QLatin1Char('0')));
+
+    return size;
+}
+
+int Writer::handleError(RespHeader *header, uint32_t len)
+{
+    RespError *err = (RespError *)header;
+    int size = sizeof(RespError);
+
+    if (len < (uint32_t)size)
+        return 0;
+
+    logErr(QString("Programmer sent error: %1").arg(err->errCode));
+
+    return -1;
+}
+
+int Writer::handleStatus(uint8_t *pbuf, uint32_t len)
+{
+    RespHeader *header = (RespHeader *)pbuf;
+    uint8_t status = header->info;
+
+    switch (status)
+    {
+    case STATUS_OK:
+        return sizeof(RespHeader);
+    case STATUS_ERROR:
+        return handleError(header, len);
+    case STATUS_BAD_BLOCK:
+        return handleBadBlock(header, len);
+    case STATUS_WRITE_ACK:
+        return handleWriteAck(header, len);
+    }
+
+    logErr(QString("Wrong status received %1").arg(status));
+    return -1;
+}
+
+int Writer::handlePacket(uint8_t *pbuf, uint32_t len)
+{
+    RespHeader *header = (RespHeader *)pbuf;
+
+    if (len < sizeof(RespHeader))
+        return 0;
+
+    if (header->code != RESP_STATUS)
+    {
+        logErr(QString("Programmer returned wrong response code: %1")
+            .arg(header->code));
+        return -1;
+    }
+
+    return handleStatus(pbuf, len);
+}
+
+int Writer::handlePackets(uint8_t *pbuf, uint32_t len)
+{
+    int ret;
+    uint32_t offset = 0;
+
+    do
+    {
+        if ((ret = handlePacket(pbuf + offset, len - offset)) < 0)
+            return -1;
+
+        if (ret)
+            offset += ret;
+        else
+        {
+            memmove(pbuf, pbuf + offset, len - offset);
+            break;
+        }
+    }
+    while (offset < len);
+
+    return len - offset;
+}
+
+int Writer::readData()
+{
+    uint8_t pbuf[BUF_SIZE];
+    int len, offset = 0;
+
+    do
+    {
+        if ((len = read(pbuf + offset, BUF_SIZE - offset)) < 0)
+            return -1;
+        len += offset;
+
+        if ((offset = handlePackets(pbuf, len)) < 0)
+            return -1;
+    }
+    while (offset);
+
+    return 0;
 }
 
 int Writer::writeStart()
@@ -157,11 +203,12 @@ int Writer::writeStart()
     writeStartCmd.cmd.code = CMD_NAND_WRITE_S;
     writeStartCmd.addr = addr;
     writeStartCmd.len = len;
+    writeStartCmd.flags.skipBB = skipBB;
 
     if (write((uint8_t *)&writeStartCmd, sizeof(WriteStartCmd)))
         return -1;
 
-    if (readAck(NULL))
+    if (readData())
         return -1;
 
     return 0;
@@ -171,8 +218,7 @@ int Writer::writeData()
 {
     uint8_t pbuf[BUF_SIZE];
     WriteDataCmd *writeDataCmd = (WriteDataCmd *)pbuf;
-    uint32_t dataLen, dataLenMax, headerLen, pageLim, ack,
-        bytesWritten = 0, bytesAcked = 0;
+    uint32_t dataLen, dataLenMax, headerLen, pageLim;
 
     writeDataCmd->cmd.code = CMD_NAND_WRITE_D;
     headerLen = sizeof(WriteDataCmd);
@@ -197,16 +243,8 @@ int Writer::writeData()
         if (len && bytesWritten != pageLim)
             continue;
 
-        if (readAck(&ack))
+        if (readData())
             return -1;
-
-        if (ack != bytesWritten)
-        {
-            logErr(QString("Received wrong ack %1, expected%2 ").arg(ack)
-                .arg(bytesWritten));
-            return -1;
-        }
-        bytesAcked = ack;
     }
 
     return 0;
@@ -221,7 +259,7 @@ int Writer::writeEnd()
     if (write((uint8_t *)&writeEndCmd, sizeof(WriteEndCmd)))
         return -1;
 
-    if (readAck(NULL))
+    if (readData())
         return -1;
 
     return 0;

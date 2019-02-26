@@ -181,7 +181,8 @@ void Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
 
     /* Serial port object cannot be used in other thread */
     serialPortDisconnect();
-    writer.init(usbDevName, SERIAL_PORT_SPEED, buf, addr, len, pageSize);
+    writer.init(usbDevName, SERIAL_PORT_SPEED, buf, addr, len, pageSize,
+        skipBB);
     writer.start();
 }
 

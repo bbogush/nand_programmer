@@ -46,6 +46,7 @@ typedef struct __attribute__((__packed__))
     Cmd cmd;
     uint32_t addr;
     uint32_t len;
+    CmdFlags flags;
 } WriteStartCmd;
 
 typedef struct __attribute__((__packed__))
