@@ -3,7 +3,7 @@
 ## General
 NANDO is open source NAND programmer based on STM32 processor.
 
-<img src="img/board_v1_0.jpg" width="600">
+<img src="img/board_v2_0.jpg" width="600">
 
 <img src="img/host_app_v1_0.jpeg">
 
