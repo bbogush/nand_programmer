@@ -34,8 +34,8 @@
     <rect>
      <x>10</x>
      <y>30</y>
-     <width>201</width>
-     <height>24</height>
+     <width>228</width>
+     <height>27</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
@@ -47,7 +47,14 @@
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="usbDevNameLineEdit"/>
+     <widget class="QLineEdit" name="usbDevNameLineEdit">
+      <property name="minimumSize">
+       <size>
+        <width>100</width>
+        <height>0</height>
+       </size>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -56,8 +63,8 @@
     <rect>
      <x>10</x>
      <y>60</y>
-     <width>101</width>
-     <height>20</height>
+     <width>221</width>
+     <height>31</height>
     </rect>
    </property>
    <property name="text">
