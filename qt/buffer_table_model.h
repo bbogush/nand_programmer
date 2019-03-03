@@ -31,6 +31,7 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation, int role)
         const override;
     void setBuffer(uint8_t *buffer, uint32_t size);
+    void getBuffer(uint8_t *&buffer, uint32_t &size);
 };
 
 #endif // BUFFER_TABLE_MODEL_H

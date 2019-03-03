@@ -12,6 +12,7 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QStringList>
+#include <QMessageBox>
 #include <memory>
 
 #define HEADER_ADDRESS_WIDTH 80
@@ -69,6 +70,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     connect(ui->actionOpen, SIGNAL(triggered()), this,
         SLOT(slotFileOpen()));
+    connect(ui->actionSave, SIGNAL(triggered()), this,
+        SLOT(slotFileSave()));
     connect(ui->actionConnect, SIGNAL(triggered()), this,
         SLOT(slotProgConnect()));
     connect(ui->actionReadId, SIGNAL(triggered()), this,
@@ -136,6 +139,51 @@ void MainWindow::slotFileOpen()
     bufferTableModel.setBuffer(buffer, fileSize);
 
 Exit:
+    file.close();
+}
+
+void MainWindow::slotFileSave()
+{
+    qint64 ret;
+    uint8_t *buffer;
+    uint32_t size;
+    QString fileName;
+
+    bufferTableModel.getBuffer(buffer, size);
+
+    if (!size)
+    {
+        QMessageBox::information(this, tr("Information"),
+            tr("The buffer is empty"));
+        return;
+    }
+
+    fileName = QFileDialog::getSaveFileName(this, tr("Save buffer to file"),
+        ".", tr("Binary Files (*)"));
+
+    if (fileName.isNull())
+        return;
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::WriteOnly))
+    {
+        qCritical() << "Failed to open file:" << fileName << ", error:" <<
+            file.errorString();
+        return;
+    }
+
+    ret = file.write(reinterpret_cast<char *>(buffer), size);
+    if (ret < 0)
+    {
+        qCritical() << "Failed to write file:" << fileName << ", error:" <<
+            file.errorString();
+    }
+    else if (ret != size)
+    {
+        qCritical() << "Failed to write file: written " << ret << " bytes of "
+            << size;
+    }
+
     file.close();
 }
 

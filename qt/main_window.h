@@ -46,6 +46,7 @@ private slots:
 
 public slots:
     void slotFileOpen();
+    void slotFileSave();
     void slotProgConnect();
     void slotProgReadDeviceId();
     void slotProgErase();

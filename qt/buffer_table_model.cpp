@@ -93,3 +93,9 @@ void BufferTableModel::setBuffer(uint8_t *buffer, uint32_t size)
     bufSize = size;
     endResetModel();
 }
+
+void BufferTableModel::getBuffer(uint8_t *&buffer, uint32_t &size)
+{
+    buffer = buf;
+    size = bufSize;
+}
