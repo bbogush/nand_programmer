@@ -31,7 +31,7 @@ class Reader : public QThread
     int readStart();
     int read(uint8_t *pbuf, uint32_t len);
     int handleError(uint8_t *pbuf, uint32_t len);
-    int handleBadBlock(uint8_t *pbuf, uint32_t len);
+    int handleBadBlock(uint8_t *pbuf, uint32_t len, bool isSkipped);
     int handleStatus(uint8_t *pbuf, uint32_t len);
     int handleData(uint8_t *pbuf, uint32_t len);
     int handlePacket(uint8_t *pbuf, uint32_t len);

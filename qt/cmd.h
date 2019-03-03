@@ -77,8 +77,9 @@ typedef enum
 {
     STATUS_OK        = 0x00,
     STATUS_ERROR     = 0x01,
-    STATUS_BAD_BLOCK = 0x02,
+    STATUS_BB        = 0x02,
     STATUS_WRITE_ACK = 0x03,
+    STATUS_BB_SKIP   = 0x04,
 } StatusData;
 
 

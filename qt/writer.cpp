@@ -89,16 +89,18 @@ int Writer::handleWriteAck(RespHeader *header, uint32_t len)
     return size;
 }
 
-int Writer::handleBadBlock(RespHeader *header, uint32_t len)
+int Writer::handleBadBlock(RespHeader *header, uint32_t len, bool isSkipped)
 {
     int size = sizeof(RespBadBlock);
     RespBadBlock *badBlock = (RespBadBlock *)header;
+    QString message = isSkipped ? "Skipped bad block at 0x%1 size 0x%2" :
+        "Bad block at 0x%1 size 0x%2";
 
     if (len < (uint32_t)size)
         return 0;
 
-    logInfo(QString("Bad block at 0x%1").arg(badBlock->addr, 8, 16,
-        QLatin1Char('0')));
+    logInfo(message.arg(badBlock->addr, 8, 16, QLatin1Char('0'))
+        .arg(badBlock->size, 8, 16, QLatin1Char('0')));
 
     return size;
 }
@@ -127,8 +129,10 @@ int Writer::handleStatus(uint8_t *pbuf, uint32_t len)
         return sizeof(RespHeader);
     case STATUS_ERROR:
         return handleError(header, len);
-    case STATUS_BAD_BLOCK:
-        return handleBadBlock(header, len);
+    case STATUS_BB:
+        return handleBadBlock(header, len, false);
+    case STATUS_BB_SKIP:
+        return handleBadBlock(header, len, true);
     case STATUS_WRITE_ACK:
         return handleWriteAck(header, len);
     }

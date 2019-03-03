@@ -74,16 +74,18 @@ int Reader::read(uint8_t *pbuf, uint32_t len)
     return ret;
 }
 
-int Reader::handleBadBlock(uint8_t *pbuf, uint32_t len)
+int Reader::handleBadBlock(uint8_t *pbuf, uint32_t len, bool isSkipped)
 {
     RespBadBlock *badBlock = (RespBadBlock *)pbuf;
     size_t size = sizeof(RespBadBlock);
+    QString message = isSkipped ? "Skipped bad block at 0x%1 size 0x%2" :
+        "Bad block at 0x%1 size 0x%2";
 
     if (len < size)
         return 0;
 
-    logInfo(QString("Bad block at 0x%1 size 0x%2").arg(badBlock->addr, 8, 16,
-        QLatin1Char('0')).arg(badBlock->size, 8, 16, QLatin1Char('0')));
+    logInfo(message.arg(badBlock->addr, 8, 16, QLatin1Char('0'))
+        .arg(badBlock->size, 8, 16, QLatin1Char('0')));
 
     if (rlen && isSkipBB && isReadLess)
     {
@@ -117,8 +119,10 @@ int Reader::handleStatus(uint8_t *pbuf, uint32_t len)
     {
     case STATUS_ERROR:
         return handleError(pbuf, len);
-    case STATUS_BAD_BLOCK:
-        return handleBadBlock(pbuf, len);
+    case STATUS_BB:
+        return handleBadBlock(pbuf, len, false);
+    case STATUS_BB_SKIP:
+        return handleBadBlock(pbuf, len, true);
     case STATUS_OK:
         // Exit read loop
         if (!rlen)
