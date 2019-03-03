@@ -38,3 +38,30 @@ bool nand_bad_block_table_lookup(uint32_t addr)
 
     return false;
 }
+
+void *nand_bad_block_table_iter_alloc(uint32_t *addr)
+{
+    if (!nand_bad_block_table_count)
+        return NULL;
+
+    *addr = nand_bad_block_table[0];
+
+    return &nand_bad_block_table[0];
+}
+
+void *nand_bad_block_table_iter_next(void *iter, uint32_t *addr)
+{
+    uint32_t *bbt_iter = iter;
+
+    if (!bbt_iter)
+       return NULL;
+
+    bbt_iter++;
+       
+    if (bbt_iter - &nand_bad_block_table[0] >= nand_bad_block_table_count)
+        return NULL;
+
+    *addr = *bbt_iter;
+
+    return bbt_iter;
+}
