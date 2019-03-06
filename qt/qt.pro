@@ -13,7 +13,7 @@ QT       += core gui serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = prog
+TARGET = nando
 TEMPLATE = app
 
 
