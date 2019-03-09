@@ -15,8 +15,11 @@ NANDO is open source NAND programmer based on STM32 processor.
 - 3.3V NAND power supply
 - NAND read,write and erase support
 - NAND read of chip ID support
+- NAND read of bad blocks
+- NAND bad block skip option
 - Open KiCad PCB & Schematic
 - Open source code
+- Read & Write LEDs indication
 - Write speed: 512KBytes/s
 - Read speed: 640KBytes/s
 - Erase speed: 256MBytes/s
@@ -24,11 +27,11 @@ NANDO is open source NAND programmer based on STM32 processor.
 ### Tested chips
 - K9F2G08U0C
 
-## Version
-### Release 1.0
-- Basic NAND operations support
+## Release binaries
+You can download host application deb package for Ubuntu, firmware binary for
+STM32, schematic and gerber files from here:
 
-Binaries: https://drive.google.com/drive/folders/1d5hP6MKbkEBGQe_xIRl4-A5LPt_-9QIN
+https://drive.google.com/drive/folders/1d5hP6MKbkEBGQe_xIRl4-A5LPt_-9QIN
 
 
 ### License
