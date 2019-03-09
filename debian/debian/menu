@@ -1,0 +1,4 @@
+?package(nando):needs="x11" \
+	section="Applications/Programming" \
+	title="NANDO" \
+	command="/usr/bin/nando"

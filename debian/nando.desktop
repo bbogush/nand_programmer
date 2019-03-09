@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=2.0.0
+Type=Application
+Terminal=false
+Name=nando
+Exec=/usr/bin/nando %F
+Comment=NAND Programmer
+StartupNotify=false
+Categories=Development;GTK;GNOME;
+Keywords=nand;programmer;
+GenericName=NAND Programmer

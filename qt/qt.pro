@@ -16,6 +16,12 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = nando
 TEMPLATE = app
 
+# debian vars 
+DESTDIR = ../bin
+MOC_DIR = ../build/moc
+RCC_DIR = ../build/rcc
+UI_DIR = ../build/ui
+unix:OBJECTS_DIR = ../build/o/unix
 
 SOURCES += main.cpp\
         main_window.cpp \
