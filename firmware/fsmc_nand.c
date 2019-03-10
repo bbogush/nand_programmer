@@ -99,6 +99,13 @@ static void nand_fsmc_init(chip_info_t *chip_info)
      * tWC = 25ns
      * tRC = 25ns
      * tREA = 20ns
+     * =>
+     * SET = 1
+     * WAIT = 3
+     * HOLD = 1
+     * HIZ = 1
+     * TCLR = 1
+     * TAR = 1
      */
 
     timing_init.FSMC_SetupTime = chip_info->setup_time;
