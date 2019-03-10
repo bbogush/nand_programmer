@@ -210,26 +210,37 @@ void Programmer::readChipBadBlocks()
     reader.start();
 }
 
-void Programmer::selectChipCb(int ret)
+void Programmer::confChipCb(int ret)
 {
     QObject::disconnect(&reader, SIGNAL(result(int)), this,
-        SLOT(selectChipCb(int)));
+        SLOT(confChipCb(int)));
     serialPortConnect();
-    emit selectChipCompleted(ret);
+    emit confChipCompleted(ret);
 }
 
-void Programmer::selectChip(uint32_t chipNum)
+void Programmer::confChip(ChipInfo *chipInfo)
 {
-    Cmd cmd = { .code = CMD_NAND_SELECT };
-    SelectCmd selectCmd = { .cmd = cmd, .chipNum = chipNum };
+    ConfCmd confCmd;
+    Cmd cmd = { .code = CMD_NAND_CONF };
+
+    confCmd.cmd = cmd;
+    confCmd.pageSize = chipInfo->pageSize;
+    confCmd.blockSize = chipInfo->blockSize;
+    confCmd.size = chipInfo->size;
+    confCmd.setupTime = chipInfo->setupTime;
+    confCmd.waitSetupTime = chipInfo->waitSetupTime;
+    confCmd.holdSetupTime = chipInfo->holdSetupTime;
+    confCmd.hiZSetupTime = chipInfo->hiZSetupTime;
+    confCmd.clrSetupTime = chipInfo->clrSetupTime;
+    confCmd.arSetupTime = chipInfo->arSetupTime;
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
-        SLOT(selectChipCb(int)));
+        SLOT(confChipCb(int)));
 
     /* Serial port object cannot be used in other thread */
     serialPortDisconnect();
     writeData.clear();
-    writeData.append((const char *)&selectCmd, sizeof(SelectCmd));
+    writeData.append((const char *)&confCmd, sizeof(confCmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED, NULL, 0,
         (uint8_t *)writeData.constData(), writeData.size(), false, false);
     reader.start();

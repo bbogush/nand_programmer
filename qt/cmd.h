@@ -11,7 +11,7 @@ enum
     CMD_NAND_WRITE_S = 0x03,
     CMD_NAND_WRITE_D = 0x04,
     CMD_NAND_WRITE_E = 0x05,
-    CMD_NAND_SELECT  = 0x06,
+    CMD_NAND_CONF    = 0x06,
     CMD_NAND_READ_BB = 0x07,
 };
 
@@ -64,8 +64,16 @@ typedef struct __attribute__((__packed__))
 typedef struct __attribute__((__packed__))
 {
     Cmd cmd;
-    uint32_t chipNum;
-} SelectCmd;
+    uint32_t pageSize;
+    uint32_t blockSize;
+    uint32_t size;
+    uint8_t setupTime;
+    uint8_t waitSetupTime;
+    uint8_t holdSetupTime;
+    uint8_t hiZSetupTime;
+    uint8_t clrSetupTime;
+    uint8_t arSetupTime;
+} ConfCmd;
 
 enum
 {

@@ -6,7 +6,7 @@
 #include "nand_programmer.h"
 #include "nand_bad_block.h"
 #include "fsmc_nand.h"
-#include "chip_db.h"
+#include "chip_info.h"
 #include "led.h"
 #include "log.h"
 #include <stdio.h>
@@ -29,7 +29,7 @@ typedef enum
     NP_CMD_NAND_WRITE_S = 0x03,
     NP_CMD_NAND_WRITE_D = 0x04,
     NP_CMD_NAND_WRITE_E = 0x05,
-    NP_CMD_NAND_SELECT  = 0x06,
+    NP_CMD_NAND_CONF    = 0x06,
     NP_CMD_NAND_READ_BB = 0x07,
     NP_CMD_NAND_LAST    = 0x08,
 } np_cmd_code_t;
@@ -43,15 +43,14 @@ enum
     NP_ERR_NAND_WR        = -103,
     NP_ERR_NAND_RD        = -104,
     NP_ERR_NAND_ERASE     = -105,
-    NP_ERR_CHIP_NOT_SEL   = -106,
-    NP_ERR_CHIP_NOT_FOUND = -107,
-    NP_ERR_CMD_DATA_SIZE  = -108,
-    NP_ERR_CMD_INVALID    = -109,
-    NP_ERR_BUF_OVERFLOW   = -110,
-    NP_ERR_LEN_NOT_ALIGN  = -111,
-    NP_ERR_LEN_EXCEEDED   = -112,
-    NP_ERR_LEN_INVALID    = -113,
-    NP_ERR_BBT_OVERFLOW   = -114,
+    NP_ERR_CHIP_NOT_CONF  = -106,
+    NP_ERR_CMD_DATA_SIZE  = -107,
+    NP_ERR_CMD_INVALID    = -108,
+    NP_ERR_BUF_OVERFLOW   = -109,
+    NP_ERR_LEN_NOT_ALIGN  = -110,
+    NP_ERR_LEN_EXCEEDED   = -111,
+    NP_ERR_LEN_INVALID    = -112,
+    NP_ERR_BBT_OVERFLOW   = -113,
 };
 
 typedef struct __attribute__((__packed__))
@@ -103,8 +102,16 @@ typedef struct __attribute__((__packed__))
 typedef struct __attribute__((__packed__))
 {
     np_cmd_t cmd;
-    uint32_t chip_num;
-} np_select_cmd_t;
+    uint32_t page_size;
+    uint32_t block_size;
+    uint32_t size;
+    uint8_t setup_time;
+    uint8_t wait_setup_time;
+    uint8_t hold_setup_time;
+    uint8_t hi_z_setup_time;
+    uint8_t clr_setup_time;
+    uint8_t ar_setup_time;
+} np_conf_cmd_t;
 
 enum
 {
@@ -173,13 +180,14 @@ typedef struct
     uint32_t len;
     int addr_is_set;
     int bb_is_read;
+    int chip_is_conf;
     np_page_t page;
     uint32_t bytes_written;
     uint32_t bytes_ack;
     int skip_bb;
     int nand_wr_in_progress;
     uint32_t nand_timeout;
-    chip_info_t *chip_info;
+    chip_info_t chip_info;
 } np_prog_t;
 
 typedef struct
@@ -256,12 +264,12 @@ static int np_cmd_nand_read_id(np_prog_t *prog)
 }
 
 static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
-    uint32_t page, chip_info_t *chip_info, bool *is_bad)
+    uint32_t page, bool *is_bad)
 {
     uint8_t bad_block_data;
-    uint32_t status, addr = block * chip_info->block_size;
+    uint32_t status, addr = block * prog->chip_info.block_size;
 
-    status = nand_read_data(&bad_block_data, page, chip_info->page_size,
+    status = nand_read_data(&bad_block_data, page, prog->chip_info.page_size,
         sizeof(bad_block_data));
     switch (status)
     {
@@ -289,8 +297,8 @@ static int _np_cmd_read_bad_blocks(np_prog_t *prog)
     bool is_bad;
     uint32_t block, block_num, page_num, page;
 
-    block_num = prog->chip_info->size / prog->chip_info->block_size;
-    page_num = prog->chip_info->block_size / prog->chip_info->page_size;
+    block_num = prog->chip_info.size / prog->chip_info.block_size;
+    page_num = prog->chip_info.block_size / prog->chip_info.page_size;
 
     /* Bad block - not 0xFF value in the first or second page in the block at
      * zero offset in the page spare area
@@ -299,19 +307,19 @@ static int _np_cmd_read_bad_blocks(np_prog_t *prog)
     {
         page = block * page_num;
         if ((ret = np_read_bad_block_info_from_page(prog, block, page,
-            prog->chip_info, &is_bad)))
+            &is_bad)))
         {
             return ret;
         }
 
         if (!is_bad && (ret = np_read_bad_block_info_from_page(prog, block,
-            page + 1, prog->chip_info, &is_bad)))
+            page + 1, &is_bad)))
         {
             return ret;
         }
 
         if (is_bad && nand_bad_block_table_add(block *
-            prog->chip_info->block_size))
+            prog->chip_info.block_size))
         {
             return NP_ERR_BBT_OVERFLOW;
         }
@@ -325,7 +333,7 @@ static int _np_cmd_read_bad_blocks(np_prog_t *prog)
 static int np_nand_erase(np_prog_t *prog, uint32_t page)
 {
     uint32_t status;
-    uint32_t addr = page * prog->chip_info->page_size;
+    uint32_t addr = page * prog->chip_info.page_size;
     
     DEBUG_PRINT("NAND erase at 0x%lx\r\n", addr);
 
@@ -335,7 +343,7 @@ static int np_nand_erase(np_prog_t *prog, uint32_t page)
     case NAND_READY:
         break;
     case NAND_ERROR:
-        if (np_send_bad_block_info(addr, prog->chip_info->block_size, false))
+        if (np_send_bad_block_info(addr, prog->chip_info.block_size, false))
             return -1;
         break;
     case NAND_TIMEOUT_ERROR:
@@ -364,10 +372,10 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
     if (skip_bb && !prog->bb_is_read && (ret = _np_cmd_read_bad_blocks(prog)))
         return ret;
 
-    if (addr & (prog->chip_info->block_size - 1))
+    if (addr & (prog->chip_info.block_size - 1))
     {
         ERROR_PRINT("Address 0x%lx is not aligned to block size 0x%lx\r\n",
-            addr, prog->chip_info->block_size);
+            addr, prog->chip_info.block_size);
         return NP_ERR_ADDR_NOT_ALIGN;
     }
 
@@ -377,47 +385,47 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
         return NP_ERR_LEN_INVALID;
     }
 
-    if (len & (prog->chip_info->block_size - 1))
+    if (len & (prog->chip_info.block_size - 1))
     {
         ERROR_PRINT("Length 0x%lx is not aligned to block size 0x%lx\r\n",
-            len, prog->chip_info->block_size);
+            len, prog->chip_info.block_size);
         return NP_ERR_LEN_NOT_ALIGN;
     }
 
-    if (addr + len > prog->chip_info->size)
+    if (addr + len > prog->chip_info.size)
     {
         ERROR_PRINT("Erase address exceded 0x%lx+0x%lx is more then chip size "
-            "0x%lx\r\n", addr, len, prog->chip_info->size);
+            "0x%lx\r\n", addr, len, prog->chip_info.size);
         return NP_ERR_ADDR_EXCEEDED;
     }
 
-    page = addr / prog->chip_info->page_size;
-    pages_in_block = prog->chip_info->block_size / prog->chip_info->page_size;
+    page = addr / prog->chip_info.page_size;
+    pages_in_block = prog->chip_info.block_size / prog->chip_info.page_size;
 
     while (len)
     {
-        if (addr >= prog->chip_info->size)
+        if (addr >= prog->chip_info.size)
         {
             ERROR_PRINT("Erase address 0x%lx is more then chip size 0x%lx\r\n",
-                addr, prog->chip_info->size);
+                addr, prog->chip_info.size);
             return NP_ERR_ADDR_EXCEEDED;
         }
 
         if (skip_bb && (is_bad = nand_bad_block_table_lookup(addr)))
         {
             DEBUG_PRINT("Skipped bad block at 0x%lx\r\n", addr);
-            if (np_send_bad_block_info(addr, prog->chip_info->block_size, true))
+            if (np_send_bad_block_info(addr, prog->chip_info.block_size, true))
                 return -1;
         }
 
         if (!is_bad && np_nand_erase(prog, page))
             return NP_ERR_NAND_ERASE;
 
-        addr += prog->chip_info->block_size;
+        addr += prog->chip_info.block_size;
         page += pages_in_block;
         /* On partial erase do not count bad blocks */
-        if (!is_bad || (is_bad && erase_cmd->len == prog->chip_info->size))
-            len -= prog->chip_info->block_size;
+        if (!is_bad || (is_bad && erase_cmd->len == prog->chip_info.size))
+            len -= prog->chip_info.block_size;
     }
 
     return np_send_ok_status();
@@ -457,17 +465,17 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
     len = write_start_cmd->len;
     DEBUG_PRINT("Write at 0x%lx 0x%lx bytes command\r\n", addr, len);
 
-    if (addr + len > prog->chip_info->size)
+    if (addr + len > prog->chip_info.size)
     {
         ERROR_PRINT("Write address 0x%lx+0x%lx is more then chip size "
-            "0x%lx\r\n", addr, len, prog->chip_info->size);
+            "0x%lx\r\n", addr, len, prog->chip_info.size);
         return NP_ERR_ADDR_EXCEEDED;
     }
 
-    if (addr & (prog->chip_info->page_size - 1))
+    if (addr & (prog->chip_info.page_size - 1))
     {
         ERROR_PRINT("Address 0x%lx is not aligned to page size 0x%lx\r\n",
-            addr, prog->chip_info->page_size);
+            addr, prog->chip_info.page_size);
         return NP_ERR_ADDR_NOT_ALIGN;
     }
 
@@ -477,10 +485,10 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
         return NP_ERR_LEN_INVALID;
     }
 
-    if (len & (prog->chip_info->page_size - 1))
+    if (len & (prog->chip_info.page_size - 1))
     {
         ERROR_PRINT("Length 0x%lx is not aligned to page size 0x%lx\r\n",
-            len, prog->chip_info->page_size);
+            len, prog->chip_info.page_size);
         return NP_ERR_ADDR_NOT_ALIGN;
     }
 
@@ -495,7 +503,7 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
     prog->len = len;
     prog->addr_is_set = 1;
 
-    prog->page.page = addr / prog->chip_info->page_size;
+    prog->page.page = addr / prog->chip_info.page_size;
     prog->page.offset = 0;
 
     prog->bytes_written = 0;
@@ -509,7 +517,7 @@ static int np_nand_handle_status(np_prog_t *prog)
     switch (nand_read_status())
     {
     case NAND_ERROR:
-        if (np_send_bad_block_info(prog->addr, prog->chip_info->block_size,
+        if (np_send_bad_block_info(prog->addr, prog->chip_info.block_size,
             false))
         {
             return -1;
@@ -537,7 +545,7 @@ static int np_nand_handle_status(np_prog_t *prog)
     return 0;
 }
 
-static int np_nand_write(np_prog_t *prog, chip_info_t *chip_info)
+static int np_nand_write(np_prog_t *prog)
 {   
     if (prog->nand_wr_in_progress)
     {
@@ -551,10 +559,10 @@ static int np_nand_write(np_prog_t *prog, chip_info_t *chip_info)
     }
 
     DEBUG_PRINT("NAND write at 0x%lx %lu bytes\r\n", prog->addr,
-        chip_info->page_size);
+        prog->chip_info.page_size);
 
     nand_write_page_async(prog->page.buf, prog->page.page,
-        chip_info->page_size);
+        prog->chip_info.page_size);
 
     prog->nand_wr_in_progress = 1;
 
@@ -579,41 +587,41 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
         return NP_ERR_ADDR_INVALID;
     }
 
-    if (prog->page.offset + len > prog->chip_info->page_size)
-        write_len = prog->chip_info->page_size - prog->page.offset;
+    if (prog->page.offset + len > prog->chip_info.page_size)
+        write_len = prog->chip_info.page_size - prog->page.offset;
     else
         write_len = len;
 
     memcpy(prog->page.buf + prog->page.offset, write_data_cmd->data, write_len);
     prog->page.offset += write_len;
 
-    if (prog->page.offset == prog->chip_info->page_size)
+    if (prog->page.offset == prog->chip_info.page_size)
     {
         while (prog->skip_bb && nand_bad_block_table_lookup(prog->addr))
         {
             DEBUG_PRINT("Skipped bad block at 0x%lx\r\n", addr);
-            if (np_send_bad_block_info(prog->addr, prog->chip_info->block_size,
+            if (np_send_bad_block_info(prog->addr, prog->chip_info.block_size,
                 true))
             {
                 return -1;
             }
 
-            prog->addr += prog->chip_info->block_size;
-            prog->page.page += prog->chip_info->block_size /
-                prog->chip_info->page_size;
+            prog->addr += prog->chip_info.block_size;
+            prog->page.page += prog->chip_info.block_size /
+                prog->chip_info.page_size;
         }
 
-        if (prog->addr >= prog->chip_info->size)
+        if (prog->addr >= prog->chip_info.size)
         {
             ERROR_PRINT("Write address 0x%lx is more then chip size 0x%lx\r\n",
-                prog->addr, prog->chip_info->size);
+                prog->addr, prog->chip_info.size);
             return NP_ERR_ADDR_EXCEEDED;
         }
 
-        if (np_nand_write(prog, prog->chip_info))
+        if (np_nand_write(prog))
             return NP_ERR_NAND_WR;
 
-        prog->addr += prog->chip_info->page_size;
+        prog->addr += prog->chip_info.page_size;
         prog->page.page++;
         prog->page.offset = 0;
     }
@@ -626,7 +634,7 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
     }
 
     prog->bytes_written += len;
-    if (prog->bytes_written - prog->bytes_ack >= prog->chip_info->page_size ||
+    if (prog->bytes_written - prog->bytes_ack >= prog->chip_info.page_size ||
         prog->bytes_written == prog->len)
     {
         if (np_send_write_ack(prog->bytes_written))
@@ -728,17 +736,17 @@ static int _np_cmd_nand_read(np_prog_t *prog)
     len = read_cmd->len;
     DEBUG_PRINT("Read at 0x%lx 0x%lx bytes command\r\n", addr, len);
 
-    if (addr + len > prog->chip_info->size)
+    if (addr + len > prog->chip_info.size)
     {
         ERROR_PRINT("Read address 0x%lx+0x%lx is more then chip size 0x%lx\r\n",
-            addr, len, prog->chip_info->size);
+            addr, len, prog->chip_info.size);
         return NP_ERR_ADDR_EXCEEDED;
     }
 
-    if (addr & (prog->chip_info->page_size - 1))
+    if (addr & (prog->chip_info.page_size - 1))
     {
         ERROR_PRINT("Read address 0x%lx is not aligned to page size 0x%lx\r\n",
-            addr, prog->chip_info->page_size);
+            addr, prog->chip_info.page_size);
         return NP_ERR_ADDR_NOT_ALIGN;
     }
 
@@ -748,54 +756,54 @@ static int _np_cmd_nand_read(np_prog_t *prog)
         return NP_ERR_LEN_INVALID;
     }
 
-    if (len & (prog->chip_info->page_size - 1))
+    if (len & (prog->chip_info.page_size - 1))
     {
         ERROR_PRINT("Read length 0x%lx is not aligned to page size 0x%lx\r\n",
-            len, prog->chip_info->page_size);
+            len, prog->chip_info.page_size);
         return NP_ERR_LEN_NOT_ALIGN;
     }
 
     if (skip_bb && !prog->bb_is_read && (ret = _np_cmd_read_bad_blocks(prog)))
         return ret;
 
-    page.page = addr / prog->chip_info->page_size;
+    page.page = addr / prog->chip_info.page_size;
     page.offset = 0;
 
     resp->code = NP_RESP_DATA;
 
     while (len)
     {
-        if (addr >= prog->chip_info->size)
+        if (addr >= prog->chip_info.size)
         {
             ERROR_PRINT("Read address 0x%lx is more then chip size 0x%lx",
-                addr, prog->chip_info->page_size);
+                addr, prog->chip_info.page_size);
             return NP_ERR_ADDR_EXCEEDED;
         }
 
         if (skip_bb && nand_bad_block_table_lookup(addr))
         {
             DEBUG_PRINT("Skipped bad block at 0x%lx\r\n", addr);
-            if (np_send_bad_block_info(addr, prog->chip_info->block_size, true))
+            if (np_send_bad_block_info(addr, prog->chip_info.block_size, true))
                 return -1;
 
             /* On partial read do not count bad blocks */
-            if (read_cmd->len == prog->chip_info->size)
-                len -= prog->chip_info->block_size;
-            addr += prog->chip_info->block_size;
-            page.page += prog->chip_info->block_size /
-                prog->chip_info->page_size;
+            if (read_cmd->len == prog->chip_info.size)
+                len -= prog->chip_info.block_size;
+            addr += prog->chip_info.block_size;
+            page.page += prog->chip_info.block_size /
+                prog->chip_info.page_size;
             continue;
         }
 
-        if (np_nand_read(addr, &page, prog->chip_info))
+        if (np_nand_read(addr, &page, &prog->chip_info))
             return NP_ERR_NAND_RD;
 
-        while (page.offset < prog->chip_info->page_size && len)
+        while (page.offset < prog->chip_info.page_size && len)
         {
-            if (prog->chip_info->page_size - page.offset >= tx_data_len)
+            if (prog->chip_info.page_size - page.offset >= tx_data_len)
                 send_len = tx_data_len;
             else
-                send_len = prog->chip_info->page_size - page.offset;
+                send_len = prog->chip_info.page_size - page.offset;
 
             if (send_len > len)
                 send_len = len;
@@ -815,7 +823,7 @@ static int _np_cmd_nand_read(np_prog_t *prog)
             len -= send_len;
         }
 
-        addr += prog->chip_info->page_size;
+        addr += prog->chip_info.page_size;
         page.offset = 0;
         page.page++;
     }
@@ -834,26 +842,27 @@ static int np_cmd_nand_read(np_prog_t *prog)
     return ret;
 }
 
-static int np_cmd_nand_select(np_prog_t *prog)
+static int np_cmd_nand_conf(np_prog_t *prog)
 {
-    np_select_cmd_t *select_cmd = (np_select_cmd_t *)prog->rx_buf;
+    np_conf_cmd_t *conf_cmd = (np_conf_cmd_t *)prog->rx_buf;
 
-    DEBUG_PRINT("Chip select ID %lu command\r\n", select_cmd->chip_num);
+    DEBUG_PRINT("Chip configure command\r\n");
 
-    if (!chip_select(select_cmd->chip_num))
-    {
-        nand_init();
-        nand_bad_block_table_init();
-        prog->bb_is_read = 0;
-        prog->chip_info = chip_info_selected_get();
-    }
-    else
-    {
-        prog->chip_info = NULL;
+    prog->chip_info.page_size = conf_cmd->page_size;
+    prog->chip_info.block_size = conf_cmd->block_size;
+    prog->chip_info.size = conf_cmd->size;
+    prog->chip_info.setup_time = conf_cmd->setup_time;
+    prog->chip_info.wait_setup_time = conf_cmd->wait_setup_time;
+    prog->chip_info.hold_setup_time = conf_cmd->hold_setup_time;
+    prog->chip_info.hi_z_setup_time = conf_cmd->hi_z_setup_time;
+    prog->chip_info.clr_setup_time = conf_cmd->clr_setup_time;
+    prog->chip_info.ar_setup_time = conf_cmd->ar_setup_time;
+    prog->chip_is_conf = 1;
 
-        ERROR_PRINT("Chip ID %lu not found\r\n", select_cmd->chip_num);
-        return NP_ERR_CHIP_NOT_FOUND;
-    }
+    nand_init(&prog->chip_info);
+
+    nand_bad_block_table_init();
+    prog->bb_is_read = 0;
 
     return np_send_ok_status();
 }
@@ -866,7 +875,7 @@ static int np_send_bad_blocks(np_prog_t *prog)
     for (bb_iter = nand_bad_block_table_iter_alloc(&addr); bb_iter;
         bb_iter = nand_bad_block_table_iter_next(bb_iter, &addr))
     {
-        if (np_send_bad_block_info(addr, prog->chip_info->block_size, false))
+        if (np_send_bad_block_info(addr, prog->chip_info.block_size, false))
             return -1;
     }
 
@@ -895,7 +904,7 @@ static np_cmd_handler_t cmd_handler[] =
     { NP_CMD_NAND_WRITE_S, np_cmd_nand_write },
     { NP_CMD_NAND_WRITE_D, np_cmd_nand_write },
     { NP_CMD_NAND_WRITE_E, np_cmd_nand_write },
-    { NP_CMD_NAND_SELECT, np_cmd_nand_select },
+    { NP_CMD_NAND_CONF, np_cmd_nand_conf },
     { NP_CMD_NAND_READ_BB, np_cmd_read_bad_blocks },
 };
 
@@ -908,10 +917,10 @@ static int np_cmd_handler(np_prog_t *prog)
 {
     np_cmd_t *cmd = (np_cmd_t *)prog->rx_buf;
 
-    if (!prog->chip_info && cmd->code != NP_CMD_NAND_SELECT)
+    if (!prog->chip_is_conf && cmd->code != NP_CMD_NAND_CONF)
     {
-        ERROR_PRINT("Chip is not selected\r\n");
-        return NP_ERR_CHIP_NOT_SEL;
+        ERROR_PRINT("Chip is not configured\r\n");
+        return NP_ERR_CHIP_NOT_CONF;
     }
 
     if (!np_cmd_is_valid(cmd->code))

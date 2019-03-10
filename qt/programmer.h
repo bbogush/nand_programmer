@@ -13,6 +13,7 @@
 #include "writer.h"
 #include "reader.h"
 #include "cmd.h"
+#include "chip_db.h"
 
 using namespace std;
 
@@ -48,7 +49,7 @@ public:
     void writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
         uint32_t pageSize);
     void readChipBadBlocks();
-    void selectChip(uint32_t chipNum);
+    void confChip(ChipInfo *chipInfo);
 
 signals:
     void readChipIdCompleted(int ret);
@@ -56,7 +57,7 @@ signals:
     void readChipCompleted(int ret);
     void eraseChipCompleted(int ret);
     void readChipBadBlocksCompleted(int ret);
-    void selectChipCompleted(int ret);
+    void confChipCompleted(int ret);
 
 private slots:
     void readChipIdCb(int ret);
@@ -64,7 +65,7 @@ private slots:
     void readCb(int ret);
     void eraseChipCb(int ret);
     void readChipBadBlocksCb(int ret);
-    void selectChipCb(int ret);
+    void confChipCb(int ret);
     void logCb(QtMsgType msgType, QString msg);
 };
 

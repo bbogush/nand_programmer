@@ -21,9 +21,15 @@ typedef struct
 {
     uint32_t id;
     char name[MAX_CHIP_NAME_LEN];
-    uint32_t page_size;
-    uint32_t block_size;
+    uint32_t pageSize;
+    uint32_t blockSize;
     uint32_t size;
+    uint8_t setupTime;
+    uint8_t waitSetupTime;
+    uint8_t holdSetupTime;
+    uint8_t hiZSetupTime;
+    uint8_t clrSetupTime;
+    uint8_t arSetupTime;
 } ChipInfo;
 
 uint32_t chipDbGet(ChipInfo *&db);

@@ -361,7 +361,7 @@ void MainWindow::slotProgReadBadBlocks()
 
 void MainWindow::slotProgSelectCompleted(int status)
 {
-    disconnect(prog, SIGNAL(selectChipCompleted(int)), this,
+    disconnect(prog, SIGNAL(confChipCompleted(int)), this,
         SLOT(slotProgSelectCompleted(int)));
 
     if (!status)
@@ -383,10 +383,10 @@ void MainWindow::slotSelectChip(int selectedChipNum)
         return;
     }
 
-    connect(prog, SIGNAL(selectChipCompleted(int)), this,
+    connect(prog, SIGNAL(confChipCompleted(int)), this,
         SLOT(slotProgSelectCompleted(int)));
 
-    prog->selectChip(selectedChipNum);
+    prog->confChip(chipInfoGetById(selectedChipNum));
 }
 
 void MainWindow::slotSettingsProgrammer()
