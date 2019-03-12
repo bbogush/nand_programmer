@@ -4,6 +4,7 @@
  */
 
 #include "programmer.h"
+#include "stm32.h"
 #include <QDebug>
 
 #define USB_DEV_NAME "/dev/ttyACM0"
@@ -221,18 +222,21 @@ void Programmer::confChipCb(int ret)
 void Programmer::confChip(ChipInfo *chipInfo)
 {
     ConfCmd confCmd;
+    StmParams params;
     Cmd cmd = { .code = CMD_NAND_CONF };
+
+    chipInfoToStmParams(chipInfo, &params);
 
     confCmd.cmd = cmd;
     confCmd.pageSize = chipInfo->pageSize;
     confCmd.blockSize = chipInfo->blockSize;
     confCmd.size = chipInfo->size;
-    confCmd.setupTime = chipInfo->setupTime;
-    confCmd.waitSetupTime = chipInfo->waitSetupTime;
-    confCmd.holdSetupTime = chipInfo->holdSetupTime;
-    confCmd.hiZSetupTime = chipInfo->hiZSetupTime;
-    confCmd.clrSetupTime = chipInfo->clrSetupTime;
-    confCmd.arSetupTime = chipInfo->arSetupTime;
+    confCmd.setupTime = params.setupTime;
+    confCmd.waitSetupTime = params.waitSetupTime;
+    confCmd.holdSetupTime = params.holdSetupTime;
+    confCmd.hiZSetupTime = params.hiZSetupTime;
+    confCmd.clrSetupTime = params.clrSetupTime;
+    confCmd.arSetupTime = params.arSetupTime;
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(confChipCb(int)));

@@ -24,12 +24,20 @@ typedef struct
     uint32_t pageSize;
     uint32_t blockSize;
     uint32_t size;
-    uint8_t setupTime;
-    uint8_t waitSetupTime;
-    uint8_t holdSetupTime;
-    uint8_t hiZSetupTime;
-    uint8_t clrSetupTime;
-    uint8_t arSetupTime;
+    uint32_t tCS;
+    uint32_t tCLS;
+    uint32_t tALS;
+    uint32_t tCLR;
+    uint32_t tAR;
+    uint32_t tWP;
+    uint32_t tRP;
+    uint32_t tDS;
+    uint32_t tCH;
+    uint32_t tCLH;
+    uint32_t tALH;
+    uint32_t tWC;
+    uint32_t tRC;
+    uint32_t tREA;
 } ChipInfo;
 
 uint32_t chipDbGet(ChipInfo *&db);

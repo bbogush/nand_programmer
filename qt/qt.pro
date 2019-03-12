@@ -31,7 +31,8 @@ SOURCES += main.cpp\
     buffer_table_model.cpp \
     writer.cpp \
     reader.cpp \
-    settings_programmer_dialog.cpp
+    settings_programmer_dialog.cpp \
+    stm32.cpp
 
 HEADERS  += main_window.h \
     programmer.h \
@@ -41,7 +42,8 @@ HEADERS  += main_window.h \
     cmd.h \
     writer.h \
     reader.h \
-    settings_programmer_dialog.h
+    settings_programmer_dialog.h \
+    stm32.h
 
 FORMS    += main_window.ui \
     settings_programmer_dialog.ui
