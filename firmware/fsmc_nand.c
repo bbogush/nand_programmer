@@ -49,63 +49,7 @@ static void nand_fsmc_init(chip_info_t *chip_info)
     FSMC_NANDInitTypeDef fsmc_init;
     FSMC_NAND_PCCARDTimingInitTypeDef timing_init;
 
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_FSMC, ENABLE);    
-
-    /*-- FSMC Configuration --------------------------------------------------*/
-
-    /* Calculations of timing paramaters
-     *           _   _   _   _   _   _   _   _   _   _   _   _
-     * HCLK    _| |_| |_| |_| |_| |_| |_| |_| |_| |_| |_| |_| |
-     *         _____ _________________________________ ________
-     * A[25:0] _____|_________________________________|________ 
-     *         _____                                   ________
-     * NCE          |_________________________________|        
-     *
-     *              |SET+1|      WAIT+1       |HOLD+1 |        
-     *         ___________                     ________________
-     * NOE/NWE            |___________________|                
-     *
-     *              | HIZ+1 |
-     * Write                 _________________________         
-     * data    -------------|_________________________|--------
-     * 
-     * Read                __________________________
-     * data    -----------|__________________________|--------- 
-     *
-     * (SET + 1) * tHCLK >= max(tCS, tCLS, tALS) - tWP
-     * (SET + 1) * tHCLK >= max(tCLR, tAR)
-     * (WAIT + 1) * tHCLK >= max(tWP, tRP)
-     * (WAIT + 1) * tHCLK >= (tREA + tsu(D-NOE))   
-     * (HIZ + 1) * tHCLK >= max(tCS , tALS, tCLS) - tDS
-     * (HOLD + 1) x tHCLK >= max(tCH, tCLH, tALH)
-     * ((WAIT + 1) + (HOLD + 1) + (SET + 1)) x tHCLK >= max(tWC, tRC)
-     * tsu(D-NOE) = 25ns
-     * tHCLK = 1/72MHz = 13.89ns
-     */
-
-    /* K9F2G08U0C parameters:
-     * tCS = 20ns
-     * tCLS = 12ns
-     * tALS = 12ns
-     * tCLR = 10ns
-     * tAR = 10ns
-     * tWP = 12ns
-     * tRP = 12ns
-     * tDS = 12ns
-     * tCH = 5ns
-     * tCLH = 5ns
-     * tALH = 5ns
-     * tWC = 25ns
-     * tRC = 25ns
-     * tREA = 20ns
-     * =>
-     * SET = 1
-     * WAIT = 3
-     * HOLD = 1
-     * HIZ = 1
-     * TCLR = 1
-     * TAR = 1
-     */
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_FSMC, ENABLE);
 
     timing_init.FSMC_SetupTime = chip_info->setup_time;
     timing_init.FSMC_WaitSetupTime = chip_info->wait_setup_time;
