@@ -49,3 +49,11 @@ FORMS    += main_window.ui \
     settings_programmer_dialog.ui
 
 QMAKE_CXXFLAGS += -std=c++11 -Wextra -Werror
+
+DISTFILES += \
+    nando_chip_db.csv
+
+install_conf.path = $$DESTDIR
+install_conf.files += $$PWD/nando_chip_db.csv
+
+INSTALLS += install_conf

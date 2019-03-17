@@ -228,9 +228,9 @@ void Programmer::confChip(ChipInfo *chipInfo)
     chipInfoToStmParams(chipInfo, &params);
 
     confCmd.cmd = cmd;
-    confCmd.pageSize = chipInfo->pageSize;
-    confCmd.blockSize = chipInfo->blockSize;
-    confCmd.size = chipInfo->size;
+    confCmd.pageSize = chipInfo->params[CHIP_PARAM_PAGE_SIZE];
+    confCmd.blockSize = chipInfo->params[CHIP_PARAM_BLOCK_SIZE];
+    confCmd.size = chipInfo->params[CHIP_PARAM_SIZE];
     confCmd.setupTime = params.setupTime;
     confCmd.waitSetupTime = params.waitSetupTime;
     confCmd.holdSetupTime = params.holdSetupTime;

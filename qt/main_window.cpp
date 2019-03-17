@@ -21,15 +21,6 @@
 
 #define START_ADDRESS 0x00000000
 
-static void addChipDB(QComboBox *chipSelectComboBox)
-{
-    ChipInfo *db;
-    uint32_t size = chipDbGet(db);
-
-    for (uint32_t i = 0; i < size; i++)
-        chipSelectComboBox->addItem(db[i].name);
-}
-
 void MainWindow::initBufTable()
 {
     buffer = nullptr;
@@ -64,7 +55,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     prog = new Programmer(this);
 
-    addChipDB(ui->chipSelectComboBox);
+    QStringList *chipNames = chipDb.getNames();
+    ui->chipSelectComboBox->addItems(*chipNames);
+    free(chipNames);
+
     connect(ui->chipSelectComboBox, SIGNAL(currentIndexChanged(int)),
         this, SLOT(slotSelectChip(int)));
 
@@ -258,19 +252,19 @@ void MainWindow::slotProgEraseCompleted(int status)
 void MainWindow::slotProgErase()
 {
     QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
-    ChipInfo *chipInfo = chipInfoGetByName(ba.data());
+    ChipInfo *chipInfo = chipDb.chipInfoGetByName(ba.data());
 
     connect(prog, SIGNAL(eraseChipCompleted(int)), this,
         SLOT(slotProgEraseCompleted(int)));
 
-    prog->eraseChip(START_ADDRESS, chipInfo->size);
+    prog->eraseChip(START_ADDRESS, chipInfo->params[CHIP_PARAM_BLOCK_SIZE]);
 }
 
 void MainWindow::slotProgReadCompleted(int status)
 {
     QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
-    ChipInfo *chipInfo = chipInfoGetByName(ba.data());
-    uint32_t readSize = chipInfo->size;
+    ChipInfo *chipInfo = chipDb.chipInfoGetByName(ba.data());
+    uint32_t readSize = chipInfo->params[CHIP_PARAM_BLOCK_SIZE];
 
     disconnect(prog, SIGNAL(readChipCompleted(int)), this,
         SLOT(slotProgReadCompleted(int)));
@@ -288,8 +282,8 @@ void MainWindow::slotProgReadCompleted(int status)
 void MainWindow::slotProgRead()
 {
     QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
-    ChipInfo *chipInfo = chipInfoGetByName(ba.data());
-    uint32_t readSize = chipInfo->size;
+    ChipInfo *chipInfo = chipDb.chipInfoGetByName(ba.data());
+    uint32_t readSize = chipInfo->params[CHIP_PARAM_BLOCK_SIZE];
 
     connect(prog, SIGNAL(readChipCompleted(int)), this,
         SLOT(slotProgReadCompleted(int)));
@@ -316,6 +310,7 @@ void MainWindow::slotProgWriteCompleted(int status)
 
 void MainWindow::slotProgWrite()
 {
+    QString name;
     uint32_t pageSize;
 
     if (!bufferSize)
@@ -330,7 +325,8 @@ void MainWindow::slotProgWrite()
         return;
     }
 
-    if (!(pageSize = chipPageSizeGet(selectedChipNum)))
+    name = ui->chipSelectComboBox->currentText();
+    if (!(pageSize = chipDb.pageSizeGetByName(name)))
     {
         qInfo() << "Chip page size is unknown";
         return;
@@ -375,6 +371,9 @@ void MainWindow::slotProgSelectCompleted(int status)
 
 void MainWindow::slotSelectChip(int selectedChipNum)
 {
+    QString name;
+    ChipInfo *chipInfo;
+
     this->selectedChipNum = selectedChipNum;
 
     if (selectedChipNum == CHIP_ID_NONE)
@@ -386,7 +385,9 @@ void MainWindow::slotSelectChip(int selectedChipNum)
     connect(prog, SIGNAL(confChipCompleted(int)), this,
         SLOT(slotProgSelectCompleted(int)));
 
-    prog->confChip(chipInfoGetById(selectedChipNum));
+    name = ui->chipSelectComboBox->currentText();
+    chipInfo = chipDb.chipInfoGetByName(name);
+    prog->confChip(chipInfo);
 }
 
 void MainWindow::slotSettingsProgrammer()

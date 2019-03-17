@@ -30,6 +30,7 @@ private:
     BufferTableModel bufferTableModel;
     uint32_t selectedChipNum;
     ChipId chipId;
+    ChipDb chipDb;
 
     void initBufTable();
     void resetBufTable();

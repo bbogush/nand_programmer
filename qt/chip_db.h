@@ -7,8 +7,9 @@
 #define CHIP_DB_H
 
 #include <cstdint>
-
-#define MAX_CHIP_NAME_LEN 16
+#include <QString>
+#include <QObject>
+#include <QVector>
 
 enum
 {
@@ -17,33 +18,54 @@ enum
     CHIP_ID_LAST = 2,
 };
 
+enum
+{
+    CHIP_PARAM_NAME,
+    CHIP_PARAM_PAGE_SIZE,
+    CHIP_PARAM_BLOCK_SIZE,
+    CHIP_PARAM_SIZE,
+    CHIP_PARAM_T_CS,
+    CHIP_PARAM_T_CLS,
+    CHIP_PARAM_T_ALS,
+    CHIP_PARAM_T_CLR,
+    CHIP_PARAM_T_AR,
+    CHIP_PARAM_T_WP,
+    CHIP_PARAM_T_RP,
+    CHIP_PARAM_T_DS,
+    CHIP_PARAM_T_CH,
+    CHIP_PARAM_T_CLH,
+    CHIP_PARAM_T_ALH,
+    CHIP_PARAM_T_WC,
+    CHIP_PARAM_T_RC,
+    CHIP_PARAM_T_REA,
+    CHIP_PARAM_NUM,
+};
+
 typedef struct
 {
     uint32_t id;
-    char name[MAX_CHIP_NAME_LEN];
-    uint32_t pageSize;
-    uint32_t blockSize;
-    uint32_t size;
-    uint32_t tCS;
-    uint32_t tCLS;
-    uint32_t tALS;
-    uint32_t tCLR;
-    uint32_t tAR;
-    uint32_t tWP;
-    uint32_t tRP;
-    uint32_t tDS;
-    uint32_t tCH;
-    uint32_t tCLH;
-    uint32_t tALH;
-    uint32_t tWC;
-    uint32_t tRC;
-    uint32_t tREA;
+    QString name;
+    uint32_t params[CHIP_PARAM_NUM];
 } ChipInfo;
 
-uint32_t chipDbGet(ChipInfo *&db);
-ChipInfo *chipInfoGetByName(char *name);
-ChipInfo *chipInfoGetById(uint32_t id);
-uint32_t chipPageSizeGet(uint32_t id);
+class ChipDb : public QObject
+{
+    Q_OBJECT
+
+    QVector<ChipInfo> chipInfoVector;
+
+    QString findFile();
+    int stringToChipInfo(const QString &file, const QString &s, ChipInfo &ci);
+    void readFromCvs(void);
+
+public:
+    explicit ChipDb(QObject *parent = 0);
+    QStringList *getNames();
+    ChipInfo *chipInfoGetByName(const QString &name);
+    uint32_t pageSizeGetByName(const QString &name);
+};
+
+
 
 #endif // CHIP_DB_H
 
