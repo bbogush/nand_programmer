@@ -1,2 +1,3 @@
 bin/nando usr/bin
 nando.desktop usr/share/applications
+qt/nando_chip_db.csv /etc/xdg
