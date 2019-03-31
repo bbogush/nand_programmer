@@ -6,6 +6,7 @@
 #include "main_window.h"
 #include "ui_main_window.h"
 #include "settings_programmer_dialog.h"
+#include "chip_db_dialog.h"
 #include "chip_db.h"
 #include "logger.h"
 #include <QDebug>
@@ -80,6 +81,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotProgReadBadBlocks()));
     connect(ui->actionProgrammer, SIGNAL(triggered()), this,
         SLOT(slotSettingsProgrammer()));
+    connect(ui->actionChipDb, SIGNAL(triggered()), this,
+        SLOT(slotSettingsChipDb()));
 }
 
 MainWindow::~MainWindow()
@@ -401,5 +404,15 @@ void MainWindow::slotSettingsProgrammer()
     {
         prog->setUsbDevName(progDialog.getUsbDevName());
         prog->setSkipBB(progDialog.isSkipBB());
+    }
+}
+
+void MainWindow::slotSettingsChipDb()
+{
+    ChipDbDialog chipDbDialog(&chipDb, this);
+
+    if (chipDbDialog.exec() == QDialog::Accepted)
+    {
+
     }
 }

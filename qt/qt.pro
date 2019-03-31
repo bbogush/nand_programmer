@@ -32,7 +32,9 @@ SOURCES += main.cpp\
     writer.cpp \
     reader.cpp \
     settings_programmer_dialog.cpp \
-    stm32.cpp
+    stm32.cpp \
+    chip_db_dialog.cpp \
+    chip_db_table_model.cpp
 
 HEADERS  += main_window.h \
     programmer.h \
@@ -43,10 +45,13 @@ HEADERS  += main_window.h \
     writer.h \
     reader.h \
     settings_programmer_dialog.h \
-    stm32.h
+    stm32.h \
+    chip_db_dialog.h \
+    chip_db_table_model.h
 
 FORMS    += main_window.ui \
-    settings_programmer_dialog.ui
+    settings_programmer_dialog.ui \
+    chip_db_dialog.ui
 
 QMAKE_CXXFLAGS += -std=c++11 -Wextra -Werror
 

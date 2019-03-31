@@ -63,6 +63,9 @@ public:
     QStringList *getNames();
     ChipInfo *chipInfoGetByName(const QString &name);
     uint32_t pageSizeGetByName(const QString &name);
+    int size();
+
+    ChipInfo *operator[](int index) { return &chipInfoVector[index]; }
 };
 
 

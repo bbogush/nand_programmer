@@ -127,3 +127,8 @@ uint32_t ChipDb::pageSizeGetByName(const QString &name)
 
     return info ? info->params[CHIP_PARAM_PAGE_SIZE] : 0;
 }
+
+int ChipDb::size()
+{
+    return chipInfoVector.size();
+}

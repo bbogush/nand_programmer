@@ -234,6 +234,7 @@
      <string>Settings</string>
     </property>
     <addaction name="actionProgrammer"/>
+    <addaction name="actionChipDb"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuProgrammer"/>
@@ -318,6 +319,11 @@
    </property>
    <property name="text">
     <string>Read bad blocks</string>
+   </property>
+  </action>
+  <action name="actionChipDb">
+   <property name="text">
+    <string>Chip database</string>
    </property>
   </action>
  </widget>
