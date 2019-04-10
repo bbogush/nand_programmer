@@ -44,7 +44,7 @@ void MainWindow::resetBufTable()
 {
     bufferTableModel.setBuffer(nullptr, 0);
     bufferSize = 0;
-    delete buffer;
+    delete [] buffer;
 }
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
@@ -89,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
 MainWindow::~MainWindow()
 {
-    delete buffer;
+    delete [] buffer;
     Logger::putInstance();
     delete ui;
 }
@@ -276,7 +276,7 @@ void MainWindow::slotProgReadCompleted(int status)
 
     if (status)
     {
-        delete buffer;
+        delete [] buffer;
         return;
     }
 
@@ -288,10 +288,13 @@ void MainWindow::slotProgRead()
 {
     int index = ui->chipSelectComboBox->currentIndex();
     ChipInfo *chipInfo = chipDb.chipInfoGetById(CHIP_INDEX2ID(index));
-    uint32_t readSize = chipInfo->params[CHIP_PARAM_BLOCK_SIZE];
+    uint32_t readSize = chipInfo->params[CHIP_PARAM_SIZE];
 
-    connect(prog, SIGNAL(readChipCompleted(int)), this,
-        SLOT(slotProgReadCompleted(int)));
+    if (!readSize)
+    {
+        qCritical() << "Chip size is not set";
+        return;
+    }
 
     resetBufTable();
     buffer = new (std::nothrow) uint8_t[readSize];
@@ -300,6 +303,9 @@ void MainWindow::slotProgRead()
         qCritical() << "Failed to allocate memory for read buffer";
         return;
     }
+
+    connect(prog, SIGNAL(readChipCompleted(int)), this,
+        SLOT(slotProgReadCompleted(int)));
 
     prog->readChip(buffer, START_ADDRESS, readSize, true);
 }
