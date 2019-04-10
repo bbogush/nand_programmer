@@ -28,7 +28,6 @@ private:
     uint8_t *buffer;
     uint32_t bufferSize;
     BufferTableModel bufferTableModel;
-    uint32_t selectedChipNum;
     ChipId chipId;
     ChipDb chipDb;
 
@@ -36,6 +35,7 @@ private:
     void resetBufTable();
     void setUiStateConnected(bool isConnected);
     void setUiStateSelected(bool isSelected);
+    void updateChipList();
 
 private slots:
     void slotProgReadDeviceIdCompleted(int status);

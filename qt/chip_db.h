@@ -10,6 +10,7 @@
 #include <QString>
 #include <QObject>
 #include <QVector>
+#include <QFile>
 
 enum
 {
@@ -55,15 +56,22 @@ class ChipDb : public QObject
     QVector<ChipInfo> chipInfoVector;
 
     QString findFile();
-    int stringToChipInfo(const QString &file, const QString &s, ChipInfo &ci);
-    void readFromCvs(void);
+    int stringToChipInfo(const QString &s, ChipInfo &ci);
+    int chipInfoToString(const ChipInfo &ci, QString &s);
+    void readFromCvs();
+    int readCommentsFromCsv(QFile &dbFile, QString &comments);
+    void writeToCvs();
 
 public:
     explicit ChipDb(QObject *parent = 0);
-    QStringList *getNames();
-    ChipInfo *chipInfoGetByName(const QString &name);
-    uint32_t pageSizeGetByName(const QString &name);
+    QStringList getNames();
+    ChipInfo *chipInfoGetById(int id);
+    uint32_t pageSizeGetById(int id);
+    void addChip(ChipInfo &chipInfo);
+    void delChip(int index);
     int size();
+    void commit();
+    void reset();
 
     ChipInfo *operator[](int index) { return &chipInfoVector[index]; }
 };

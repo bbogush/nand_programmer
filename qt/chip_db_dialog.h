@@ -20,6 +20,12 @@ class ChipDbDialog : public QDialog
 public:
     explicit ChipDbDialog(ChipDb *chipDb, QWidget *parent = nullptr);
     ~ChipDbDialog();    
+
+private slots:
+    void slotAddChipDbButtonClicked();
+    void slotDelChipDbButtonClicked();
+    void slotOkButtonClicked();
+    void slotCancelButtonClicked();
 };
 
 #endif // CHIP_DB_DALOG_H

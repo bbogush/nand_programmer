@@ -5,7 +5,6 @@
 
 #include "chip_db.h"
 #include <cstring>
-#include <QFile>
 #include <QDebug>
 #include <QStandardPaths>
 #include <QDir>
@@ -31,8 +30,7 @@ QString ChipDb::findFile()
     return fileName;
 }
 
-int ChipDb::stringToChipInfo(const QString &file, const QString &s,
-    ChipInfo &ci)
+int ChipDb::stringToChipInfo(const QString &s, ChipInfo &ci)
 {
     int paramNum;
     QStringList paramsList;
@@ -42,8 +40,8 @@ int ChipDb::stringToChipInfo(const QString &file, const QString &s,
     if (paramNum != CHIP_PARAM_NUM)
     {
         QMessageBox::critical(nullptr, tr("Error"),
-            tr("Failed to read chip DB entry from %1. Expected %2 parameters, "
-            "but read %3").arg(file).arg(CHIP_PARAM_NUM).arg(paramNum));
+            tr("Failed to read chip DB entry. Expected %2 parameters, "
+            "but read %3").arg(CHIP_PARAM_NUM).arg(paramNum));
         return -1;
     }
 
@@ -56,10 +54,23 @@ int ChipDb::stringToChipInfo(const QString &file, const QString &s,
         if (!ok)
         {
             QMessageBox::critical(nullptr, tr("Error"), tr("Failed to parse"
-                " parameter %1 in %2").arg(paramsList[i]).arg(file));
+                " parameter %1").arg(paramsList[i]));
             return -1;
         }
     }
+
+    return 0;
+}
+
+int ChipDb::chipInfoToString(const ChipInfo &ci, QString &s)
+{
+    QStringList paramsList;
+
+    paramsList.append(ci.name);
+    for (int i = CHIP_PARAM_NAME + 1; i < CHIP_PARAM_NUM; i++)
+        paramsList.append(QString("%1").arg(ci.params[i]));
+
+    s = paramsList.join(',');
 
     return 0;
 }
@@ -89,10 +100,70 @@ void ChipDb::readFromCvs(void)
             continue;
         if (*line.data() == '#')
             continue;
-        if (stringToChipInfo(fileName, line, chipInfo))
-            return;
+        if (stringToChipInfo(line, chipInfo))
+            break;
         chipInfoVector.append(chipInfo);
     }
+    dbFile.close();
+}
+
+int ChipDb::readCommentsFromCsv(QFile &dbFile, QString &comments)
+{
+    if (!dbFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QMessageBox::critical(nullptr, tr("Error"), tr("Failed to open chip DB "
+            "file: %1, error: %2").arg(dbFile.fileName()).
+            arg(dbFile.errorString()));
+        return -1;
+    }
+
+    QTextStream in(&dbFile);
+    while (!in.atEnd())
+    {
+        QString l = in.readLine();
+        if (l.isEmpty())
+            continue;
+        if (*l.data() == '#')
+        {
+            comments.append(l);
+            comments.append('\n');
+        }
+    }
+    dbFile.close();
+
+    return 0;
+}
+
+void ChipDb::writeToCvs(void)
+{
+    QString line;
+    QFile dbFile;
+    QString fileName = findFile();
+
+    if (fileName.isNull())
+        return;
+
+    dbFile.setFileName(fileName);
+
+    if (readCommentsFromCsv(dbFile, line))
+        return;
+
+    if (!dbFile.open(QIODevice::WriteOnly | QIODevice::Truncate |
+        QIODevice::Text))
+    {
+        QMessageBox::critical(nullptr, tr("Error"), tr("Failed to open chip DB "
+            "file: %1, error: %2").arg(fileName).arg(dbFile.errorString()));
+        return;
+    }
+
+    QTextStream out(&dbFile);
+    out << line;
+    for (int i = 0; i < chipInfoVector.size(); i++)
+    {
+        chipInfoToString(chipInfoVector[i], line);
+        out << line << '\n';
+    }
+    dbFile.close();
 }
 
 ChipDb::ChipDb(QObject *parent) : QObject(parent)
@@ -100,35 +171,53 @@ ChipDb::ChipDb(QObject *parent) : QObject(parent)
     readFromCvs();
 }
 
-QStringList *ChipDb::getNames()
+QStringList ChipDb::getNames()
 {
-    QStringList *namesList = new QStringList;
+    QStringList namesList;
 
     for (int i = 0; i < chipInfoVector.size(); i++)
-        namesList->append(chipInfoVector[i].name);
+        namesList.append(chipInfoVector[i].name);
 
     return namesList;
 }
 
-ChipInfo *ChipDb::chipInfoGetByName(const QString &name)
+ChipInfo *ChipDb::chipInfoGetById(int id)
 {
-    for (int i = 0; i < chipInfoVector.size(); i++)
-    {
-        if (!chipInfoVector[i].name.compare(name))
-            return &chipInfoVector[i];
-    }
+    if (id >= chipInfoVector.size() || id < 0)
+        return nullptr;
 
-    return nullptr;
+    return &chipInfoVector[id];
 }
 
-uint32_t ChipDb::pageSizeGetByName(const QString &name)
+uint32_t ChipDb::pageSizeGetById(int id)
 {
-    ChipInfo *info = chipInfoGetByName(name);
+    ChipInfo *info = chipInfoGetById(id);
 
     return info ? info->params[CHIP_PARAM_PAGE_SIZE] : 0;
+}
+
+void ChipDb::addChip(ChipInfo &chipInfo)
+{
+    chipInfoVector.append(chipInfo);
+}
+
+void ChipDb::delChip(int index)
+{
+    chipInfoVector.remove(index);
 }
 
 int ChipDb::size()
 {
     return chipInfoVector.size();
+}
+
+void ChipDb::commit()
+{
+    writeToCvs();
+}
+
+void ChipDb::reset()
+{
+    chipInfoVector.clear();
+    readFromCvs();
 }

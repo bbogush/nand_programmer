@@ -18,7 +18,7 @@ int ChipDbTableModel::columnCount(const QModelIndex & /*parent*/) const
 
 QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
 {
-    if (role != Qt::DisplayRole)
+    if (role != Qt::DisplayRole && role != Qt::EditRole)
         return QVariant();
 
     switch (index.column())
@@ -93,5 +93,79 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
     }
 
     return QVariant();
+}
+
+Qt::ItemFlags ChipDbTableModel::flags (const QModelIndex &index) const
+{
+    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
+}
+
+bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
+    int role)
+{
+    bool convOk;
+    uint32_t paramVal;
+
+    if (role != Qt::EditRole)
+        return false;
+
+    switch (index.column())
+    {
+    case CHIP_PARAM_NAME:
+        (*chipDb)[index.row()]->name = value.toString();
+        return true;
+    case CHIP_PARAM_PAGE_SIZE:
+    case CHIP_PARAM_BLOCK_SIZE:
+    case CHIP_PARAM_SIZE:
+    case CHIP_PARAM_T_CS:
+    case CHIP_PARAM_T_CLS:
+    case CHIP_PARAM_T_ALS:
+    case CHIP_PARAM_T_CLR:
+    case CHIP_PARAM_T_AR:
+    case CHIP_PARAM_T_WP:
+    case CHIP_PARAM_T_RP:
+    case CHIP_PARAM_T_DS:
+    case CHIP_PARAM_T_CH:
+    case CHIP_PARAM_T_CLH:
+    case CHIP_PARAM_T_ALH:
+    case CHIP_PARAM_T_WC:
+    case CHIP_PARAM_T_RC:
+    case CHIP_PARAM_T_REA:
+        paramVal = value.toUInt(&convOk);
+        if (!convOk)
+            return false;
+        (*chipDb)[index.row()]->params[index.column()] = paramVal;
+        return true;
+    }
+
+    return false;
+}
+
+void ChipDbTableModel::addRow()
+{
+    ChipInfo chipInfo = {};
+
+    beginResetModel();
+    chipDb->addChip(chipInfo);
+    endResetModel();
+}
+
+void ChipDbTableModel::delRow(int index)
+{
+    beginResetModel();
+    chipDb->delChip(index);
+    endResetModel();
+}
+
+void ChipDbTableModel::commit()
+{
+    chipDb->commit();
+}
+
+void ChipDbTableModel::reset()
+{
+    beginResetModel();
+    chipDb->reset();
+    endResetModel();
 }
 

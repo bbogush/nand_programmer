@@ -22,6 +22,10 @@
 
 #define START_ADDRESS 0x00000000
 
+#define CHIP_NAME_DEFAULT "NONE"
+#define CHIP_INDEX_DEFAULT 0
+#define CHIP_INDEX2ID(index) (index - 1)
+
 void MainWindow::initBufTable()
 {
     buffer = nullptr;
@@ -56,9 +60,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
     prog = new Programmer(this);
 
-    QStringList *chipNames = chipDb.getNames();
-    ui->chipSelectComboBox->addItems(*chipNames);
-    free(chipNames);
+    updateChipList();
 
     connect(ui->chipSelectComboBox, SIGNAL(currentIndexChanged(int)),
         this, SLOT(slotSelectChip(int)));
@@ -188,7 +190,7 @@ void MainWindow::setUiStateConnected(bool isConnected)
 {
     ui->chipSelectComboBox->setEnabled(isConnected);
     if (!isConnected)
-        ui->chipSelectComboBox->setCurrentIndex(CHIP_ID_NONE);
+        ui->chipSelectComboBox->setCurrentIndex(CHIP_INDEX_DEFAULT);
 }
 
 void MainWindow::setUiStateSelected(bool isSelected)
@@ -254,8 +256,8 @@ void MainWindow::slotProgEraseCompleted(int status)
 
 void MainWindow::slotProgErase()
 {
-    QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
-    ChipInfo *chipInfo = chipDb.chipInfoGetByName(ba.data());
+    int index = ui->chipSelectComboBox->currentIndex();
+    ChipInfo *chipInfo = chipDb.chipInfoGetById(CHIP_INDEX2ID(index));
 
     connect(prog, SIGNAL(eraseChipCompleted(int)), this,
         SLOT(slotProgEraseCompleted(int)));
@@ -265,8 +267,8 @@ void MainWindow::slotProgErase()
 
 void MainWindow::slotProgReadCompleted(int status)
 {
-    QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
-    ChipInfo *chipInfo = chipDb.chipInfoGetByName(ba.data());
+    int index = ui->chipSelectComboBox->currentIndex();
+    ChipInfo *chipInfo = chipDb.chipInfoGetById(CHIP_INDEX2ID(index));
     uint32_t readSize = chipInfo->params[CHIP_PARAM_BLOCK_SIZE];
 
     disconnect(prog, SIGNAL(readChipCompleted(int)), this,
@@ -284,8 +286,8 @@ void MainWindow::slotProgReadCompleted(int status)
 
 void MainWindow::slotProgRead()
 {
-    QByteArray ba = ui->chipSelectComboBox->currentText().toLatin1();
-    ChipInfo *chipInfo = chipDb.chipInfoGetByName(ba.data());
+    int index = ui->chipSelectComboBox->currentIndex();
+    ChipInfo *chipInfo = chipDb.chipInfoGetById(CHIP_INDEX2ID(index));
     uint32_t readSize = chipInfo->params[CHIP_PARAM_BLOCK_SIZE];
 
     connect(prog, SIGNAL(readChipCompleted(int)), this,
@@ -313,6 +315,7 @@ void MainWindow::slotProgWriteCompleted(int status)
 
 void MainWindow::slotProgWrite()
 {
+    int index;
     QString name;
     uint32_t pageSize;
 
@@ -322,14 +325,14 @@ void MainWindow::slotProgWrite()
         return;
     }
 
-    if (selectedChipNum == CHIP_ID_NONE)
+    index = ui->chipSelectComboBox->currentIndex();
+    if (index <= CHIP_INDEX_DEFAULT)
     {
         qInfo() << "Chip is not selected";
         return;
     }
 
-    name = ui->chipSelectComboBox->currentText();
-    if (!(pageSize = chipDb.pageSizeGetByName(name)))
+    if (!(pageSize = chipDb.pageSizeGetById(CHIP_INDEX2ID(index))))
     {
         qInfo() << "Chip page size is unknown";
         return;
@@ -374,12 +377,11 @@ void MainWindow::slotProgSelectCompleted(int status)
 
 void MainWindow::slotSelectChip(int selectedChipNum)
 {
+    int index;
     QString name;
     ChipInfo *chipInfo;
 
-    this->selectedChipNum = selectedChipNum;
-
-    if (selectedChipNum == CHIP_ID_NONE)
+    if (selectedChipNum <= CHIP_INDEX_DEFAULT)
     {
         setUiStateSelected(false);
         return;
@@ -388,8 +390,8 @@ void MainWindow::slotSelectChip(int selectedChipNum)
     connect(prog, SIGNAL(confChipCompleted(int)), this,
         SLOT(slotProgSelectCompleted(int)));
 
-    name = ui->chipSelectComboBox->currentText();
-    chipInfo = chipDb.chipInfoGetByName(name);
+    index = ui->chipSelectComboBox->currentIndex();
+    chipInfo = chipDb.chipInfoGetById(CHIP_INDEX2ID(index));
     prog->confChip(chipInfo);
 }
 
@@ -412,7 +414,24 @@ void MainWindow::slotSettingsChipDb()
     ChipDbDialog chipDbDialog(&chipDb, this);
 
     if (chipDbDialog.exec() == QDialog::Accepted)
-    {
+        updateChipList();
+}
 
+void MainWindow::updateChipList()
+{
+    int i = 0;
+    QStringList chipNames;
+
+    ui->chipSelectComboBox->clear();
+    ui->chipSelectComboBox->addItem(CHIP_NAME_DEFAULT);
+
+    chipNames = chipDb.getNames();
+    foreach (const QString &str, chipNames)
+    {
+        if (str.isEmpty())
+            ui->chipSelectComboBox->addItem(QString("Unknown %1").arg(++i));
+        else
+            ui->chipSelectComboBox->addItem(str);
     }
+    ui->chipSelectComboBox->setCurrentIndex(CHIP_INDEX_DEFAULT);
 }
