@@ -251,7 +251,7 @@ int Reader::serialPortCreate()
 void Reader::serialPortDestroy()
 {
     serialPort->close();
-    free(serialPort);
+    delete serialPort;
 }
 
 void Reader::run()
