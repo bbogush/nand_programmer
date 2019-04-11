@@ -18,6 +18,7 @@ Programmer::Programmer(QObject *parent) : QObject(parent)
 {
     usbDevName = USB_DEV_NAME;
     skipBB = true;
+    isConn = false;
     QObject::connect(&reader, SIGNAL(log(QtMsgType, QString)), this,
         SLOT(logCb(QtMsgType, QString)));
     QObject::connect(&writer, SIGNAL(log(QtMsgType, QString)), this,
