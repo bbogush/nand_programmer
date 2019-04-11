@@ -259,6 +259,12 @@ void MainWindow::slotProgErase()
     int index = ui->chipSelectComboBox->currentIndex();
     uint32_t eraseSize = chipDb.sizeGetById(CHIP_INDEX2ID(index));
 
+    if (!eraseSize)
+    {
+        qCritical() << "Chip size is not set";
+        return;
+    }
+
     connect(prog, SIGNAL(eraseChipCompleted(int)), this,
         SLOT(slotProgEraseCompleted(int)));
 
