@@ -257,19 +257,18 @@ void MainWindow::slotProgEraseCompleted(int status)
 void MainWindow::slotProgErase()
 {
     int index = ui->chipSelectComboBox->currentIndex();
-    ChipInfo *chipInfo = chipDb.chipInfoGetById(CHIP_INDEX2ID(index));
+    uint32_t eraseSize = chipDb.sizeGetById(CHIP_INDEX2ID(index));
 
     connect(prog, SIGNAL(eraseChipCompleted(int)), this,
         SLOT(slotProgEraseCompleted(int)));
 
-    prog->eraseChip(START_ADDRESS, chipInfo->params[CHIP_PARAM_BLOCK_SIZE]);
+    prog->eraseChip(START_ADDRESS, eraseSize);
 }
 
 void MainWindow::slotProgReadCompleted(int status)
 {
     int index = ui->chipSelectComboBox->currentIndex();
-    ChipInfo *chipInfo = chipDb.chipInfoGetById(CHIP_INDEX2ID(index));
-    uint32_t readSize = chipInfo->params[CHIP_PARAM_SIZE];
+    uint32_t readSize = chipDb.sizeGetById(CHIP_INDEX2ID(index));
 
     disconnect(prog, SIGNAL(readChipCompleted(int)), this,
         SLOT(slotProgReadCompleted(int)));
@@ -287,8 +286,7 @@ void MainWindow::slotProgReadCompleted(int status)
 void MainWindow::slotProgRead()
 {
     int index = ui->chipSelectComboBox->currentIndex();
-    ChipInfo *chipInfo = chipDb.chipInfoGetById(CHIP_INDEX2ID(index));
-    uint32_t readSize = chipInfo->params[CHIP_PARAM_SIZE];
+    uint32_t readSize = chipDb.sizeGetById(CHIP_INDEX2ID(index));
 
     if (!readSize)
     {

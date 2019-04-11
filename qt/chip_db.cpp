@@ -196,6 +196,13 @@ uint32_t ChipDb::pageSizeGetById(int id)
     return info ? info->params[CHIP_PARAM_PAGE_SIZE] : 0;
 }
 
+uint32_t ChipDb::sizeGetById(int id)
+{
+    ChipInfo *info = chipInfoGetById(id);
+
+    return info ? info->params[CHIP_PARAM_SIZE] : 0;
+}
+
 void ChipDb::addChip(ChipInfo &chipInfo)
 {
     chipInfoVector.append(chipInfo);
