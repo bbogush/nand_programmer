@@ -269,7 +269,7 @@ void MainWindow::slotProgReadCompleted(int status)
 {
     int index = ui->chipSelectComboBox->currentIndex();
     ChipInfo *chipInfo = chipDb.chipInfoGetById(CHIP_INDEX2ID(index));
-    uint32_t readSize = chipInfo->params[CHIP_PARAM_BLOCK_SIZE];
+    uint32_t readSize = chipInfo->params[CHIP_PARAM_SIZE];
 
     disconnect(prog, SIGNAL(readChipCompleted(int)), this,
         SLOT(slotProgReadCompleted(int)));
