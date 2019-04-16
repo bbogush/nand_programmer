@@ -67,29 +67,72 @@ QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
 QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
     int role) const
 {
-    if (!(role == Qt::DisplayRole && orientation == Qt::Horizontal))
-        return QVariant();
-
-    switch (section)
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
     {
-    case CHIP_PARAM_NAME: return tr("Name");
-    case CHIP_PARAM_PAGE_SIZE: return tr("Page size");
-    case CHIP_PARAM_BLOCK_SIZE: return tr("Block size");
-    case CHIP_PARAM_SIZE: return tr("Size");
-    case CHIP_PARAM_T_CS: return tr("tCH");
-    case CHIP_PARAM_T_CLS: return tr("tCLS");
-    case CHIP_PARAM_T_ALS: return tr("tALS");
-    case CHIP_PARAM_T_CLR: return tr("tCLR");
-    case CHIP_PARAM_T_AR: return tr("tAR");
-    case CHIP_PARAM_T_WP: return tr("tWP");
-    case CHIP_PARAM_T_RP: return tr("tRP");
-    case CHIP_PARAM_T_DS: return tr("tDS");
-    case CHIP_PARAM_T_CH: return tr("tCH");
-    case CHIP_PARAM_T_CLH: return tr("tCLH");
-    case CHIP_PARAM_T_ALH: return tr("tALH");
-    case CHIP_PARAM_T_WC: return tr("tWC");
-    case CHIP_PARAM_T_RC: return tr("tRC");
-    case CHIP_PARAM_T_REA: return tr("tREA");
+        switch (section)
+        {
+        case CHIP_PARAM_NAME: return tr("Name");
+        case CHIP_PARAM_PAGE_SIZE: return tr("Page size");
+        case CHIP_PARAM_BLOCK_SIZE: return tr("Block size");
+        case CHIP_PARAM_SIZE: return tr("Size");
+        case CHIP_PARAM_T_CS: return tr("tCH");
+        case CHIP_PARAM_T_CLS: return tr("tCLS");
+        case CHIP_PARAM_T_ALS: return tr("tALS");
+        case CHIP_PARAM_T_CLR: return tr("tCLR");
+        case CHIP_PARAM_T_AR: return tr("tAR");
+        case CHIP_PARAM_T_WP: return tr("tWP");
+        case CHIP_PARAM_T_RP: return tr("tRP");
+        case CHIP_PARAM_T_DS: return tr("tDS");
+        case CHIP_PARAM_T_CH: return tr("tCH");
+        case CHIP_PARAM_T_CLH: return tr("tCLH");
+        case CHIP_PARAM_T_ALH: return tr("tALH");
+        case CHIP_PARAM_T_WC: return tr("tWC");
+        case CHIP_PARAM_T_RC: return tr("tRC");
+        case CHIP_PARAM_T_REA: return tr("tREA");
+        }
+    }
+
+    if (role == Qt::ToolTipRole)
+    {
+        switch (section)
+        {
+        case CHIP_PARAM_NAME:
+            return tr("Chip name");
+        case CHIP_PARAM_PAGE_SIZE:
+            return tr("Page size in bytes");
+        case CHIP_PARAM_BLOCK_SIZE:
+            return tr("Block size in bytes");
+        case CHIP_PARAM_SIZE:
+            return tr("Total size in bytes");
+        case CHIP_PARAM_T_CS:
+            return tr("Chip enable hold time");
+        case CHIP_PARAM_T_CLS:
+            return tr("Command latch enable setup time");
+        case CHIP_PARAM_T_ALS:
+            return tr("Address latch enable setup time");
+        case CHIP_PARAM_T_CLR:
+            return tr("Command latch enable to read enable delay");
+        case CHIP_PARAM_T_AR:
+            return tr("Address latch enable to read enable delay");
+        case CHIP_PARAM_T_WP:
+            return tr("Write enable pulse width");
+        case CHIP_PARAM_T_RP:
+            return tr("Read enable pulse width");
+        case CHIP_PARAM_T_DS:
+            return tr("Data setup time");
+        case CHIP_PARAM_T_CH:
+            return tr("Chip enable hold time");
+        case CHIP_PARAM_T_CLH:
+            return tr("Command latch enable hold time");
+        case CHIP_PARAM_T_ALH:
+            return tr("Address latch enable hold time");
+        case CHIP_PARAM_T_WC:
+            return tr("Write cycle time");
+        case CHIP_PARAM_T_RC:
+            return tr("Read cylce time");
+        case CHIP_PARAM_T_REA:
+            return tr("Read enable access time");
+        }
     }
 
     return QVariant();
