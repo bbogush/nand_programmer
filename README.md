@@ -5,7 +5,7 @@ NANDO is open source NAND programmer based on STM32 processor.
 
 <img src="img/board_v2_0.jpg" width="600">
 
-<img src="img/host_app_v1_0.jpeg">
+<img src="img/host_app_v2_1.jpeg">
 
 ## Features
 - USB interface
@@ -84,3 +84,8 @@ Linux based OS
 ## Schematic and PCB
 - Install KiCad 5.0.1
 - Open ~/dev/nand_programmer/nand_programmer/kicad/nand_programmator.pro
+## Adding new chip
+- Go to Settings->Chip database
+- Press "+" button and fill out parameters from datasheet.
+
+<img src="img/chip_db_settings.jpeg">
