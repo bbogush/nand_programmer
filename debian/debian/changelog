@@ -1,3 +1,9 @@
+nando (2.1.0-1ubuntu2) stable; urgency=medium
+
+  * Implemented chip database. Fixed disconnect of the first connection.
+
+ -- bogdan <bogdan@hp>  Tue, 16 Apr 2019 17:30:45 +0300
+
 nando (2.0.0-1ubuntu1) stable; urgency=medium
 
   * Implemented reading of bad blocks. Implemented skipping of bad blocks

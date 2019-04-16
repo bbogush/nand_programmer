@@ -9,4 +9,10 @@
 - Firmware support of read and write LEDs.
 ### Fixed
 - File-Save operation.
+## [2.1.0] - 2019-04-16
+### Added
+- Chip database.
+### Fixed
+- Disconnect on the first connection.
+
 
