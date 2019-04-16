@@ -23,6 +23,7 @@ NANDO is open source NAND programmer based on STM32 processor.
 - Write speed: 512KBytes/s
 - Read speed: 640KBytes/s
 - Erase speed: 256MBytes/s
+- Extendable chip database
 
 ### Tested chips
 - K9F2G08U0C
