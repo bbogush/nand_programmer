@@ -7,7 +7,11 @@
 #include "stm32.h"
 #include <QDebug>
 
-#define USB_DEV_NAME "/dev/ttyACM0"
+#ifdef Q_OS_LINUX
+  #define USB_DEV_NAME "/dev/ttyACM0"
+#else
+  #define USB_DEV_NAME "COM1"
+#endif
 
 #define SERIAL_PORT_SPEED 4000000
 #define READ_TIMEOUT_MS 100
