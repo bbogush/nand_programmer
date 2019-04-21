@@ -78,6 +78,7 @@ Linux based OS
 ## Build host application
 - Install Qt5.5.1
 - Open ~/dev/nand_programmer/nand_programmer/qt/qt.pro with QtCreator.
+- Go to Projects->Build->Build Steps->Add Build Step->Make. Add "install" to "Make arguments".
 - Build->Run qmake
 - Build->Build All
 - Build->Run
