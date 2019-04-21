@@ -9,11 +9,12 @@
 
 #ifdef Q_OS_LINUX
   #define USB_DEV_NAME "/dev/ttyACM0"
+  #define SERIAL_PORT_SPEED 4000000
 #else
   #define USB_DEV_NAME "COM1"
+  #define SERIAL_PORT_SPEED 115200
 #endif
 
-#define SERIAL_PORT_SPEED 4000000
 #define READ_TIMEOUT_MS 100
 #define ERASE_TIMEOUT_MS 10000
 #define WRITE_TIMEOUT_MS 30000
