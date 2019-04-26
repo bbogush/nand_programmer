@@ -236,10 +236,13 @@ void MainWindow::slotProgReadDeviceIdCompleted(int status)
     idStr.sprintf("0x%02X 0x%02X 0x%02X 0x%02X", chipId.makerId,
         chipId.deviceId, chipId.thirdId, chipId.fourthId);
     ui->deviceValueLabel->setText(idStr);
+
+    qInfo() << QString("ID ").append(idStr).toLatin1().data();
 }
 
 void MainWindow::slotProgReadDeviceId()
 {
+    qInfo() << "Reading chip ID ...";
     connect(prog, SIGNAL(readChipIdCompleted(int)), this,
         SLOT(slotProgReadDeviceIdCompleted(int)));
     prog->readChipId(&chipId);
@@ -264,6 +267,8 @@ void MainWindow::slotProgErase()
         qCritical() << "Chip size is not set";
         return;
     }
+
+    qInfo() << "Erasing chip ...";
 
     connect(prog, SIGNAL(eraseChipCompleted(int)), this,
         SLOT(slotProgEraseCompleted(int)));
@@ -308,6 +313,8 @@ void MainWindow::slotProgRead()
         return;
     }
 
+    qInfo() << "Reading data ...";
+
     connect(prog, SIGNAL(readChipCompleted(int)), this,
         SLOT(slotProgReadCompleted(int)));
 
@@ -348,6 +355,8 @@ void MainWindow::slotProgWrite()
         return;
     }
 
+    qInfo() << "Writing data ...";
+
     connect(prog, SIGNAL(writeChipCompleted(int)), this,
         SLOT(slotProgWriteCompleted(int)));
 
@@ -365,6 +374,8 @@ void MainWindow::slotProgReadBadBlocksCompleted(int status)
 
 void MainWindow::slotProgReadBadBlocks()
 {
+    qInfo() << "Reading bad blocks ...";
+
     connect(prog, SIGNAL(readChipBadBlocksCompleted(int)), this,
         SLOT(slotProgReadBadBlocksCompleted(int)));
 
@@ -379,7 +390,7 @@ void MainWindow::slotProgSelectCompleted(int status)
     if (!status)
     {
         setUiStateSelected(true);
-        qInfo() << "Chip has been selected successfully";
+        qInfo() << "Programmer configured successfully";
     }
     else
         setUiStateSelected(false);
@@ -396,6 +407,8 @@ void MainWindow::slotSelectChip(int selectedChipNum)
         setUiStateSelected(false);
         return;
     }
+
+    qInfo() << "Configuring programmer ...";
 
     connect(prog, SIGNAL(confChipCompleted(int)), this,
         SLOT(slotProgSelectCompleted(int)));
