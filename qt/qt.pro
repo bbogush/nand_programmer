@@ -9,7 +9,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui serialport
+QT += core gui serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -24,7 +24,7 @@ UI_DIR = ../build/ui
 unix:OBJECTS_DIR = ../build/o/unix
 
 SOURCES += main.cpp\
-        main_window.cpp \
+    main_window.cpp \
     programmer.cpp \
     chip_db.cpp \
     logger.cpp \
@@ -36,7 +36,7 @@ SOURCES += main.cpp\
     chip_db_dialog.cpp \
     chip_db_table_model.cpp
 
-HEADERS  += main_window.h \
+HEADERS += main_window.h \
     programmer.h \
     chip_db.h \
     logger.h \
@@ -49,7 +49,7 @@ HEADERS  += main_window.h \
     chip_db_dialog.h \
     chip_db_table_model.h
 
-FORMS    += main_window.ui \
+FORMS += main_window.ui \
     settings_programmer_dialog.ui \
     chip_db_dialog.ui
 
