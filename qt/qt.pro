@@ -54,6 +54,7 @@ FORMS    += main_window.ui \
     chip_db_dialog.ui
 
 QMAKE_CXXFLAGS += -std=c++11 -Wextra -Werror
+mingw:QMAKE_CXXFLAGS += -mno-ms-bitfields
 
 DISTFILES += \
     nando_chip_db.csv
