@@ -9,6 +9,7 @@
 #include "programmer.h"
 #include "buffer_table_model.h"
 #include <QMainWindow>
+#include <QVector>
 
 namespace Ui {
 class MainWindow;
@@ -25,8 +26,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    uint8_t *buffer;
-    uint32_t bufferSize;
+    QVector<uint8_t> buffer;
     BufferTableModel bufferTableModel;
     ChipId chipId;
     ChipDb chipDb;

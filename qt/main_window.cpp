@@ -28,9 +28,6 @@
 
 void MainWindow::initBufTable()
 {
-    buffer = nullptr;
-    bufferSize = 0;
-
     ui->bufferTableView->setModel(&bufferTableModel);
     QHeaderView *verticalHeader = ui->bufferTableView->verticalHeader();
     verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
@@ -43,8 +40,7 @@ void MainWindow::initBufTable()
 void MainWindow::resetBufTable()
 {
     bufferTableModel.setBuffer(nullptr, 0);
-    bufferSize = 0;
-    delete [] buffer;
+    buffer.clear();
 }
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
@@ -89,7 +85,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
 
 MainWindow::~MainWindow()
 {
-    delete [] buffer;
     Logger::putInstance();
     delete ui;
 }
@@ -113,14 +108,8 @@ void MainWindow::slotFileOpen()
 
     resetBufTable();
     fileSize = file.size();
-    buffer = new (std::nothrow) uint8_t[fileSize];
-    if (!buffer)
-    {
-        qCritical() << "Failed to allocate memory for read buffer";
-        goto Exit;
-    }
-
-    ret = file.read((char *)buffer, fileSize);
+    buffer.resize(static_cast<int>(fileSize));
+    ret = file.read(reinterpret_cast<char *>(buffer.data()), fileSize);
     if (ret < 0)
     {
         qCritical() << "Failed to read file:" << fileName << ", error:" <<
@@ -134,8 +123,8 @@ void MainWindow::slotFileOpen()
         goto Exit;
     }
 
-    bufferSize = fileSize;
-    bufferTableModel.setBuffer(buffer, fileSize);
+    bufferTableModel.setBuffer(buffer.data(),
+        static_cast<uint32_t>(buffer.size()));
 
 Exit:
     file.close();
@@ -278,20 +267,18 @@ void MainWindow::slotProgErase()
 
 void MainWindow::slotProgReadCompleted(int status)
 {
-    int index = ui->chipSelectComboBox->currentIndex();
-    uint32_t readSize = chipDb.sizeGetById(CHIP_INDEX2ID(index));
-
     disconnect(prog, SIGNAL(readChipCompleted(int)), this,
         SLOT(slotProgReadCompleted(int)));
 
     if (status)
     {
-        delete [] buffer;
+        buffer.clear();
         return;
     }
 
     qInfo() << "Data has been successfully read";
-    bufferTableModel.setBuffer(buffer, readSize);
+    bufferTableModel.setBuffer(buffer.data(),
+        static_cast<uint32_t>(buffer.size()));
 }
 
 void MainWindow::slotProgRead()
@@ -306,19 +293,15 @@ void MainWindow::slotProgRead()
     }
 
     resetBufTable();
-    buffer = new (std::nothrow) uint8_t[readSize];
-    if (!buffer)
-    {
-        qCritical() << "Failed to allocate memory for read buffer";
-        return;
-    }
+    buffer.clear();
+    buffer.resize(static_cast<int>(readSize));
 
     qInfo() << "Reading data ...";
 
     connect(prog, SIGNAL(readChipCompleted(int)), this,
         SLOT(slotProgReadCompleted(int)));
 
-    prog->readChip(buffer, START_ADDRESS, readSize, true);
+    prog->readChip(buffer.data(), START_ADDRESS, readSize, true);
 }
 
 void MainWindow::slotProgWriteCompleted(int status)
@@ -335,8 +318,9 @@ void MainWindow::slotProgWrite()
     int index;
     QString name;
     uint32_t pageSize;
+    uint32_t bufferSize;
 
-    if (!bufferSize)
+    if (buffer.isEmpty())
     {
         qInfo() << "Write buffer is empty";
         return;
@@ -355,12 +339,19 @@ void MainWindow::slotProgWrite()
         return;
     }
 
+    bufferSize = static_cast<uint32_t>(buffer.size());
+    if (bufferSize & (pageSize - 1))
+    {
+        bufferSize = (bufferSize + pageSize - 1) & ~(pageSize - 1);
+        buffer.resize(static_cast<int>(bufferSize));
+    }
+
     qInfo() << "Writing data ...";
 
     connect(prog, SIGNAL(writeChipCompleted(int)), this,
         SLOT(slotProgWriteCompleted(int)));
 
-    prog->writeChip(buffer, START_ADDRESS, bufferSize, pageSize);
+    prog->writeChip(buffer.data(), START_ADDRESS, bufferSize, pageSize);
 }
 
 void MainWindow::slotProgReadBadBlocksCompleted(int status)
