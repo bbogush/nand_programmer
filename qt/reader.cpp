@@ -10,7 +10,7 @@
 #include <QTextCursor>
 
 #define READ_TIMEOUT 5000
-#define BUF_SIZE 1024
+#define BUF_SIZE 4096
 
 Q_DECLARE_METATYPE(QtMsgType)
 
