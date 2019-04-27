@@ -216,7 +216,7 @@ void MainWindow::slotProgReadDeviceIdCompleted(int status)
 {
     QString idStr;
 
-    disconnect(prog, SIGNAL(readChipCompleted(int)), this,
+    disconnect(prog, SIGNAL(readChipIdCompleted(int)), this,
         SLOT(slotProgReadDeviceIdCompleted(int)));
 
     if (status)
