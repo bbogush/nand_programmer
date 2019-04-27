@@ -5,6 +5,7 @@
 
 #include "reader.h"
 #include "cmd.h"
+#include "err.h"
 #include <QDebug>
 #include <QTextBlock>
 #include <QTextCursor>
@@ -106,7 +107,8 @@ int Reader::handleError(uint8_t *pbuf, uint32_t len)
     if (len < size)
         return 0;
 
-    logErr(QString("Programmer sent error: %1").arg(err->errCode));
+    logErr(QString("Programmer sent error: (%1) %2").arg(err->errCode)
+        .arg(errCode2str(-err->errCode)));
 
     return -1;
 }

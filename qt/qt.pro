@@ -34,7 +34,8 @@ SOURCES += main.cpp\
     settings_programmer_dialog.cpp \
     stm32.cpp \
     chip_db_dialog.cpp \
-    chip_db_table_model.cpp
+    chip_db_table_model.cpp \
+    err.cpp
 
 HEADERS += main_window.h \
     programmer.h \
@@ -47,7 +48,8 @@ HEADERS += main_window.h \
     settings_programmer_dialog.h \
     stm32.h \
     chip_db_dialog.h \
-    chip_db_table_model.h
+    chip_db_table_model.h \
+    err.h
 
 FORMS += main_window.ui \
     settings_programmer_dialog.ui \
