@@ -14,7 +14,7 @@ int Logger::refCount;
 void Logger::logHandler(QtMsgType type, const QMessageLogContext &context ,
     const QString &msg)
 {
-    const char *prefix;
+    const char *prefix = "";
     QString formatMsg;
 
     (void)context;
