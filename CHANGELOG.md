@@ -14,5 +14,10 @@
 - Chip database.
 ### Fixed
 - Disconnect on the first connection.
-
+## [2.2.0] - 2019-04-28
+### Added
+- Windows support.
+- Added description of error codes.
+### Fixed
+- Fixed multiple prints of read ID completed log message.
 

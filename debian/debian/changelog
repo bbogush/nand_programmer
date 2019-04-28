@@ -1,3 +1,9 @@
+nando (2.2.0-1ubuntu3) stable; urgency=medium
+
+  * Added Windows support. Implemented description of error codes.
+
+ -- bogdan <bogdan@hp>  Sun, 28 Apr 2019 17:20:59 +0300
+
 nando (2.1.0-1ubuntu2) stable; urgency=medium
 
   * Implemented chip database. Fixed disconnect of the first connection.

@@ -1,5 +1,5 @@
 BINARY_NAME=nando
-RELEASE=2.1.0
+RELEASE=2.2.0
 FULL_NAME=$BINARY_NAME-$RELEASE
 TAR_NAME=$FULL_NAME.tar.gz
 EMAIL=bogdan.s.bogush@gmail.com
@@ -11,6 +11,9 @@ DEB_RELEASE_DIR=release
 
 # generate private key
 # gpg --gen-key
+
+# change log
+# dch -i
 
 rm -rf $DEB_RELEASE_DIR
 mkdir $DEB_RELEASE_DIR
