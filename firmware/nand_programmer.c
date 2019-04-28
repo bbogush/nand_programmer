@@ -249,6 +249,10 @@ static int _np_cmd_nand_read_id(np_prog_t *prog)
     if (np_comm_cb)
         np_comm_cb->send((uint8_t *)&resp, resp_len);
 
+    DEBUG_PRINT("Chip ID: 0x%x 0x%x 0x%x 0x%x\r\n",
+        resp.nand_id.maker_id, resp.nand_id.device_id, resp.nand_id.third_id,
+        resp.nand_id.fourth_id);
+
     return 0;
 }
 
@@ -699,8 +703,6 @@ static int np_nand_read(uint32_t addr, np_page_t *page,
 {
     uint32_t status;
 
-    DEBUG_PRINT("NAND read at 0x%lx\r\n", addr);    
-    
     status = nand_read_page(page->buf, page->page, chip_info->page_size);
     switch (status)
     {
@@ -858,6 +860,16 @@ static int np_cmd_nand_conf(np_prog_t *prog)
     prog->chip_info.clr_setup_time = conf_cmd->clr_setup_time;
     prog->chip_info.ar_setup_time = conf_cmd->ar_setup_time;
     prog->chip_is_conf = 1;
+
+    DEBUG_PRINT("Page size: %lu\r\n", prog->chip_info.page_size);
+    DEBUG_PRINT("Block size: %lu\r\n", prog->chip_info.block_size);
+    DEBUG_PRINT("Size: %lu\r\n", prog->chip_info.size);
+    DEBUG_PRINT("Setup time: %d\r\n", prog->chip_info.setup_time);
+    DEBUG_PRINT("Wait setup time: %d\r\n", prog->chip_info.wait_setup_time);
+    DEBUG_PRINT("Hold setup time: %d\r\n", prog->chip_info.hold_setup_time);
+    DEBUG_PRINT("HiZ setup time: %d\r\n", prog->chip_info.hi_z_setup_time);
+    DEBUG_PRINT("CLR setip time: %d\r\n", prog->chip_info.clr_setup_time);
+    DEBUG_PRINT("AR setip time: %d\r\n", prog->chip_info.ar_setup_time);
 
     nand_init(&prog->chip_info);
 
