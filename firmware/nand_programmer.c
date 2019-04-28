@@ -599,7 +599,7 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
     {
         while (prog->skip_bb && nand_bad_block_table_lookup(prog->addr))
         {
-            DEBUG_PRINT("Skipped bad block at 0x%lx\r\n", addr);
+            DEBUG_PRINT("Skipped bad block at 0x%lx\r\n", prog->addr);
             if (np_send_bad_block_info(prog->addr, prog->chip_info.block_size,
                 true))
             {
