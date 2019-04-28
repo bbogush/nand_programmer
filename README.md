@@ -9,7 +9,7 @@ NANDO is open source NAND programmer based on STM32 processor.
 
 ## Features
 - USB interface
-- PC client software for Linux.
+- PC client software for Linux & Windows.
 - TSOP-48 socket for NAND chip
 - 8 bit NAND interface
 - 3.3V NAND power supply
@@ -29,7 +29,7 @@ NANDO is open source NAND programmer based on STM32 processor.
 - K9F2G08U0C
 
 ## Release binaries
-You can download host application deb package for Ubuntu, firmware binary for
+You can download host application deb package for Ubuntu/Windows installer, firmware binary for
 STM32, schematic and gerber files from here:
 
 https://drive.google.com/drive/folders/1d5hP6MKbkEBGQe_xIRl4-A5LPt_-9QIN
