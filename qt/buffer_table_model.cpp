@@ -35,9 +35,8 @@ QVariant BufferTableModel::data(const QModelIndex &index, int role) const
         case HEADER_ADDRESS_COL:
             return QString("%1").arg(index.row() * ROW_DATA_SIZE, 8, 16,
                 QChar('0'));
-            break;
         case HEADER_HEX_COL:
-            start = index.row() * ROW_DATA_SIZE;
+            start = static_cast<uint32_t>(index.row()) * ROW_DATA_SIZE;
             end = start + ROW_DATA_SIZE;
 
             for (uint32_t i = start; i < end && i < bufSize; i++)
@@ -47,7 +46,7 @@ QVariant BufferTableModel::data(const QModelIndex &index, int role) const
             }
             return hexString;
         case HEADER_ANCII_COL:
-            start = index.row() * ROW_DATA_SIZE;
+            start = static_cast<uint32_t>(index.row()) * ROW_DATA_SIZE;
             end = start + ROW_DATA_SIZE;
 
             for (uint32_t i = start; i < end && i < bufSize; i++)

@@ -63,7 +63,7 @@ class ChipDb : public QObject
     void writeToCvs();
 
 public:
-    explicit ChipDb(QObject *parent = 0);
+    explicit ChipDb(QObject *parent = nullptr);
     QStringList getNames();
     ChipInfo *chipInfoGetById(int id);
     uint32_t pageSizeGetById(int id);

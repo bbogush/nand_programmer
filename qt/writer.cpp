@@ -30,15 +30,15 @@ void Writer::init(const QString &portName, qint32 baudRate, uint8_t *buf,
 
 int Writer::write(uint8_t *data, uint32_t dataLen)
 {
-    int ret;
+    qint64 ret;
 
-    ret = serialPort->write((char *)data, dataLen);
+    ret = serialPort->write(reinterpret_cast<const char *>(data), dataLen);
     if (ret < 0)
     {
         logErr(QString("Failed to write: %1").arg(serialPort->errorString()));
         return -1;
     }
-    else if ((uint32_t)ret < dataLen)
+    else if (static_cast<uint32_t>(ret) < dataLen)
     {
         logErr(QString("Data was partialy written, returned %1, expected %2")
             .arg(ret).arg(dataLen));
@@ -50,7 +50,7 @@ int Writer::write(uint8_t *data, uint32_t dataLen)
 
 int Writer::read(uint8_t *data, uint32_t dataLen)
 {
-    int ret;
+    qint64 ret;
 
     if (!serialPort->waitForReadyRead(READ_ACK_TIMEOUT))
     {
@@ -58,27 +58,27 @@ int Writer::read(uint8_t *data, uint32_t dataLen)
         return -1;
     }
 
-    ret = serialPort->read((char *)data, dataLen);
+    ret = serialPort->read(reinterpret_cast<char *>(data), dataLen);
     if (ret < 0)
     {
         logErr("Failed to read ACK");
         return -1;
     }
 
-    return ret;
+    return static_cast<int>(ret);
 }
 
 int Writer::handleWriteAck(RespHeader *header, uint32_t len)
 {
     int size = sizeof(RespWriteAck);
 
-    if (len < (uint32_t)size)
+    if (len < static_cast<uint32_t>(size))
     {
         logErr(QString("Write ack response is too short %1").arg(len));
         return -1;
     }
 
-    bytesAcked = ((RespWriteAck *)header)->ackBytes;
+    bytesAcked = (reinterpret_cast<RespWriteAck *>(header))->ackBytes;
 
     if (bytesAcked != bytesWritten)
     {
@@ -93,11 +93,11 @@ int Writer::handleWriteAck(RespHeader *header, uint32_t len)
 int Writer::handleBadBlock(RespHeader *header, uint32_t len, bool isSkipped)
 {
     int size = sizeof(RespBadBlock);
-    RespBadBlock *badBlock = (RespBadBlock *)header;
+    RespBadBlock *badBlock = reinterpret_cast<RespBadBlock *>(header);
     QString message = isSkipped ? "Skipped bad block at 0x%1 size 0x%2" :
         "Bad block at 0x%1 size 0x%2";
 
-    if (len < (uint32_t)size)
+    if (len < static_cast<uint32_t>(size))
         return 0;
 
     logInfo(message.arg(badBlock->addr, 8, 16, QLatin1Char('0'))
@@ -108,10 +108,10 @@ int Writer::handleBadBlock(RespHeader *header, uint32_t len, bool isSkipped)
 
 int Writer::handleError(RespHeader *header, uint32_t len)
 {
-    RespError *err = (RespError *)header;
+    RespError *err = reinterpret_cast<RespError *>(header);
     int size = sizeof(RespError);
 
-    if (len < (uint32_t)size)
+    if (len < static_cast<uint32_t>(size))
         return 0;
 
     logErr(QString("Programmer sent error: (%1) %2").arg(err->errCode)
@@ -122,7 +122,7 @@ int Writer::handleError(RespHeader *header, uint32_t len)
 
 int Writer::handleStatus(uint8_t *pbuf, uint32_t len)
 {
-    RespHeader *header = (RespHeader *)pbuf;
+    RespHeader *header = reinterpret_cast<RespHeader *>(pbuf);
     uint8_t status = header->info;
 
     switch (status)
@@ -145,7 +145,7 @@ int Writer::handleStatus(uint8_t *pbuf, uint32_t len)
 
 int Writer::handlePacket(uint8_t *pbuf, uint32_t len)
 {
-    RespHeader *header = (RespHeader *)pbuf;
+    RespHeader *header = reinterpret_cast<RespHeader *>(pbuf);
 
     if (len < sizeof(RespHeader))
         return 0;
@@ -171,7 +171,7 @@ int Writer::handlePackets(uint8_t *pbuf, uint32_t len)
             return -1;
 
         if (ret)
-            offset += ret;
+            offset += static_cast<uint32_t>(ret);
         else
         {
             memmove(pbuf, pbuf + offset, len - offset);
@@ -180,7 +180,7 @@ int Writer::handlePackets(uint8_t *pbuf, uint32_t len)
     }
     while (offset < len);
 
-    return len - offset;
+    return static_cast<int>(len - offset);
 }
 
 int Writer::readData()
@@ -190,11 +190,14 @@ int Writer::readData()
 
     do
     {
-        if ((len = read(pbuf + offset, BUF_SIZE - offset)) < 0)
+        if ((len = read(pbuf + offset,
+            static_cast<uint32_t>(BUF_SIZE - offset))) < 0)
+        {
             return -1;
+        }
         len += offset;
 
-        if ((offset = handlePackets(pbuf, len)) < 0)
+        if ((offset = handlePackets(pbuf, static_cast<uint32_t>(len))) < 0)
             return -1;
     }
     while (offset);
@@ -211,8 +214,11 @@ int Writer::writeStart()
     writeStartCmd.len = len;
     writeStartCmd.flags.skipBB = skipBB;
 
-    if (write((uint8_t *)&writeStartCmd, sizeof(WriteStartCmd)))
+    if (write(reinterpret_cast<uint8_t *>(&writeStartCmd),
+        sizeof(WriteStartCmd)))
+    {
         return -1;
+    }
 
     if (readData())
         return -1;
@@ -223,7 +229,7 @@ int Writer::writeStart()
 int Writer::writeData()
 {
     uint8_t pbuf[BUF_SIZE];
-    WriteDataCmd *writeDataCmd = (WriteDataCmd *)pbuf;
+    WriteDataCmd *writeDataCmd = reinterpret_cast<WriteDataCmd *>(pbuf);
     uint32_t dataLen, dataLenMax, headerLen, pageLim;
 
     writeDataCmd->cmd.code = CMD_NAND_WRITE_D;
@@ -238,7 +244,7 @@ int Writer::writeData()
         if (dataLen + bytesWritten > pageLim)
             dataLen = pageLim - bytesWritten;
 
-        writeDataCmd->len = dataLen;
+        writeDataCmd->len = static_cast<uint8_t>(dataLen);
         memcpy(pbuf + headerLen, buf + bytesWritten, dataLen);
         if (write(pbuf, headerLen + dataLen))
             return -1;
@@ -262,7 +268,7 @@ int Writer::writeEnd()
 
     writeEndCmd.cmd.code = CMD_NAND_WRITE_E;
 
-    if (write((uint8_t *)&writeEndCmd, sizeof(WriteEndCmd)))
+    if (write(reinterpret_cast<uint8_t *>(&writeEndCmd), sizeof(WriteEndCmd)))
         return -1;
 
     if (readData())

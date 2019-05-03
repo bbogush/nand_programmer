@@ -16,7 +16,8 @@
 Q_DECLARE_METATYPE(QtMsgType)
 
 void Reader::init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
-    uint32_t rlen, uint8_t *wbuf, uint32_t wlen, bool isSkipBB, bool isReadLess)
+    uint32_t rlen, const uint8_t *wbuf, uint32_t wlen, bool isSkipBB,
+    bool isReadLess)
 {
     this->portName = portName;
     this->baudRate = baudRate;
@@ -30,17 +31,17 @@ void Reader::init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
     bytesRead = 0;
 }
 
-int Reader::write(uint8_t *data, uint32_t len)
+int Reader::write(const uint8_t *data, uint32_t len)
 {
-    int ret;
+    qint64 ret;
 
-    ret = serialPort->write((char *)data, len);
+    ret = serialPort->write(reinterpret_cast<const char *>(data), len);
     if (ret < 0)
     {
         logErr(QString("Failed to write: %1").arg(serialPort->errorString()));
         return -1;
     }
-    else if ((uint32_t)ret < len)
+    else if (ret < len)
     {
         logErr(QString("Data was partialy written, returned %1, expected %2")
             .arg(ret).arg(len));
@@ -57,7 +58,7 @@ int Reader::readStart()
 
 int Reader::read(uint8_t *pbuf, uint32_t len)
 {
-    int ret;
+    qint64 ret;
 
     if (!serialPort->waitForReadyRead(READ_TIMEOUT))
     {
@@ -65,19 +66,19 @@ int Reader::read(uint8_t *pbuf, uint32_t len)
         return -1;
     }
 
-    ret = serialPort->read((char *)pbuf, len);
+    ret = serialPort->read(reinterpret_cast<char *>(pbuf), len);
     if (ret < 0)
     {
         logErr("Failed to read data");
         return -1;
     }
 
-    return ret;
+    return static_cast<int>(ret);
 }
 
 int Reader::handleBadBlock(uint8_t *pbuf, uint32_t len, bool isSkipped)
 {
-    RespBadBlock *badBlock = (RespBadBlock *)pbuf;
+    RespBadBlock *badBlock = reinterpret_cast<RespBadBlock *>(pbuf);
     size_t size = sizeof(RespBadBlock);
     QString message = isSkipped ? "Skipped bad block at 0x%1 size 0x%2" :
         "Bad block at 0x%1 size 0x%2";
@@ -96,12 +97,12 @@ int Reader::handleBadBlock(uint8_t *pbuf, uint32_t len, bool isSkipped)
             bytesRead += badBlock->size;
     }
 
-    return size;
+    return static_cast<int>(size);
 }
 
 int Reader::handleError(uint8_t *pbuf, uint32_t len)
 {
-    RespError *err = (RespError *)pbuf;
+    RespError *err = reinterpret_cast<RespError *>(pbuf);
     size_t size = sizeof(RespError);
 
     if (len < size)
@@ -115,7 +116,7 @@ int Reader::handleError(uint8_t *pbuf, uint32_t len)
 
 int Reader::handleStatus(uint8_t *pbuf, uint32_t len)
 {
-    RespHeader *header = (RespHeader *)pbuf;
+    RespHeader *header = reinterpret_cast<RespHeader *>(pbuf);
 
     switch (header->info)
     {
@@ -140,7 +141,7 @@ int Reader::handleStatus(uint8_t *pbuf, uint32_t len)
 
 int Reader::handleData(uint8_t *pbuf, uint32_t len)
 {
-    RespHeader *header = (RespHeader *)pbuf;
+    RespHeader *header = reinterpret_cast<RespHeader *>(pbuf);
     uint8_t dataSize = header->info;
     size_t headerSize = sizeof(RespHeader), packetSize = headerSize + dataSize;
 
@@ -164,12 +165,12 @@ int Reader::handleData(uint8_t *pbuf, uint32_t len)
     readOffset += dataSize;
     bytesRead += dataSize;
 
-    return packetSize;
+    return static_cast<int>(packetSize);
 }
 
 int Reader::handlePacket(uint8_t *pbuf, uint32_t len)
 {
-    RespHeader *header = (RespHeader *)pbuf;
+    RespHeader *header = reinterpret_cast<RespHeader *>(pbuf);
 
     if (len < sizeof(RespHeader))
         return 0;
@@ -185,8 +186,6 @@ int Reader::handlePacket(uint8_t *pbuf, uint32_t len)
             .arg(header->code));
         return -1;
     }
-
-    return 0;
 }
 
 int Reader::handlePackets(uint8_t *pbuf, uint32_t len)
@@ -199,7 +198,7 @@ int Reader::handlePackets(uint8_t *pbuf, uint32_t len)
             return -1;
 
         if (ret)
-            offset += ret;
+            offset += static_cast<uint32_t>(ret);
         else
         {
             memmove(pbuf, pbuf + offset, len - offset);
@@ -208,7 +207,7 @@ int Reader::handlePackets(uint8_t *pbuf, uint32_t len)
     }
     while (offset < len);
 
-    return len - offset;
+    return static_cast<int>(len - offset);
 }
 
 int Reader::readData()
@@ -218,11 +217,14 @@ int Reader::readData()
 
     do
     {
-        if ((len = read(pbuf + offset, BUF_SIZE - offset)) < 0)
+        if ((len = read(pbuf + offset,
+            BUF_SIZE - static_cast<uint32_t>(offset))) < 0)
+        {
             return -1;
+        }
         len += offset;
 
-        if ((offset = handlePackets(pbuf, len)) < 0)
+        if ((offset = handlePackets(pbuf, static_cast<uint32_t>(len))) < 0)
             return -1;
 
         if (!bytesRead)

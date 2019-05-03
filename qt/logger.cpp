@@ -64,7 +64,7 @@ Logger::Logger()
 
 Logger::~Logger()
 {
-    qInstallMessageHandler(0);
+    qInstallMessageHandler(nullptr);
 }
 
 Logger *Logger::getInstance()
@@ -87,8 +87,8 @@ void Logger::putInstance()
     if (!--refCount && logger)
     {
         delete logger;
-        logger = 0;
-        logTextEdit = 0;
+        logger = nullptr;
+        logTextEdit = nullptr;
     }
 }
 

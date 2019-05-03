@@ -12,7 +12,7 @@ class SettingsProgrammerDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit SettingsProgrammerDialog(QWidget *parent = 0);
+    explicit SettingsProgrammerDialog(QWidget *parent = nullptr);
     ~SettingsProgrammerDialog();
     void setUsbDevName(const QString &name);
     QString getUsbDevName();

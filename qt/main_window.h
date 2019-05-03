@@ -21,7 +21,7 @@ class MainWindow : public QMainWindow
 
     Programmer *prog;
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
 private:

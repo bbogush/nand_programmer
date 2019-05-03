@@ -34,7 +34,7 @@ class Programmer : public QObject
 public:
     QByteArray writeData;
 
-    explicit Programmer(QObject *parent = 0);
+    explicit Programmer(QObject *parent = nullptr);
     ~Programmer();
     int connect();
     void disconnect();

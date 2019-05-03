@@ -115,10 +115,11 @@ void Programmer::readChipId(ChipId *chipId)
     /* Serial port object cannot be used in other thread */
     serialPortDisconnect();
     writeData.clear();
-    writeData.append((const char *)&cmd, sizeof(cmd));
-    reader.init(usbDevName, SERIAL_PORT_SPEED, (uint8_t *)chipId,
-        sizeof(ChipId), (uint8_t *)writeData.constData(), writeData.size(),
-        false, false);
+    writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
+    reader.init(usbDevName, SERIAL_PORT_SPEED,
+        reinterpret_cast<uint8_t *>(chipId), sizeof(ChipId),
+        reinterpret_cast<const uint8_t *>(writeData.constData()),
+        static_cast<uint32_t>(writeData.size()), false, false);
     reader.start();
 }
 
@@ -142,9 +143,11 @@ void Programmer::eraseChip(uint32_t addr, uint32_t len)
     /* Serial port object cannot be used in other thread */
     serialPortDisconnect();
     writeData.clear();
-    writeData.append((const char *)&eraseCmd, sizeof(eraseCmd));
-    reader.init(usbDevName, SERIAL_PORT_SPEED, NULL, 0,
-        (uint8_t *)writeData.constData(), writeData.size(), skipBB, false);
+    writeData.append(reinterpret_cast<const char *>(&eraseCmd),
+        sizeof(eraseCmd));
+    reader.init(usbDevName, SERIAL_PORT_SPEED, nullptr, 0,
+        reinterpret_cast<const uint8_t *>(writeData.constData()),
+        static_cast<uint32_t>(writeData.size()), skipBB, false);
     reader.start();
 }
 
@@ -167,9 +170,10 @@ void Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len,
     /* Serial port object cannot be used in other thread */
     serialPortDisconnect();
     writeData.clear();
-    writeData.append((const char *)&readCmd, sizeof(readCmd));
+    writeData.append(reinterpret_cast<const char *>(&readCmd), sizeof(readCmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED, buf, len,
-        (uint8_t *)writeData.constData(), writeData.size(), skipBB,
+        reinterpret_cast<const uint8_t *>(writeData.constData()),
+        static_cast<uint32_t>(writeData.size()), skipBB,
         isReadLess);
     reader.start();
 }
@@ -211,9 +215,10 @@ void Programmer::readChipBadBlocks()
     /* Serial port object cannot be used in other thread */
     serialPortDisconnect();
     writeData.clear();
-    writeData.append((const char *)&cmd, sizeof(cmd));
-    reader.init(usbDevName, SERIAL_PORT_SPEED, NULL, 0,
-        (uint8_t *)writeData.constData(), writeData.size(), false, false);
+    writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
+    reader.init(usbDevName, SERIAL_PORT_SPEED, nullptr, 0,
+        reinterpret_cast<const uint8_t *>(writeData.constData()),
+        static_cast<uint32_t>(writeData.size()), false, false);
     reader.start();
 }
 
@@ -250,9 +255,10 @@ void Programmer::confChip(ChipInfo *chipInfo)
     /* Serial port object cannot be used in other thread */
     serialPortDisconnect();
     writeData.clear();
-    writeData.append((const char *)&confCmd, sizeof(confCmd));
-    reader.init(usbDevName, SERIAL_PORT_SPEED, NULL, 0,
-        (uint8_t *)writeData.constData(), writeData.size(), false, false);
+    writeData.append(reinterpret_cast<const char *>(&confCmd), sizeof(confCmd));
+    reader.init(usbDevName, SERIAL_PORT_SPEED, nullptr, 0,
+        reinterpret_cast<const uint8_t *>(writeData.constData()),
+        static_cast<uint32_t>(writeData.size()), false, false);
     reader.start();
 }
 

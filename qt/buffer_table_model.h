@@ -22,7 +22,7 @@ class BufferTableModel: public QAbstractTableModel
     uint32_t bufSize;
 
 public:
-    BufferTableModel(QObject *parent = 0);
+    BufferTableModel(QObject *parent = nullptr);
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const
         override;
