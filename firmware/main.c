@@ -15,7 +15,8 @@
 int main()
 {
     uart_init();
-    printf("\r\nNAND programmer ver: "SW_VERSION"\r\n");
+    printf("\r\nNAND programmer ver: %d.%d.%d\r\n", SW_VERSION_MAJOR,
+        SW_VERSION_MINOR, SW_VERSION_BUILD);
 
     printf("JTAG init...");
     jtag_init();

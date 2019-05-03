@@ -27,6 +27,7 @@ class Programmer : public QObject
     Reader reader;
     bool isConn;
     bool skipBB;
+    FwVersion fwVersion;
 
     int serialPortConnect();
     void serialPortDisconnect();
@@ -50,8 +51,10 @@ public:
         uint32_t pageSize);
     void readChipBadBlocks();
     void confChip(ChipInfo *chipInfo);
+    QString fwVersionToString(FwVersion fwVersion);
 
 signals:
+    void connectCompleted(int ret);
     void readChipIdCompleted(int ret);
     void writeChipCompleted(int ret);
     void readChipCompleted(int ret);
@@ -67,6 +70,7 @@ private slots:
     void readChipBadBlocksCb(int ret);
     void confChipCb(int ret);
     void logCb(QtMsgType msgType, QString msg);
+    void connectCb(int ret);
 };
 
 #endif // PROGRAMMER_H

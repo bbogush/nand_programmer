@@ -194,17 +194,28 @@ void MainWindow::setUiStateSelected(bool isSelected)
     ui->actionReadBadBlocks->setEnabled(isSelected);
 }
 
+void MainWindow::slotProgConnectCompleted(int status)
+{
+    disconnect(prog, SIGNAL(connectCompleted(int)), this,
+        SLOT(slotProgConnectCompleted(int)));
+
+    if (status)
+        return;
+
+    qInfo() << "Connected to programmer";
+    setUiStateConnected(true);
+    ui->actionConnect->setText(tr("Disconnect"));
+}
+
 void MainWindow::slotProgConnect()
 {
     if (!prog->isConnected())
     {
         if (!prog->connect())
-            qInfo() << "Connected to programmer";
-        else
-            return;
-
-        setUiStateConnected(true);
-        ui->actionConnect->setText(tr("Disconnect"));
+        {
+            connect(prog, SIGNAL(connectCompleted(int)), this,
+                SLOT(slotProgConnectCompleted(int)));
+        }
     }
     else
     {

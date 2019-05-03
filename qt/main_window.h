@@ -38,6 +38,7 @@ private:
     void updateChipList();
 
 private slots:
+    void slotProgConnectCompleted(int status);
     void slotProgReadDeviceIdCompleted(int status);
     void slotProgReadCompleted(int status);
     void slotProgWriteCompleted(int status);

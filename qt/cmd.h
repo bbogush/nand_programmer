@@ -13,6 +13,7 @@ enum
     CMD_NAND_WRITE_E = 0x05,
     CMD_NAND_CONF    = 0x06,
     CMD_NAND_READ_BB = 0x07,
+    CMD_VERSION_GET  = 0x08,
 };
 
 typedef struct __attribute__((__packed__))
@@ -90,7 +91,12 @@ typedef enum
     STATUS_BB_SKIP   = 0x04,
 } StatusData;
 
-
+typedef struct __attribute__((__packed__))
+{
+    uint8_t major;
+    uint8_t minor;
+    uint16_t build;
+} FwVersion;
 
 typedef struct __attribute__((__packed__))
 {
@@ -106,6 +112,12 @@ typedef struct __attribute__((__packed__))
     uint8_t info;
     uint8_t data[];
 } RespHeader;
+
+typedef struct __attribute__((__packed__))
+{
+    RespHeader header;
+    FwVersion version;
+} RespVersion;
 
 typedef struct __attribute__((__packed__))
 {

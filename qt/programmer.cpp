@@ -56,12 +56,43 @@ void Programmer::serialPortDisconnect()
     serialPort.close();
 }
 
+void Programmer::connectCb(int ret)
+{
+    QObject::disconnect(&reader, SIGNAL(result(int)), this,
+        SLOT(connectCb(int)));
+
+    if (ret < 0)
+    {
+        qCritical() << "Failed to read firmware version";
+        return;
+    }
+
+    emit connectCompleted(ret);
+
+    isConn = true;
+    qInfo() << "Firmware version: " <<
+        fwVersionToString(fwVersion).toLatin1().data();
+}
+
 int Programmer::connect()
 {
+    Cmd cmd = { .code = CMD_VERSION_GET };
+
     if (serialPortConnect())
         return -1;
 
-    isConn = true;
+    QObject::connect(&reader, SIGNAL(result(int)), this,
+        SLOT(connectCb(int)));
+
+    /* Serial port object cannot be used in other thread */
+    serialPortDisconnect();
+    writeData.clear();
+    writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
+    reader.init(usbDevName, SERIAL_PORT_SPEED,
+        reinterpret_cast<uint8_t *>(&fwVersion), sizeof(fwVersion),
+        reinterpret_cast<const uint8_t *>(writeData.constData()),
+        static_cast<uint32_t>(writeData.size()), false, false);
+    reader.start();
 
     return 0;
 }
@@ -281,6 +312,12 @@ void Programmer::logCb(QtMsgType msgType, QString msg)
     default:
         break;
     }
+}
+
+QString Programmer::fwVersionToString(FwVersion fwVersion)
+{
+    return QString("%1.%2.%3").arg(fwVersion.major).
+        arg(fwVersion.minor).arg(fwVersion.build);
 }
 
 

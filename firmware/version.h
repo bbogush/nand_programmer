@@ -1,6 +1,8 @@
 #ifndef _VERSION_H_
 #define _VERSION_H_
 
-#define SW_VERSION "2.2.0"
+#define SW_VERSION_MAJOR 2
+#define SW_VERSION_MINOR 2
+#define SW_VERSION_BUILD 0
 
 #endif

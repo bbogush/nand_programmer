@@ -9,6 +9,7 @@
 #include "chip_info.h"
 #include "led.h"
 #include "log.h"
+#include "version.h"
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
@@ -31,7 +32,8 @@ typedef enum
     NP_CMD_NAND_WRITE_E = 0x05,
     NP_CMD_NAND_CONF    = 0x06,
     NP_CMD_NAND_READ_BB = 0x07,
-    NP_CMD_NAND_LAST    = 0x08,
+    NP_CMD_VERSION_GET  = 0x08,
+    NP_CMD_NAND_LAST    = 0x09,
 } np_cmd_code_t;
 
 enum
@@ -159,6 +161,19 @@ typedef struct __attribute__((__packed__))
     np_resp_t header;
     uint8_t err_code;
 } np_resp_err_t;
+
+typedef struct __attribute__((__packed__))
+{
+    uint8_t major;
+    uint8_t minor;
+    uint16_t build;
+} version_t;
+
+typedef struct __attribute__((__packed__))
+{
+    np_resp_t header;
+    version_t version;
+} np_resp_version_t;
 
 typedef struct
 {
@@ -908,6 +923,25 @@ int np_cmd_read_bad_blocks(np_prog_t *prog)
     return np_send_ok_status();
 }
 
+int np_cmd_version_get(np_prog_t *prog)
+{
+    np_resp_version_t resp;
+    size_t resp_len = sizeof(resp);
+
+    DEBUG_PRINT("Read version command\r\n");
+
+    resp.header.code = NP_RESP_DATA;
+    resp.header.info = resp_len - sizeof(resp.header);
+    resp.version.major = SW_VERSION_MAJOR;
+    resp.version.minor = SW_VERSION_MINOR;
+    resp.version.build = SW_VERSION_BUILD;
+
+    if (np_comm_cb)
+        np_comm_cb->send((uint8_t *)&resp, resp_len);
+
+    return 0;
+}
+
 static np_cmd_handler_t cmd_handler[] =
 {
     { NP_CMD_NAND_READ_ID, np_cmd_nand_read_id },
@@ -918,6 +952,7 @@ static np_cmd_handler_t cmd_handler[] =
     { NP_CMD_NAND_WRITE_E, np_cmd_nand_write },
     { NP_CMD_NAND_CONF, np_cmd_nand_conf },
     { NP_CMD_NAND_READ_BB, np_cmd_read_bad_blocks },
+    { NP_CMD_VERSION_GET, np_cmd_version_get },
 };
 
 static bool np_cmd_is_valid(np_cmd_code_t code)
@@ -929,7 +964,8 @@ static int np_cmd_handler(np_prog_t *prog)
 {
     np_cmd_t *cmd = (np_cmd_t *)prog->rx_buf;
 
-    if (!prog->chip_is_conf && cmd->code != NP_CMD_NAND_CONF)
+    if (!prog->chip_is_conf && cmd->code != NP_CMD_NAND_CONF &&
+        cmd->code != NP_CMD_VERSION_GET)
     {
         ERROR_PRINT("Chip is not configured\r\n");
         return NP_ERR_CHIP_NOT_CONF;
