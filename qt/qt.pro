@@ -35,7 +35,8 @@ SOURCES += main.cpp\
     stm32.cpp \
     chip_db_dialog.cpp \
     chip_db_table_model.cpp \
-    err.cpp
+    err.cpp \
+    about_dialog.cpp
 
 HEADERS += main_window.h \
     programmer.h \
@@ -49,11 +50,14 @@ HEADERS += main_window.h \
     stm32.h \
     chip_db_dialog.h \
     chip_db_table_model.h \
-    err.h
+    err.h \
+    about_dialog.h \
+    version.h
 
 FORMS += main_window.ui \
     settings_programmer_dialog.ui \
-    chip_db_dialog.ui
+    chip_db_dialog.ui \
+    about_dialog.ui
 
 QMAKE_CXXFLAGS += -std=c++11 -Wextra -Werror
 mingw:QMAKE_CXXFLAGS += -mno-ms-bitfields

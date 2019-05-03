@@ -57,6 +57,7 @@ public slots:
     void slotSelectChip(int selectedChipNum);
     void slotSettingsProgrammer();
     void slotSettingsChipDb();
+    void slotAboutDialog();
 };
 
 #endif // MAIN_WINDOW_H

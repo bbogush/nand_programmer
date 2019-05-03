@@ -9,6 +9,7 @@
 #include "chip_db_dialog.h"
 #include "chip_db.h"
 #include "logger.h"
+#include "about_dialog.h"
 #include <QDebug>
 #include <QFileDialog>
 #include <QFile>
@@ -81,6 +82,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotSettingsProgrammer()));
     connect(ui->actionChipDb, SIGNAL(triggered()), this,
         SLOT(slotSettingsChipDb()));
+    connect(ui->actionAbout, SIGNAL(triggered()), this,
+        SLOT(slotAboutDialog()));
 }
 
 MainWindow::~MainWindow()
@@ -448,4 +451,11 @@ void MainWindow::updateChipList()
             ui->chipSelectComboBox->addItem(str);
     }
     ui->chipSelectComboBox->setCurrentIndex(CHIP_INDEX_DEFAULT);
+}
+
+void MainWindow::slotAboutDialog()
+{
+    AboutDialog aboutDialog(this);
+
+    aboutDialog.exec();
 }
