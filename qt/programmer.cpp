@@ -76,7 +76,7 @@ void Programmer::connectCb(int ret)
 
 int Programmer::connect()
 {
-    Cmd cmd = { .code = CMD_VERSION_GET };
+    Cmd cmd;
 
     if (serialPortConnect())
         return -1;
@@ -84,6 +84,8 @@ int Programmer::connect()
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(connectCb(int)));
+
+    cmd.code = CMD_VERSION_GET;
 
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
@@ -135,10 +137,12 @@ void Programmer::readChipIdCb(int ret)
 
 void Programmer::readChipId(ChipId *chipId)
 {
-    Cmd cmd = { .code = CMD_NAND_READ_ID };
+    Cmd cmd;
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(readChipIdCb(int)));
+
+    cmd.code = CMD_NAND_READ_ID;
 
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
@@ -158,12 +162,15 @@ void Programmer::eraseChipCb(int ret)
 
 void Programmer::eraseChip(uint32_t addr, uint32_t len)
 {
-    Cmd cmd = { .code = CMD_NAND_ERASE };
-    EraseCmd eraseCmd = { .cmd = cmd, .addr = addr, .len = len,
-        .flags = { .skipBB = skipBB } };
+    EraseCmd eraseCmd;
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(eraseChipCb(int)));
+
+    eraseCmd.cmd.code = CMD_NAND_ERASE;
+    eraseCmd.addr = addr;
+    eraseCmd.len = len;
+    eraseCmd.flags.skipBB = skipBB;
 
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&eraseCmd),
@@ -183,11 +190,14 @@ void Programmer::readCb(int ret)
 void Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len,
     bool isReadLess)
 {
-    Cmd cmd = { .code = CMD_NAND_READ };
-    ReadCmd readCmd = { .cmd = cmd, .addr = addr, .len = len,
-        .flags = { .skipBB = skipBB} };
+    ReadCmd readCmd;
 
     QObject::connect(&reader, SIGNAL(result(int)), this, SLOT(readCb(int)));
+
+    readCmd.cmd.code = CMD_NAND_READ;
+    readCmd.addr = addr;
+    readCmd.len = len;
+    readCmd.flags.skipBB = skipBB;
 
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&readCmd), sizeof(readCmd));
@@ -223,10 +233,12 @@ void Programmer::readChipBadBlocksCb(int ret)
 
 void Programmer::readChipBadBlocks()
 {
-    Cmd cmd = { .code = CMD_NAND_READ_BB };
+    Cmd cmd;
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(readChipBadBlocksCb(int)));
+
+    cmd.code = CMD_NAND_READ_BB;
 
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
@@ -247,11 +259,10 @@ void Programmer::confChip(ChipInfo *chipInfo)
 {
     ConfCmd confCmd;
     StmParams params;
-    Cmd cmd = { .code = CMD_NAND_CONF };
 
     chipInfoToStmParams(chipInfo, &params);
 
-    confCmd.cmd = cmd;
+    confCmd.cmd.code = CMD_NAND_CONF;
     confCmd.pageSize = chipInfo->params[CHIP_PARAM_PAGE_SIZE];
     confCmd.blockSize = chipInfo->params[CHIP_PARAM_BLOCK_SIZE];
     confCmd.size = chipInfo->params[CHIP_PARAM_SIZE];
