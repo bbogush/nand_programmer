@@ -80,12 +80,11 @@ int Programmer::connect()
 
     if (serialPortConnect())
         return -1;
+    serialPortDisconnect();
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(connectCb(int)));
 
-    /* Serial port object cannot be used in other thread */
-    serialPortDisconnect();
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED,
@@ -99,7 +98,6 @@ int Programmer::connect()
 
 void Programmer::disconnect()
 {
-    serialPortDisconnect();
     isConn = false;
 }
 
@@ -131,7 +129,6 @@ void Programmer::setSkipBB(bool skip)
 void Programmer::readChipIdCb(int ret)
 {
     emit readChipIdCompleted(ret);
-    serialPortConnect();
     QObject::disconnect(&reader, SIGNAL(result(int)), this,
         SLOT(readChipIdCb(int)));
 }
@@ -143,8 +140,6 @@ void Programmer::readChipId(ChipId *chipId)
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(readChipIdCb(int)));
 
-    /* Serial port object cannot be used in other thread */
-    serialPortDisconnect();
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED,
@@ -158,7 +153,6 @@ void Programmer::eraseChipCb(int ret)
 {
     QObject::disconnect(&reader, SIGNAL(result(int)), this,
         SLOT(eraseChipCb(int)));
-    serialPortConnect();
     emit eraseChipCompleted(ret);
 }
 
@@ -171,8 +165,6 @@ void Programmer::eraseChip(uint32_t addr, uint32_t len)
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(eraseChipCb(int)));
 
-    /* Serial port object cannot be used in other thread */
-    serialPortDisconnect();
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&eraseCmd),
         sizeof(eraseCmd));
@@ -185,7 +177,6 @@ void Programmer::eraseChip(uint32_t addr, uint32_t len)
 void Programmer::readCb(int ret)
 {
     QObject::disconnect(&reader, SIGNAL(result(int)), this, SLOT(readCb(int)));
-    serialPortConnect();
     emit readChipCompleted(ret);
 }
 
@@ -198,8 +189,6 @@ void Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len,
 
     QObject::connect(&reader, SIGNAL(result(int)), this, SLOT(readCb(int)));
 
-    /* Serial port object cannot be used in other thread */
-    serialPortDisconnect();
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&readCmd), sizeof(readCmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED, buf, len,
@@ -212,7 +201,6 @@ void Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len,
 void Programmer::writeCb(int ret)
 {
     QObject::disconnect(&writer, SIGNAL(result(int)), this, SLOT(writeCb(int)));
-    serialPortConnect();
     emit writeChipCompleted(ret);
 }
 
@@ -221,8 +209,6 @@ void Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
 {
     QObject::connect(&writer, SIGNAL(result(int)), this, SLOT(writeCb(int)));
 
-    /* Serial port object cannot be used in other thread */
-    serialPortDisconnect();
     writer.init(usbDevName, SERIAL_PORT_SPEED, buf, addr, len, pageSize,
         skipBB);
     writer.start();
@@ -232,7 +218,6 @@ void Programmer::readChipBadBlocksCb(int ret)
 {
     QObject::disconnect(&reader, SIGNAL(result(int)), this,
         SLOT(readChipBadBlocksCb(int)));
-    serialPortConnect();
     emit readChipBadBlocksCompleted(ret);
 }
 
@@ -243,8 +228,6 @@ void Programmer::readChipBadBlocks()
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(readChipBadBlocksCb(int)));
 
-    /* Serial port object cannot be used in other thread */
-    serialPortDisconnect();
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED, nullptr, 0,
@@ -257,7 +240,6 @@ void Programmer::confChipCb(int ret)
 {
     QObject::disconnect(&reader, SIGNAL(result(int)), this,
         SLOT(confChipCb(int)));
-    serialPortConnect();
     emit confChipCompleted(ret);
 }
 
@@ -283,8 +265,6 @@ void Programmer::confChip(ChipInfo *chipInfo)
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(confChipCb(int)));
 
-    /* Serial port object cannot be used in other thread */
-    serialPortDisconnect();
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&confCmd), sizeof(confCmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED, nullptr, 0,
