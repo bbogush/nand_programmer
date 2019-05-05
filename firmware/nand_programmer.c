@@ -16,7 +16,7 @@
 #include <stdbool.h>
 
 #define NP_PACKET_BUF_SIZE 64
-#define NP_MAX_PAGE_SIZE 0x0800
+#define NP_MAX_PAGE_SIZE 0x0840 /* 2KB + 64 spare */
 #define NP_WRITE_ACK_BYTES 1984
 #define NP_NAND_TIMEOUT 0x1000000
 
@@ -303,11 +303,10 @@ static int np_cmd_nand_read_id(np_prog_t *prog)
 static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
     uint32_t page, bool *is_bad)
 {
-    uint8_t bad_block_data;
     uint32_t status, addr = block * prog->chip_info.block_size;
 
-    status = nand_read_data(&bad_block_data, page, prog->chip_info.page_size,
-        sizeof(bad_block_data));
+    status = nand_read_data(prog->page.buf, page, 0, prog->chip_info.page_size
+        + 1);
     switch (status)
     {
     case NAND_READY:
@@ -323,7 +322,8 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
         return NP_ERR_NAND_RD;
     }
 
-    *is_bad = bad_block_data != NP_NAND_GOOD_BLOCK_MARK;
+    *is_bad = prog->page.buf[prog->chip_info.page_size] !=
+        NP_NAND_GOOD_BLOCK_MARK;
 
     return 0;
 }
