@@ -20,4 +20,11 @@
 - Added description of error codes.
 ### Fixed
 - Fixed multiple prints of read ID completed log message.
+## [2.3.0] - 2019-05-05
+### Added
+- Version support.
+- Added progress indicator for erase, read and write commands.
+### Fixed
+- Fixed erase command.
+- Fixed read bad block table command.
 

@@ -1,3 +1,10 @@
+nando (2.3.0-1ubuntu4) stable; urgency=medium
+
+  * Added version support. Added progress indicator for erase, read and write
+    commands. Fixed erase command. Fixed read bad block table command.
+
+ -- bogdan <bogdan@hp>  Sun, 05 May 2019 21:15:57 +0300
+
 nando (2.2.0-1ubuntu3) stable; urgency=medium
 
   * Added Windows support. Implemented description of error codes.
