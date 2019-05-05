@@ -933,7 +933,8 @@ int np_cmd_read_bad_blocks(np_prog_t *prog)
 {
     int ret;
 
-    led_rd_set(true);    
+    led_rd_set(true);
+    nand_bad_block_table_init();  
     ret = _np_cmd_read_bad_blocks(prog);
     led_rd_set(false);
 
