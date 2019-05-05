@@ -59,6 +59,7 @@ signals:
     void writeChipCompleted(int ret);
     void readChipCompleted(int ret);
     void eraseChipCompleted(int ret);
+    void eraseChipProgress(unsigned int progress);
     void readChipBadBlocksCompleted(int ret);
     void confChipCompleted(int ret);
 
@@ -67,6 +68,7 @@ private slots:
     void writeCb(int ret);
     void readCb(int ret);
     void eraseChipCb(int ret);
+    void eraseProgressChipCb(unsigned int progress);
     void readChipBadBlocksCb(int ret);
     void confChipCb(int ret);
     void logCb(QtMsgType msgType, QString msg);

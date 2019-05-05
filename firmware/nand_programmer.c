@@ -134,7 +134,8 @@ enum
     NP_STATUS_ERROR     = 0x01,
     NP_STATUS_BB        = 0x02,
     NP_STATUS_WRITE_ACK = 0x03,
-    NP_STATUS_BB_SKIP   = 0x04, 
+    NP_STATUS_BB_SKIP   = 0x04,
+    NP_STATUS_PROGRESS  = 0x05,
 };
 
 typedef struct __attribute__((__packed__))
@@ -161,6 +162,12 @@ typedef struct __attribute__((__packed__))
     np_resp_t header;
     uint8_t err_code;
 } np_resp_err_t;
+
+typedef struct __attribute__((__packed__))
+{
+    np_resp_t header;
+    uint32_t progress;
+} np_resp_progress_t;
 
 typedef struct __attribute__((__packed__))
 {
@@ -245,6 +252,17 @@ static int np_send_bad_block_info(uint32_t addr, uint32_t size, bool is_skipped)
     np_resp_bad_block_t bad_block = { resp_header, addr, size };
 
     if (np_comm_cb->send((uint8_t *)&bad_block, sizeof(bad_block)))
+        return -1;
+
+    return 0;
+}
+
+static int np_send_progress(uint32_t progress)
+{
+    np_resp_t resp_header = { NP_RESP_STATUS, NP_STATUS_PROGRESS };
+    np_resp_progress_t resp_progress = { resp_header, progress };
+
+    if (np_comm_cb->send((uint8_t *)&resp_progress, sizeof(resp_progress)))
         return -1;
 
     return 0;
@@ -379,11 +397,11 @@ static int np_nand_erase(np_prog_t *prog, uint32_t page)
 static int _np_cmd_nand_erase(np_prog_t *prog)
 {
     int ret;
-    uint32_t addr, page, pages_in_block, len;
+    uint32_t addr, page, pages_in_block, len, total_len;
     np_erase_cmd_t *erase_cmd = (np_erase_cmd_t *)prog->rx_buf;
     bool is_bad = false, skip_bb = erase_cmd->flags.skip_bb;
 
-    len = erase_cmd->len;
+    total_len = len = erase_cmd->len;
     addr = erase_cmd->addr;
 
     DEBUG_PRINT("Erase at 0x%lx %lx bytes command\r\n", addr, len);
@@ -445,6 +463,8 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
         /* On partial erase do not count bad blocks */
         if (!is_bad || (is_bad && erase_cmd->len == prog->chip_info.size))
             len -= prog->chip_info.block_size;
+
+        np_send_progress(total_len - len);
     }
 
     return np_send_ok_status();

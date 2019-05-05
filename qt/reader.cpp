@@ -114,6 +114,19 @@ int Reader::handleError(uint8_t *pbuf, uint32_t len)
     return -1;
 }
 
+int Reader::handleProgress(uint8_t *pbuf, uint32_t len)
+{
+    RespProgress *resp = reinterpret_cast<RespProgress *>(pbuf);
+    size_t size = sizeof(RespProgress);
+
+    if (len < size)
+        return 0;
+
+    emit progress(resp->progress);
+
+    return static_cast<int>(size);
+}
+
 int Reader::handleStatus(uint8_t *pbuf, uint32_t len)
 {
     RespHeader *header = reinterpret_cast<RespHeader *>(pbuf);
@@ -126,6 +139,8 @@ int Reader::handleStatus(uint8_t *pbuf, uint32_t len)
         return handleBadBlock(pbuf, len, false);
     case STATUS_BB_SKIP:
         return handleBadBlock(pbuf, len, true);
+    case STATUS_PROGRESS:
+        return handleProgress(pbuf, len);
     case STATUS_OK:
         // Exit read loop
         if (!rlen)

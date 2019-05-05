@@ -155,9 +155,16 @@ void Programmer::readChipId(ChipId *chipId)
 
 void Programmer::eraseChipCb(int ret)
 {
+    QObject::disconnect(&reader, SIGNAL(progress(unsigned int)), this,
+        SLOT(eraseProgressChipCb(unsigned int)));
     QObject::disconnect(&reader, SIGNAL(result(int)), this,
         SLOT(eraseChipCb(int)));
     emit eraseChipCompleted(ret);
+}
+
+void Programmer::eraseProgressChipCb(unsigned int progress)
+{
+    emit eraseChipProgress(progress);
 }
 
 void Programmer::eraseChip(uint32_t addr, uint32_t len)
@@ -166,6 +173,8 @@ void Programmer::eraseChip(uint32_t addr, uint32_t len)
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(eraseChipCb(int)));
+    QObject::connect(&reader, SIGNAL(progress(unsigned int)), this,
+        SLOT(eraseProgressChipCb(unsigned int)));
 
     eraseCmd.cmd.code = CMD_NAND_ERASE;
     eraseCmd.addr = addr;

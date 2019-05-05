@@ -89,6 +89,7 @@ typedef enum
     STATUS_BB        = 0x02,
     STATUS_WRITE_ACK = 0x03,
     STATUS_BB_SKIP   = 0x04,
+    STATUS_PROGRESS  = 0x05,
 } StatusData;
 
 typedef struct __attribute__((__packed__))
@@ -143,6 +144,12 @@ typedef struct __attribute__((__packed__))
     RespHeader header;
     uint8_t errCode;
 } RespError;
+
+typedef struct __attribute__((__packed__))
+{
+    RespHeader header;
+    uint32_t progress;
+} RespProgress;
 
 #endif // CMD_H
 

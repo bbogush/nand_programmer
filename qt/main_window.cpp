@@ -253,11 +253,25 @@ void MainWindow::slotProgReadDeviceId()
 
 void MainWindow::slotProgEraseCompleted(int status)
 {
+    disconnect(prog, SIGNAL(eraseChipProgress(unsigned int)), this,
+        SLOT(slotProgEraseProgress(unsigned int)));
     disconnect(prog, SIGNAL(eraseChipCompleted(int)), this,
         SLOT(slotProgEraseCompleted(int)));
 
     if (!status)
         qInfo() << "Chip has been erased successfully";
+
+    setProgress(100);
+}
+
+void MainWindow::slotProgEraseProgress(unsigned int progress)
+{
+    uint32_t progressPercent;
+    int index = ui->chipSelectComboBox->currentIndex();
+    uint32_t eraseSize = chipDb.sizeGetById(CHIP_INDEX2ID(index));
+
+    progressPercent = progress * 100ULL / eraseSize;
+    setProgress(progressPercent);
 }
 
 void MainWindow::slotProgErase()
@@ -273,8 +287,12 @@ void MainWindow::slotProgErase()
 
     qInfo() << "Erasing chip ...";
 
+    setProgress(0);
+
     connect(prog, SIGNAL(eraseChipCompleted(int)), this,
         SLOT(slotProgEraseCompleted(int)));
+    connect(prog, SIGNAL(eraseChipProgress(unsigned int)), this,
+        SLOT(slotProgEraseProgress(unsigned int)));
 
     prog->eraseChip(START_ADDRESS, eraseSize);
 }
@@ -469,4 +487,9 @@ void MainWindow::slotAboutDialog()
     AboutDialog aboutDialog(this);
 
     aboutDialog.exec();
+}
+
+void MainWindow::setProgress(unsigned int progress)
+{
+    statusBar()->showMessage(tr("Progress: %1%").arg(progress));
 }

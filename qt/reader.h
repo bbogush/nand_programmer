@@ -31,6 +31,7 @@ class Reader : public QThread
     int readStart();
     int read(uint8_t *pbuf, uint32_t len);
     int handleError(uint8_t *pbuf, uint32_t len);
+    int handleProgress(uint8_t *pbuf, uint32_t len);
     int handleBadBlock(uint8_t *pbuf, uint32_t len, bool isSkipped);
     int handleStatus(uint8_t *pbuf, uint32_t len);
     int handleData(uint8_t *pbuf, uint32_t len);
@@ -47,6 +48,7 @@ public:
         bool isReadLess);
 signals:
     void result(int ret);
+    void progress(unsigned int progress);
     void log(QtMsgType msgType, QString msg);
 };
 

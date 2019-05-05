@@ -36,6 +36,7 @@ private:
     void setUiStateConnected(bool isConnected);
     void setUiStateSelected(bool isSelected);
     void updateChipList();
+    void setProgress(unsigned int progress);
 
 private slots:
     void slotProgConnectCompleted(int status);
@@ -43,6 +44,7 @@ private slots:
     void slotProgReadCompleted(int status);
     void slotProgWriteCompleted(int status);
     void slotProgEraseCompleted(int status);
+    void slotProgEraseProgress(unsigned int progress);
     void slotProgReadBadBlocksCompleted(int status);
     void slotProgSelectCompleted(int status);
 
