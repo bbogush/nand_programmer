@@ -226,11 +226,8 @@ int Reader::readData()
 
         if ((offset = handlePackets(pbuf, static_cast<uint32_t>(len))) < 0)
             return -1;
-
-        if (!bytesRead)
-            continue;
     }
-    while (rlen && rlen != bytesRead);
+    while (!bytesRead || (rlen && rlen != bytesRead));
 
     return 0;
 }
