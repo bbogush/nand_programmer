@@ -528,7 +528,7 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
     {
         ERROR_PRINT("Length 0x%lx is not aligned to page size 0x%lx\r\n",
             len, prog->chip_info.page_size);
-        return NP_ERR_ADDR_NOT_ALIGN;
+        return NP_ERR_LEN_NOT_ALIGN;
     }
 
     prog->skip_bb = write_start_cmd->flags.skip_bb;
