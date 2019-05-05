@@ -47,6 +47,7 @@ public:
         uint32_t addr, uint32_t len, uint32_t pageSize, bool skipBB);
 signals:
     void result(int ret);
+    void progress(unsigned int progress);
     void log(QtMsgType msgType, QString msg);
 };
 

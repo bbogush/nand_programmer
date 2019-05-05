@@ -87,6 +87,8 @@ int Writer::handleWriteAck(RespHeader *header, uint32_t len)
         return -1;
     }
 
+    emit progress(bytesAcked);
+
     return size;
 }
 

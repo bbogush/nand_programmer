@@ -355,11 +355,24 @@ void MainWindow::slotProgRead()
 
 void MainWindow::slotProgWriteCompleted(int status)
 {
+    disconnect(prog, SIGNAL(writeChipProgress(unsigned int)), this,
+        SLOT(slotProgWriteProgress(unsigned int)));
     disconnect(prog, SIGNAL(writeChipCompleted(int)), this,
         SLOT(slotProgWriteCompleted(int)));
 
     if (!status)
         qInfo() << "Data has been successfully written";
+
+    setProgress(100);
+}
+
+void MainWindow::slotProgWriteProgress(unsigned int progress)
+{
+    uint32_t progressPercent;
+    uint32_t bufferSize = static_cast<uint32_t>(buffer.size());
+
+    progressPercent = progress * 100ULL / bufferSize;
+    setProgress(progressPercent);
 }
 
 void MainWindow::slotProgWrite()
@@ -399,6 +412,8 @@ void MainWindow::slotProgWrite()
 
     connect(prog, SIGNAL(writeChipCompleted(int)), this,
         SLOT(slotProgWriteCompleted(int)));
+    connect(prog, SIGNAL(writeChipProgress(unsigned int)), this,
+        SLOT(slotProgWriteProgress(unsigned int)));
 
     prog->writeChip(buffer.data(), START_ADDRESS, bufferSize, pageSize);
 }

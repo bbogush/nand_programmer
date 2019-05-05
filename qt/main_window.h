@@ -44,6 +44,7 @@ private slots:
     void slotProgReadCompleted(int status);
     void slotProgReadProgress(unsigned int progress);
     void slotProgWriteCompleted(int status);
+    void slotProgWriteProgress(unsigned int progress);
     void slotProgEraseCompleted(int status);
     void slotProgEraseProgress(unsigned int progress);
     void slotProgReadBadBlocksCompleted(int status);

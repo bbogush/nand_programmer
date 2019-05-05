@@ -228,14 +228,23 @@ void Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len,
 
 void Programmer::writeCb(int ret)
 {
+    QObject::disconnect(&writer, SIGNAL(progress(unsigned int)), this,
+        SLOT(writeProgressCb(unsigned int)));
     QObject::disconnect(&writer, SIGNAL(result(int)), this, SLOT(writeCb(int)));
     emit writeChipCompleted(ret);
+}
+
+void Programmer::writeProgressCb(unsigned int progress)
+{
+    emit writeChipProgress(progress);
 }
 
 void Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
     uint32_t pageSize)
 {
     QObject::connect(&writer, SIGNAL(result(int)), this, SLOT(writeCb(int)));
+    QObject::connect(&writer, SIGNAL(progress(unsigned int)), this,
+        SLOT(writeProgressCb(unsigned int)));
 
     writer.init(usbDevName, SERIAL_PORT_SPEED, buf, addr, len, pageSize,
         skipBB);
