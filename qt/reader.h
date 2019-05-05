@@ -22,6 +22,7 @@ class Reader : public QThread
     uint32_t wlen;
     uint32_t readOffset;
     uint32_t bytesRead;
+    uint32_t bytesReadNotified;
     bool isSkipBB;
     bool isReadLess;
 

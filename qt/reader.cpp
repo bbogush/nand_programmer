@@ -12,6 +12,7 @@
 
 #define READ_TIMEOUT 5000
 #define BUF_SIZE 4096
+#define NOTIFY_LIMIT 131072 // 128KB
 
 Q_DECLARE_METATYPE(QtMsgType)
 
@@ -29,6 +30,7 @@ void Reader::init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
     this->isReadLess = isReadLess;
     readOffset = 0;
     bytesRead = 0;
+    bytesReadNotified = 0;
 }
 
 int Reader::write(const uint8_t *data, uint32_t len)
@@ -241,6 +243,12 @@ int Reader::readData()
 
         if ((offset = handlePackets(pbuf, static_cast<uint32_t>(len))) < 0)
             return -1;
+
+        if (bytesRead >= bytesReadNotified + NOTIFY_LIMIT)
+        {
+            emit progress(bytesRead);
+            bytesReadNotified = bytesRead;
+        }
     }
     while (!bytesRead || (rlen && rlen != bytesRead));
 

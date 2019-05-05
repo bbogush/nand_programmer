@@ -58,6 +58,7 @@ signals:
     void readChipIdCompleted(int ret);
     void writeChipCompleted(int ret);
     void readChipCompleted(int ret);
+    void readChipProgress(unsigned int ret);
     void eraseChipCompleted(int ret);
     void eraseChipProgress(unsigned int progress);
     void readChipBadBlocksCompleted(int ret);
@@ -67,6 +68,7 @@ private slots:
     void readChipIdCb(int ret);
     void writeCb(int ret);
     void readCb(int ret);
+    void readProgressCb(unsigned int progress);
     void eraseChipCb(int ret);
     void eraseProgressChipCb(unsigned int progress);
     void readChipBadBlocksCb(int ret);

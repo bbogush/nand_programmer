@@ -42,6 +42,7 @@ private slots:
     void slotProgConnectCompleted(int status);
     void slotProgReadDeviceIdCompleted(int status);
     void slotProgReadCompleted(int status);
+    void slotProgReadProgress(unsigned int progress);
     void slotProgWriteCompleted(int status);
     void slotProgEraseCompleted(int status);
     void slotProgEraseProgress(unsigned int progress);

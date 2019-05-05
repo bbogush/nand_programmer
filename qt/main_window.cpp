@@ -299,8 +299,12 @@ void MainWindow::slotProgErase()
 
 void MainWindow::slotProgReadCompleted(int status)
 {
+    disconnect(prog, SIGNAL(readChipProgress(unsigned int)), this,
+        SLOT(slotProgReadProgress(unsigned int)));
     disconnect(prog, SIGNAL(readChipCompleted(int)), this,
         SLOT(slotProgReadCompleted(int)));
+
+    setProgress(100);
 
     if (status)
     {
@@ -311,6 +315,16 @@ void MainWindow::slotProgReadCompleted(int status)
     qInfo() << "Data has been successfully read";
     bufferTableModel.setBuffer(buffer.data(),
         static_cast<uint32_t>(buffer.size()));
+}
+
+void MainWindow::slotProgReadProgress(unsigned int progress)
+{
+    uint32_t progressPercent;
+    int index = ui->chipSelectComboBox->currentIndex();
+    uint32_t readSize = chipDb.sizeGetById(CHIP_INDEX2ID(index));
+
+    progressPercent = progress * 100ULL / readSize;
+    setProgress(progressPercent);
 }
 
 void MainWindow::slotProgRead()
@@ -329,9 +343,12 @@ void MainWindow::slotProgRead()
     buffer.resize(static_cast<int>(readSize));
 
     qInfo() << "Reading data ...";
+    setProgress(0);
 
     connect(prog, SIGNAL(readChipCompleted(int)), this,
         SLOT(slotProgReadCompleted(int)));
+    connect(prog, SIGNAL(readChipProgress(unsigned int)), this,
+        SLOT(slotProgReadProgress(unsigned int)));
 
     prog->readChip(buffer.data(), START_ADDRESS, readSize, true);
 }
