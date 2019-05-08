@@ -75,7 +75,7 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
         case CHIP_PARAM_PAGE_SIZE: return tr("Page size");
         case CHIP_PARAM_BLOCK_SIZE: return tr("Block size");
         case CHIP_PARAM_SIZE: return tr("Size");
-        case CHIP_PARAM_T_CS: return tr("tCH");
+        case CHIP_PARAM_T_CS: return tr("tCS");
         case CHIP_PARAM_T_CLS: return tr("tCLS");
         case CHIP_PARAM_T_ALS: return tr("tALS");
         case CHIP_PARAM_T_CLR: return tr("tCLR");
@@ -105,7 +105,7 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
         case CHIP_PARAM_SIZE:
             return tr("Total size in bytes");
         case CHIP_PARAM_T_CS:
-            return tr("Chip enable hold time");
+            return tr("Chip enable setup time");
         case CHIP_PARAM_T_CLS:
             return tr("Command latch enable setup time");
         case CHIP_PARAM_T_ALS:
