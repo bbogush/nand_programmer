@@ -27,6 +27,7 @@ NANDO is open source NAND programmer based on STM32 processor.
 
 ### Tested chips
 - K9F2G08U0C
+- K9F1G08U0E
 
 ## Release binaries
 You can download host application deb package for Ubuntu/Windows installer, firmware binary for
