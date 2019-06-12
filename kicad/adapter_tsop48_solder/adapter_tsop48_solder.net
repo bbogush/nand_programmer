@@ -1,6 +1,6 @@
 (export (version D)
   (design
-    (source /home/bogdan/dev/nandprog/nand_programmer/kicad/adapter_tsop48_solder/adapter_tsop48_solder.sch)
+    (source ${KIPRJMOD}/adapter_tsop48_solder.sch)
     (date "ср, 12-чер-2019 20:47:31 +0300")
     (tool "Eeschema 5.0.2-bee76a0~70~ubuntu18.04.1")
     (sheet (number 1) (name /) (tstamps /)
@@ -157,7 +157,7 @@
         (pin (num 48) (name Pin_48) (type passive)))))
   (libraries
     (library (logical nand_programmator)
-      (uri /home/bogdan/dev/nandprog/nand_programmer/kicad/sch_lib/nand_programmator.lib)))
+      (uri ${KIPRJMOD}/../sch_lib/nand_programmator.lib)))
   (nets
     (net (code 1) (name "Net-(J2-Pad35)")
       (node (ref P1) (pin 35))
