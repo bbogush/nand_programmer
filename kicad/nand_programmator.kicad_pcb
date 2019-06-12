@@ -11,8 +11,8 @@
 
   (page A4)
   (title_block
-    (title "NAND programmer")
-    (rev v1.0)
+    (title NANDO)
+    (rev v3.0)
   )
 
   (layers

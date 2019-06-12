@@ -7,7 +7,7 @@ encoding utf-8
 Sheet 1 1
 Title "NANDO"
 Date ""
-Rev "v2.0"
+Rev "v3.0"
 Comp ""
 Comment1 ""
 Comment2 ""
