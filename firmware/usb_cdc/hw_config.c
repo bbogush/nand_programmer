@@ -155,6 +155,7 @@ void Set_System(void)
 * Input          : None.
 * Return         : None.
 *******************************************************************************/
+#define CLK_48MHZ 48000000
 void Set_USBClock(void)
 {
 #if defined(STM32L1XX_MD) || defined(STM32L1XX_HD) || defined(STM32L1XX_MD_PLUS) 
@@ -163,8 +164,11 @@ void Set_USBClock(void)
   
 #else 
   /* Select USBCLK source */
-  RCC_USBCLKConfig(RCC_USBCLKSource_PLLCLK_1Div5);
-  
+  if (SystemCoreClock == CLK_48MHZ)
+    RCC_USBCLKConfig(RCC_USBCLKSource_PLLCLK_Div1);
+  else
+    RCC_USBCLKConfig(RCC_USBCLKSource_PLLCLK_1Div5);
+
   /* Enable the USB clock */
   RCC_APB1PeriphClockCmd(RCC_APB1Periph_USB, ENABLE);
 #endif /* STM32L1XX_MD */

@@ -10,6 +10,7 @@
 #include "uart.h"
 #include "jtag.h"
 #include "version.h"
+#include "clock.h"
 #include <stdio.h>
 
 int main()
@@ -17,6 +18,9 @@ int main()
     uart_init();
     printf("\r\nNAND programmer ver: %d.%d.%d\r\n", SW_VERSION_MAJOR,
         SW_VERSION_MINOR, SW_VERSION_BUILD);
+
+    if (!is_external_clock_avail())
+        printf("External clock not detected. Fallback to internal clock.\r\n");
 
     printf("JTAG init...");
     jtag_init();
