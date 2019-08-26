@@ -27,4 +27,8 @@
 ### Fixed
 - Fixed erase command.
 - Fixed read bad block table command.
-
+## [3.0.0] - 2019-09-26
+### Added
+- New board design. Support of internal clock in FW.
+### Fixed
+- Race condition in packet handling code.

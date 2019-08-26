@@ -1,21 +1,27 @@
+nando (3.0.0-1ubuntu4) stable; urgency=medium
+
+  * New board design.
+
+ -- bogdan <bogdan.s.bogush@gmain.com>  Mon, 26 Aug  2019 21:00:00 +0300
+
 nando (2.3.0-1ubuntu4) stable; urgency=medium
 
   * Added version support. Added progress indicator for erase, read and write
     commands. Fixed erase command. Fixed read bad block table command.
 
- -- bogdan <bogdan@hp>  Sun, 05 May 2019 21:15:57 +0300
+ -- Bogdan Bogush <bogdan.s.bogush@gmail.com>  Sun, 05 May 2019 21:15:57 +0300
 
 nando (2.2.0-1ubuntu3) stable; urgency=medium
 
   * Added Windows support. Implemented description of error codes.
 
- -- bogdan <bogdan@hp>  Sun, 28 Apr 2019 17:20:59 +0300
+ -- Bogdan Bogush <bogdan.s.bogush@gmail.com>  Sun, 28 Apr 2019 17:20:59 +0300
 
 nando (2.1.0-1ubuntu2) stable; urgency=medium
 
   * Implemented chip database. Fixed disconnect of the first connection.
 
- -- bogdan <bogdan@hp>  Tue, 16 Apr 2019 17:30:45 +0300
+ -- Bogdan Bogush <bogdan.s.bogush@gmail.com>  Tue, 16 Apr 2019 17:30:45 +0300
 
 nando (2.0.0-1ubuntu1) stable; urgency=medium
 
