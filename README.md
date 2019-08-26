@@ -3,14 +3,19 @@
 ## General
 NANDO is open source NAND programmer based on STM32 processor.
 
-<img src="img/board_v2_0.jpg" width="600">
+PCB boards:
+
+<img src="img/board_v3_0.jpg" width="800">
+
+Application:
 
 <img src="img/host_app_v2_1.jpeg">
 
 ## Features
 - USB interface
 - PC client software for Linux & Windows.
-- TSOP-48 socket for NAND chip
+- TSOP-48 socket adapter for NAND chip (compatible with TL866 adapter)
+- TSOP-48 solder adapter for NAND chip
 - 8 bit NAND interface
 - 3.3V NAND power supply
 - NAND read,write and erase support
