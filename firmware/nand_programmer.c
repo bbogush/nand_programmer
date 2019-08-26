@@ -198,6 +198,7 @@ typedef struct
 typedef struct
 {
     uint8_t *rx_buf;
+    uint32_t rx_buf_len;
     uint32_t addr;
     uint32_t len;
     int addr_is_set;
@@ -398,13 +399,21 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
 {
     int ret;
     uint32_t addr, page, pages_in_block, len, total_len;
-    np_erase_cmd_t *erase_cmd = (np_erase_cmd_t *)prog->rx_buf;
-    bool is_bad = false, skip_bb = erase_cmd->flags.skip_bb;
-
-    total_len = len = erase_cmd->len;
-    addr = erase_cmd->addr;
+    np_erase_cmd_t *erase_cmd;
+    bool skip_bb, is_bad = false;
 
     DEBUG_PRINT("Erase at 0x%lx %lx bytes command\r\n", addr, len);
+
+    if (prog->rx_buf_len < sizeof(np_erase_cmd_t))
+    {
+        ERROR_PRINT("Wrong buffer length for erase command %lu\r\n",
+            prog->rx_buf_len);
+        return NP_ERR_LEN_INVALID;
+    }
+    erase_cmd = (np_erase_cmd_t *)prog->rx_buf;
+    total_len = len = erase_cmd->len;
+    addr = erase_cmd->addr;
+    skip_bb = erase_cmd->flags.skip_bb;
 
     if (skip_bb && !prog->bb_is_read && (ret = _np_cmd_read_bad_blocks(prog)))
         return ret;
@@ -496,13 +505,20 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
 {
     int ret;
     uint32_t addr, len;
+    np_write_start_cmd_t *write_start_cmd;
 
-    np_write_start_cmd_t *write_start_cmd =
-        (np_write_start_cmd_t *)prog->rx_buf;
+    DEBUG_PRINT("Write at 0x%lx 0x%lx bytes command\r\n", addr, len);
 
+    if (prog->rx_buf_len < sizeof(np_write_start_cmd_t))
+    {
+        ERROR_PRINT("Wrong buffer length for write start command %lu\r\n",
+            prog->rx_buf_len);
+        return NP_ERR_LEN_INVALID;
+    }
+
+    write_start_cmd = (np_write_start_cmd_t *)prog->rx_buf;
     addr = write_start_cmd->addr;
     len = write_start_cmd->len;
-    DEBUG_PRINT("Write at 0x%lx 0x%lx bytes command\r\n", addr, len);
 
     if (addr + len > prog->chip_info.size)
     {
@@ -611,12 +627,27 @@ static int np_nand_write(np_prog_t *prog)
 static int np_cmd_nand_write_data(np_prog_t *prog)
 {
     uint32_t write_len, bytes_left, len;
-    np_write_data_cmd_t *write_data_cmd = (np_write_data_cmd_t *)prog->rx_buf;
+    np_write_data_cmd_t *write_data_cmd;
 
+    if (prog->rx_buf_len < sizeof(np_write_data_cmd_t))
+    {
+        ERROR_PRINT("Wrong buffer length for write data command %lu\r\n",
+            prog->rx_buf_len);
+        return NP_ERR_LEN_INVALID;
+    }
+
+    write_data_cmd = (np_write_data_cmd_t *)prog->rx_buf;
     len = write_data_cmd->len;
     if (len + sizeof(np_write_data_cmd_t) > NP_PACKET_BUF_SIZE)
     {
         ERROR_PRINT("Data size is wrong 0x%lx\r\n", len);
+        return NP_ERR_CMD_DATA_SIZE;
+    }
+
+    if (len + sizeof(np_write_data_cmd_t) != prog->rx_buf_len)
+    {
+        ERROR_PRINT("Buffer len 0x%lx is bigger then command 0x%lx\r\n",
+            prog->rx_buf_len, len + sizeof(np_write_data_cmd_t));
         return NP_ERR_CMD_DATA_SIZE;
     }
 
@@ -763,15 +794,25 @@ static int _np_cmd_nand_read(np_prog_t *prog)
     int ret;
     uint32_t addr, len, send_len;
     static np_page_t page;
+    np_read_cmd_t *read_cmd;
+    bool skip_bb;    
     uint32_t resp_header_size = offsetof(np_resp_t, data);
     uint32_t tx_data_len = sizeof(np_packet_send_buf) - resp_header_size;
-    np_read_cmd_t *read_cmd = (np_read_cmd_t *)prog->rx_buf;
-    bool skip_bb = read_cmd->flags.skip_bb;
     np_resp_t *resp = (np_resp_t *)np_packet_send_buf;
 
+    DEBUG_PRINT("Read at 0x%lx 0x%lx bytes command\r\n", addr, len);
+
+    if (prog->rx_buf_len < sizeof(np_read_cmd_t))
+    {
+        ERROR_PRINT("Wrong buffer length for read command %lu\r\n",
+            prog->rx_buf_len);
+        return NP_ERR_LEN_INVALID;
+    }
+
+    read_cmd = (np_read_cmd_t *)prog->rx_buf;
     addr = read_cmd->addr;
     len = read_cmd->len;
-    DEBUG_PRINT("Read at 0x%lx 0x%lx bytes command\r\n", addr, len);
+    skip_bb = read_cmd->flags.skip_bb;
 
     if (addr + len > prog->chip_info.size)
     {
@@ -881,9 +922,18 @@ static int np_cmd_nand_read(np_prog_t *prog)
 
 static int np_cmd_nand_conf(np_prog_t *prog)
 {
-    np_conf_cmd_t *conf_cmd = (np_conf_cmd_t *)prog->rx_buf;
+    np_conf_cmd_t *conf_cmd;
 
     DEBUG_PRINT("Chip configure command\r\n");
+
+    if (prog->rx_buf_len < sizeof(np_conf_cmd_t))
+    {
+        ERROR_PRINT("Wrong buffer length for configuration command %lu\r\n",
+            prog->rx_buf_len);
+        return NP_ERR_LEN_INVALID;
+    }
+
+    conf_cmd = (np_conf_cmd_t *)prog->rx_buf;
 
     prog->chip_info.page_size = conf_cmd->page_size;
     prog->chip_info.block_size = conf_cmd->block_size;
@@ -983,7 +1033,15 @@ static bool np_cmd_is_valid(np_cmd_code_t code)
 
 static int np_cmd_handler(np_prog_t *prog)
 {
-    np_cmd_t *cmd = (np_cmd_t *)prog->rx_buf;
+    np_cmd_t *cmd;
+
+    if (prog->rx_buf_len < sizeof(np_cmd_t))
+    {
+        ERROR_PRINT("Wrong buffer length for command %lu\r\n",
+            prog->rx_buf_len);
+        return NP_ERR_LEN_INVALID;
+    }
+    cmd = (np_cmd_t *)prog->rx_buf;
 
     if (!prog->chip_is_conf && cmd->code != NP_CMD_NAND_CONF &&
         cmd->code != NP_CMD_VERSION_GET)
@@ -1007,9 +1065,8 @@ static void np_packet_handler(np_prog_t *prog)
 
     do
     {
-        np_comm_cb->peek(&prog->rx_buf);
-
-        if (!prog->rx_buf)
+        prog->rx_buf_len = np_comm_cb->peek(&prog->rx_buf);
+        if (!prog->rx_buf_len)
             break;
 
         ret = np_cmd_handler(prog);

@@ -10,7 +10,7 @@ typedef struct
 {
     int (*send)(uint8_t *data, uint32_t len);
     int (*send_ready)();
-    void (*peek)(uint8_t **data);
+    uint32_t (*peek)(uint8_t **data);
     void (*consume)();
 } np_comm_cb_t;
 

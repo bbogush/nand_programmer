@@ -39,14 +39,16 @@ static int cdc_send_ready()
     return CDC_IsPacketSent();
 }
 
-static void cdc_peek(uint8_t **data)
+static uint32_t cdc_peek(uint8_t **data)
 {
-    *data = USB_Data_Peek();
+    return USB_Data_Peek(data);
 }
 
 static void cdc_consume()
 {
-    USB_Data_Get();
+    uint8_t *data;
+
+    USB_Data_Get(&data);
     USB_DataRx_Sched();
 }
 

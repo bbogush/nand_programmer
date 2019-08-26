@@ -62,8 +62,8 @@ uint32_t CDC_Receive_DATA(void);
 uint32_t CDC_ReceiveDataLen(void);
 void CDC_ReceiveDataAck(void);
 int CDC_IsPacketSent(void);
-uint8_t *USB_Data_Peek(void);
-uint8_t *USB_Data_Get(void);
+uint32_t USB_Data_Peek(uint8_t **data);
+uint32_t USB_Data_Get(uint8_t **data);
 void USB_DataRx_Sched(void);
 /* External variables --------------------------------------------------------*/
 

@@ -69,35 +69,40 @@ void EP1_IN_Callback (void)
 #define PACKET_SIZE 64
 #define CIRC_BUF_SIZE 34 /* 62 * 34 = ~2K of data (max. NAND page) */
 
-typedef uint8_t packet_t[PACKET_SIZE];
+typedef uint8_t packet_buf_t[PACKET_SIZE];
+
+typedef struct
+{
+    packet_buf_t pbuf;
+    uint32_t len;
+} packet_t;
 
 static packet_t circ_buf[CIRC_BUF_SIZE];
 static uint8_t head, size, tail = CIRC_BUF_SIZE - 1;
 
-uint8_t *USB_Data_Peek(void)
+uint32_t USB_Data_Peek(uint8_t **data)
 {
-  uint8_t *data;
-
   if (!size)
-    return NULL;
+    return 0;
     
-  data = circ_buf[head];
+  *data = circ_buf[head].pbuf;
 
-  return data;
+  return circ_buf[head].len;
 }
 
-uint8_t *USB_Data_Get(void)
+uint32_t USB_Data_Get(uint8_t **data)
 {
-  uint8_t *data;
+  uint32_t len;
 
   if (!size)
-    return NULL;
+    return 0;
 
-  data = circ_buf[head];
+  *data = circ_buf[head].pbuf;
+  len = circ_buf[head].len;
   head = (head + 1) % CIRC_BUF_SIZE;
   size--;
 
-  return data;
+  return len;
 }
 
 static inline void USB_DataRx_Sched_Internal(void)
@@ -119,7 +124,8 @@ void EP3_OUT_Callback(void)
   if (size < CIRC_BUF_SIZE)
   {
     tail = (tail + 1) % CIRC_BUF_SIZE;
-    PMAToUserBufferCopy(circ_buf[tail], ENDP3_RXADDR, Receive_length);
+    PMAToUserBufferCopy(circ_buf[tail].pbuf, ENDP3_RXADDR, Receive_length);
+    circ_buf[tail].len = Receive_length;
     size++;
     USB_DataRx_Sched_Internal();
   }
