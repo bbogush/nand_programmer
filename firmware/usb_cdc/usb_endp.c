@@ -100,7 +100,9 @@ uint32_t USB_Data_Get(uint8_t **data)
   *data = circ_buf[head].pbuf;
   len = circ_buf[head].len;
   head = (head + 1) % CIRC_BUF_SIZE;
+  __disable_irq();
   size--;
+  __enable_irq();
 
   return len;
 }
