@@ -1,0 +1,11 @@
+mv nand_programmator-B.Cu.gbl Bot.glb
+mv nand_programmator-B.Mask.gbs BotMask.gbs
+mv nand_programmator-B.SilkS.gbo BotSilk.gbo
+mv nand_programmator-F.Cu.gtl Top.gtl
+mv nand_programmator-F.Mask.gts TopMask.gts
+mv nand_programmator-F.SilkS.gto TopSilk.gto
+mv nand_programmator-PTH.drl Plated.drl
+mv nand_programmator-NPTH.drl NoPlated.drl
+mv nand_programmator-Edge.Cuts.gm1 Board.gm1
+mv nand_programmator-B.Paste.gbp BotPaste.gbp
+mv nand_programmator-F.Paste.gtp TopPaste.gtp
