@@ -200,7 +200,7 @@ uint32_t ChipDb::sizeGetById(int id)
 {
     ChipInfo *info = chipInfoGetById(id);
 
-    return info ? info->params[CHIP_PARAM_SIZE] : 0;
+    return info ? info->params[CHIP_PARAM_TOTAL_SIZE] : 0;
 }
 
 void ChipDb::addChip(ChipInfo &chipInfo)

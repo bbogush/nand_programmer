@@ -15,8 +15,11 @@ ChipDbDialog::ChipDbDialog(ChipDb *chipDb, QWidget *parent) : QDialog(parent),
         HEADER_LONG_WIDTH);
     ui->chipDbTableView->setColumnWidth(CHIP_PARAM_BLOCK_SIZE,
         HEADER_LONG_WIDTH);
-    ui->chipDbTableView->setColumnWidth(CHIP_PARAM_SIZE, HEADER_LONG_WIDTH);
-    for (int i = CHIP_PARAM_SIZE + 1; i < CHIP_PARAM_NUM; i++)
+    ui->chipDbTableView->setColumnWidth(CHIP_PARAM_TOTAL_SIZE,
+        HEADER_LONG_WIDTH);
+    ui->chipDbTableView->setColumnWidth(CHIP_PARAM_SPARE_SIZE,
+        HEADER_LONG_WIDTH);
+    for (int i = CHIP_PARAM_SPARE_SIZE + 1; i < CHIP_PARAM_NUM; i++)
         ui->chipDbTableView->setColumnWidth(i, HEADER_SHORT_WIDTH);
 
     connect(ui->addChipDbButton, SIGNAL(clicked()), this,

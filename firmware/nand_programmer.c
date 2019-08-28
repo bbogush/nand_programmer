@@ -106,7 +106,8 @@ typedef struct __attribute__((__packed__))
     np_cmd_t cmd;
     uint32_t page_size;
     uint32_t block_size;
-    uint32_t size;
+    uint32_t total_size;
+    uint32_t spare_size;    
     uint8_t setup_time;
     uint8_t wait_setup_time;
     uint8_t hold_setup_time;
@@ -335,7 +336,7 @@ static int _np_cmd_read_bad_blocks(np_prog_t *prog)
     bool is_bad;
     uint32_t block, block_num, page_num, page;
 
-    block_num = prog->chip_info.size / prog->chip_info.block_size;
+    block_num = prog->chip_info.total_size / prog->chip_info.block_size;
     page_num = prog->chip_info.block_size / prog->chip_info.page_size;
 
     /* Bad block - not 0xFF value in the first or second page in the block at
@@ -438,10 +439,10 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
         return NP_ERR_LEN_NOT_ALIGN;
     }
 
-    if (addr + len > prog->chip_info.size)
+    if (addr + len > prog->chip_info.total_size)
     {
         ERROR_PRINT("Erase address exceded 0x%lx+0x%lx is more then chip size "
-            "0x%lx\r\n", addr, len, prog->chip_info.size);
+            "0x%lx\r\n", addr, len, prog->chip_info.total_size);
         return NP_ERR_ADDR_EXCEEDED;
     }
 
@@ -450,10 +451,10 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
 
     while (len)
     {
-        if (addr >= prog->chip_info.size)
+        if (addr >= prog->chip_info.total_size)
         {
             ERROR_PRINT("Erase address 0x%lx is more then chip size 0x%lx\r\n",
-                addr, prog->chip_info.size);
+                addr, prog->chip_info.total_size);
             return NP_ERR_ADDR_EXCEEDED;
         }
 
@@ -470,7 +471,7 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
         addr += prog->chip_info.block_size;
         page += pages_in_block;
         /* On partial erase do not count bad blocks */
-        if (!is_bad || (is_bad && erase_cmd->len == prog->chip_info.size))
+        if (!is_bad || (is_bad && erase_cmd->len == prog->chip_info.total_size))
             len -= prog->chip_info.block_size;
 
         np_send_progress(total_len - len);
@@ -520,10 +521,10 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
     addr = write_start_cmd->addr;
     len = write_start_cmd->len;
 
-    if (addr + len > prog->chip_info.size)
+    if (addr + len > prog->chip_info.total_size)
     {
         ERROR_PRINT("Write address 0x%lx+0x%lx is more then chip size "
-            "0x%lx\r\n", addr, len, prog->chip_info.size);
+            "0x%lx\r\n", addr, len, prog->chip_info.total_size);
         return NP_ERR_ADDR_EXCEEDED;
     }
 
@@ -681,10 +682,10 @@ static int np_cmd_nand_write_data(np_prog_t *prog)
                 prog->chip_info.page_size;
         }
 
-        if (prog->addr >= prog->chip_info.size)
+        if (prog->addr >= prog->chip_info.total_size)
         {
             ERROR_PRINT("Write address 0x%lx is more then chip size 0x%lx\r\n",
-                prog->addr, prog->chip_info.size);
+                prog->addr, prog->chip_info.total_size);
             return NP_ERR_ADDR_EXCEEDED;
         }
 
@@ -814,10 +815,10 @@ static int _np_cmd_nand_read(np_prog_t *prog)
     len = read_cmd->len;
     skip_bb = read_cmd->flags.skip_bb;
 
-    if (addr + len > prog->chip_info.size)
+    if (addr + len > prog->chip_info.total_size)
     {
         ERROR_PRINT("Read address 0x%lx+0x%lx is more then chip size 0x%lx\r\n",
-            addr, len, prog->chip_info.size);
+            addr, len, prog->chip_info.total_size);
         return NP_ERR_ADDR_EXCEEDED;
     }
 
@@ -851,7 +852,7 @@ static int _np_cmd_nand_read(np_prog_t *prog)
 
     while (len)
     {
-        if (addr >= prog->chip_info.size)
+        if (addr >= prog->chip_info.total_size)
         {
             ERROR_PRINT("Read address 0x%lx is more then chip size 0x%lx",
                 addr, prog->chip_info.page_size);
@@ -865,7 +866,7 @@ static int _np_cmd_nand_read(np_prog_t *prog)
                 return -1;
 
             /* On partial read do not count bad blocks */
-            if (read_cmd->len == prog->chip_info.size)
+            if (read_cmd->len == prog->chip_info.total_size)
                 len -= prog->chip_info.block_size;
             addr += prog->chip_info.block_size;
             page.page += prog->chip_info.block_size /
@@ -937,7 +938,8 @@ static int np_cmd_nand_conf(np_prog_t *prog)
 
     prog->chip_info.page_size = conf_cmd->page_size;
     prog->chip_info.block_size = conf_cmd->block_size;
-    prog->chip_info.size = conf_cmd->size;
+    prog->chip_info.total_size = conf_cmd->total_size;
+    prog->chip_info.spare_size = conf_cmd->spare_size;    
     prog->chip_info.setup_time = conf_cmd->setup_time;
     prog->chip_info.wait_setup_time = conf_cmd->wait_setup_time;
     prog->chip_info.hold_setup_time = conf_cmd->hold_setup_time;
@@ -948,7 +950,8 @@ static int np_cmd_nand_conf(np_prog_t *prog)
 
     DEBUG_PRINT("Page size: %lu\r\n", prog->chip_info.page_size);
     DEBUG_PRINT("Block size: %lu\r\n", prog->chip_info.block_size);
-    DEBUG_PRINT("Size: %lu\r\n", prog->chip_info.size);
+    DEBUG_PRINT("Total size: %lu\r\n", prog->chip_info.total_size);
+    DEBUG_PRINT("Spare size: %lu\r\n", prog->chip_info.spare_size);    
     DEBUG_PRINT("Setup time: %d\r\n", prog->chip_info.setup_time);
     DEBUG_PRINT("Wait setup time: %d\r\n", prog->chip_info.wait_setup_time);
     DEBUG_PRINT("Hold setup time: %d\r\n", prog->chip_info.hold_setup_time);

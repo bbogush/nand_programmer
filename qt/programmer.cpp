@@ -292,7 +292,8 @@ void Programmer::confChip(ChipInfo *chipInfo)
     confCmd.cmd.code = CMD_NAND_CONF;
     confCmd.pageSize = chipInfo->params[CHIP_PARAM_PAGE_SIZE];
     confCmd.blockSize = chipInfo->params[CHIP_PARAM_BLOCK_SIZE];
-    confCmd.size = chipInfo->params[CHIP_PARAM_SIZE];
+    confCmd.totalSize = chipInfo->params[CHIP_PARAM_TOTAL_SIZE];
+    confCmd.spareSize = chipInfo->params[CHIP_PARAM_SPARE_SIZE];
     confCmd.setupTime = params.setupTime;
     confCmd.waitSetupTime = params.waitSetupTime;
     confCmd.holdSetupTime = params.holdSetupTime;

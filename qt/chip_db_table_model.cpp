@@ -29,8 +29,10 @@ QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
         return (*chipDb)[index.row()]->params[CHIP_PARAM_PAGE_SIZE];
     case CHIP_PARAM_BLOCK_SIZE:
         return (*chipDb)[index.row()]->params[CHIP_PARAM_BLOCK_SIZE];
-    case CHIP_PARAM_SIZE:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_SIZE];
+    case CHIP_PARAM_TOTAL_SIZE:
+        return (*chipDb)[index.row()]->params[CHIP_PARAM_TOTAL_SIZE];
+    case CHIP_PARAM_SPARE_SIZE:
+        return (*chipDb)[index.row()]->params[CHIP_PARAM_SPARE_SIZE];
     case CHIP_PARAM_T_CS:
         return (*chipDb)[index.row()]->params[CHIP_PARAM_T_CS];
     case CHIP_PARAM_T_CLS:
@@ -74,7 +76,8 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
         case CHIP_PARAM_NAME: return tr("Name");
         case CHIP_PARAM_PAGE_SIZE: return tr("Page size");
         case CHIP_PARAM_BLOCK_SIZE: return tr("Block size");
-        case CHIP_PARAM_SIZE: return tr("Size");
+        case CHIP_PARAM_TOTAL_SIZE: return tr("Total size");
+        case CHIP_PARAM_SPARE_SIZE: return tr("Spare size");
         case CHIP_PARAM_T_CS: return tr("tCS");
         case CHIP_PARAM_T_CLS: return tr("tCLS");
         case CHIP_PARAM_T_ALS: return tr("tALS");
@@ -102,8 +105,10 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
             return tr("Page size in bytes");
         case CHIP_PARAM_BLOCK_SIZE:
             return tr("Block size in bytes");
-        case CHIP_PARAM_SIZE:
+        case CHIP_PARAM_TOTAL_SIZE:
             return tr("Total size in bytes");
+        case CHIP_PARAM_SPARE_SIZE:
+            return tr("Spare area size in bytes");
         case CHIP_PARAM_T_CS:
             return tr("Chip enable setup time");
         case CHIP_PARAM_T_CLS:
@@ -159,7 +164,8 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
         return true;
     case CHIP_PARAM_PAGE_SIZE:
     case CHIP_PARAM_BLOCK_SIZE:
-    case CHIP_PARAM_SIZE:
+    case CHIP_PARAM_TOTAL_SIZE:
+    case CHIP_PARAM_SPARE_SIZE:
     case CHIP_PARAM_T_CS:
     case CHIP_PARAM_T_CLS:
     case CHIP_PARAM_T_ALS:

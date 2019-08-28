@@ -67,7 +67,8 @@ typedef struct __attribute__((__packed__))
     Cmd cmd;
     uint32_t pageSize;
     uint32_t blockSize;
-    uint32_t size;
+    uint32_t totalSize;
+    uint32_t spareSize;
     uint8_t setupTime;
     uint8_t waitSetupTime;
     uint8_t holdSetupTime;
