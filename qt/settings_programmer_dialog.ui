@@ -32,9 +32,9 @@
   <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>30</y>
-     <width>228</width>
+     <x>12</x>
+     <y>32</y>
+     <width>265</width>
      <height>27</height>
     </rect>
    </property>
@@ -61,10 +61,10 @@
   <widget class="QCheckBox" name="skipBBCheckBox">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>60</y>
-     <width>221</width>
-     <height>31</height>
+     <x>12</x>
+     <y>65</y>
+     <width>127</width>
+     <height>23</height>
     </rect>
    </property>
    <property name="text">
@@ -74,9 +74,27 @@
     <bool>true</bool>
    </property>
   </widget>
+  <widget class="QCheckBox" name="incSpareCheckBox">
+   <property name="geometry">
+    <rect>
+     <x>12</x>
+     <y>94</y>
+     <width>147</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Include spare area</string>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+  </widget>
   <zorder>layoutWidget</zorder>
   <zorder>buttonBox</zorder>
   <zorder>skipBBCheckBox</zorder>
+  <zorder>incSpareCheckBox</zorder>
+  <zorder></zorder>
  </widget>
  <resources/>
  <connections>

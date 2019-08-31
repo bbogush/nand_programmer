@@ -68,7 +68,9 @@ public:
     QStringList getNames();
     ChipInfo *chipInfoGetById(int id);
     uint32_t pageSizeGetById(int id);
-    uint32_t sizeGetById(int id);
+    uint32_t extendedPageSizeGetById(int id);
+    uint32_t totalSizeGetById(int id);
+    uint32_t extendedTotalSizeGetById(int id);
     void addChip(ChipInfo &chipInfo);
     void delChip(int index);
     int size();

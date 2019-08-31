@@ -10,9 +10,9 @@
 #include <stdbool.h>
 
 void nand_bad_block_table_init();
-int nand_bad_block_table_add(uint32_t addr);
-bool nand_bad_block_table_lookup(uint32_t addr);
-void *nand_bad_block_table_iter_alloc(uint32_t *addr);
-void *nand_bad_block_table_iter_next(void *iter, uint32_t *addr);
+int nand_bad_block_table_add(uint32_t page);
+bool nand_bad_block_table_lookup(uint32_t page);
+void *nand_bad_block_table_iter_alloc(uint32_t *page);
+void *nand_bad_block_table_iter_next(void *iter, uint32_t *page);
 
 #endif

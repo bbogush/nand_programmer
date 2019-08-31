@@ -268,7 +268,9 @@ void MainWindow::slotProgEraseProgress(unsigned int progress)
 {
     uint32_t progressPercent;
     int index = ui->chipSelectComboBox->currentIndex();
-    uint32_t eraseSize = chipDb.sizeGetById(CHIP_INDEX2ID(index));
+    uint32_t eraseSize = prog->isIncSpare() ?
+        chipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
+        chipDb.totalSizeGetById(CHIP_INDEX2ID(index));
 
     progressPercent = progress * 100ULL / eraseSize;
     setProgress(progressPercent);
@@ -277,7 +279,9 @@ void MainWindow::slotProgEraseProgress(unsigned int progress)
 void MainWindow::slotProgErase()
 {
     int index = ui->chipSelectComboBox->currentIndex();
-    uint32_t eraseSize = chipDb.sizeGetById(CHIP_INDEX2ID(index));
+    uint32_t eraseSize = prog->isIncSpare() ?
+        chipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
+        chipDb.totalSizeGetById(CHIP_INDEX2ID(index));
 
     if (!eraseSize)
     {
@@ -321,7 +325,9 @@ void MainWindow::slotProgReadProgress(unsigned int progress)
 {
     uint32_t progressPercent;
     int index = ui->chipSelectComboBox->currentIndex();
-    uint32_t readSize = chipDb.sizeGetById(CHIP_INDEX2ID(index));
+    uint32_t readSize = prog->isIncSpare() ?
+        chipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
+        chipDb.totalSizeGetById(CHIP_INDEX2ID(index));
 
     progressPercent = progress * 100ULL / readSize;
     setProgress(progressPercent);
@@ -330,7 +336,9 @@ void MainWindow::slotProgReadProgress(unsigned int progress)
 void MainWindow::slotProgRead()
 {
     int index = ui->chipSelectComboBox->currentIndex();
-    uint32_t readSize = chipDb.sizeGetById(CHIP_INDEX2ID(index));
+    uint32_t readSize = prog->isIncSpare() ?
+        chipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
+        chipDb.totalSizeGetById(CHIP_INDEX2ID(index));
 
     if (!readSize)
     {
@@ -379,8 +387,7 @@ void MainWindow::slotProgWrite()
 {
     int index;
     QString name;
-    uint32_t pageSize;
-    uint32_t bufferSize;
+    uint32_t pageSize, bufferSize;
 
     if (buffer.isEmpty())
     {
@@ -395,16 +402,19 @@ void MainWindow::slotProgWrite()
         return;
     }
 
-    if (!(pageSize = chipDb.pageSizeGetById(CHIP_INDEX2ID(index))))
+    pageSize = prog->isIncSpare() ?
+        chipDb.extendedPageSizeGetById(CHIP_INDEX2ID(index)) :
+        chipDb.pageSizeGetById(CHIP_INDEX2ID(index));
+    if (!pageSize)
     {
         qInfo() << "Chip page size is unknown";
         return;
     }
 
     bufferSize = static_cast<uint32_t>(buffer.size());
-    if (bufferSize & (pageSize - 1))
+    if (bufferSize % pageSize)
     {
-        bufferSize = (bufferSize + pageSize - 1) & ~(pageSize - 1);
+        bufferSize = (bufferSize / pageSize + 1) * pageSize;
         buffer.resize(static_cast<int>(bufferSize));
     }
 
@@ -479,11 +489,13 @@ void MainWindow::slotSettingsProgrammer()
 
     progDialog.setUsbDevName(prog->getUsbDevName());
     progDialog.setSkipBB(prog->isSkipBB());
+    progDialog.setIncSpare(prog->isIncSpare());
 
     if (progDialog.exec() == QDialog::Accepted)
     {
         prog->setUsbDevName(progDialog.getUsbDevName());
         prog->setSkipBB(progDialog.isSkipBB());
+        prog->setIncSpare(progDialog.isIncSpare());
     }
 }
 

@@ -32,3 +32,13 @@ bool SettingsProgrammerDialog::isSkipBB()
 {
     return ui->skipBBCheckBox->isChecked();
 }
+
+void SettingsProgrammerDialog::setIncSpare(bool incSpare)
+{
+    ui->incSpareCheckBox->setChecked(incSpare);
+}
+
+bool SettingsProgrammerDialog::isIncSpare()
+{
+    return ui->incSpareCheckBox->isChecked();
+}

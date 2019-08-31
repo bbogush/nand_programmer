@@ -196,11 +196,37 @@ uint32_t ChipDb::pageSizeGetById(int id)
     return info ? info->params[CHIP_PARAM_PAGE_SIZE] : 0;
 }
 
-uint32_t ChipDb::sizeGetById(int id)
+uint32_t ChipDb::extendedPageSizeGetById(int id)
+{
+    ChipInfo *info = chipInfoGetById(id);
+
+    if (!info)
+        return 0;
+
+    return info->params[CHIP_PARAM_PAGE_SIZE] +
+        info->params[CHIP_PARAM_SPARE_SIZE];
+}
+
+uint32_t ChipDb::totalSizeGetById(int id)
 {
     ChipInfo *info = chipInfoGetById(id);
 
     return info ? info->params[CHIP_PARAM_TOTAL_SIZE] : 0;
+}
+
+uint32_t ChipDb::extendedTotalSizeGetById(int id)
+{
+    uint32_t totalSize, totalSpare;
+    ChipInfo *info = chipInfoGetById(id);
+
+    if (!info)
+        return 0;
+
+    totalSize = info->params[CHIP_PARAM_TOTAL_SIZE];
+    totalSpare = info->params[CHIP_PARAM_SPARE_SIZE] * (totalSize /
+        info->params[CHIP_PARAM_PAGE_SIZE]);
+
+    return totalSize + totalSpare;
 }
 
 void ChipDb::addChip(ChipInfo &chipInfo)

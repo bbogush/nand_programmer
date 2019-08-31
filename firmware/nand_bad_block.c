@@ -17,39 +17,39 @@ void nand_bad_block_table_init()
     nand_bad_block_table_count = 0;
 }
 
-int nand_bad_block_table_add(uint32_t addr)
+int nand_bad_block_table_add(uint32_t page)
 {
     if (nand_bad_block_table_count == NAND_BAD_BLOCK_TABLE_SIZE)
         return -1;
 
-    nand_bad_block_table[nand_bad_block_table_count++] = addr;
+    nand_bad_block_table[nand_bad_block_table_count++] = page;
     return 0;
 }
 
-bool nand_bad_block_table_lookup(uint32_t addr)
+bool nand_bad_block_table_lookup(uint32_t page)
 {
     uint32_t i;
 
     for (i = 0; i < nand_bad_block_table_count; i++)
     {
-        if (nand_bad_block_table[i] == addr)
+        if (nand_bad_block_table[i] == page)
             return true;
     }
 
     return false;
 }
 
-void *nand_bad_block_table_iter_alloc(uint32_t *addr)
+void *nand_bad_block_table_iter_alloc(uint32_t *page)
 {
     if (!nand_bad_block_table_count)
         return NULL;
 
-    *addr = nand_bad_block_table[0];
+    *page = nand_bad_block_table[0];
 
     return &nand_bad_block_table[0];
 }
 
-void *nand_bad_block_table_iter_next(void *iter, uint32_t *addr)
+void *nand_bad_block_table_iter_next(void *iter, uint32_t *page)
 {
     uint32_t *bbt_iter = iter;
 
@@ -61,7 +61,7 @@ void *nand_bad_block_table_iter_next(void *iter, uint32_t *addr)
     if (bbt_iter - &nand_bad_block_table[0] >= nand_bad_block_table_count)
         return NULL;
 
-    *addr = *bbt_iter;
+    *page = *bbt_iter;
 
     return bbt_iter;
 }

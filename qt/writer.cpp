@@ -15,7 +15,7 @@
 Q_DECLARE_METATYPE(QtMsgType)
 
 void Writer::init(const QString &portName, qint32 baudRate, uint8_t *buf,
-    uint32_t addr, uint32_t len, uint32_t pageSize, bool skipBB)
+    uint32_t addr, uint32_t len, uint32_t pageSize, bool skipBB, bool incSpare)
 {
     this->portName = portName;
     this->baudRate = baudRate;
@@ -24,6 +24,7 @@ void Writer::init(const QString &portName, qint32 baudRate, uint8_t *buf,
     this->len = len;
     this->pageSize = pageSize;
     this->skipBB = skipBB;
+    this->incSpare = incSpare;
     bytesWritten = 0;
     bytesAcked = 0;
 }
@@ -215,6 +216,7 @@ int Writer::writeStart()
     writeStartCmd.addr = addr;
     writeStartCmd.len = len;
     writeStartCmd.flags.skipBB = skipBB;
+    writeStartCmd.flags.incSpare = incSpare;
 
     if (write(reinterpret_cast<uint8_t *>(&writeStartCmd),
         sizeof(WriteStartCmd)))

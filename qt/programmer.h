@@ -27,6 +27,7 @@ class Programmer : public QObject
     Reader reader;
     bool isConn;
     bool skipBB;
+    bool incSpare;
     FwVersion fwVersion;
 
     int serialPortConnect();
@@ -44,6 +45,8 @@ public:
     QString getUsbDevName();
     bool isSkipBB();
     void setSkipBB(bool skip);
+    bool isIncSpare();
+    void setIncSpare(bool incSpare);
     void readChipId(ChipId *chipId);
     void eraseChip(uint32_t addr, uint32_t len);
     void readChip(uint8_t *buf, uint32_t addr, uint32_t len, bool isReadLess);

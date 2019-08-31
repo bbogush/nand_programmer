@@ -23,6 +23,7 @@ Programmer::Programmer(QObject *parent) : QObject(parent)
 {
     usbDevName = USB_DEV_NAME;
     skipBB = true;
+    incSpare = false;
     isConn = false;
     QObject::connect(&reader, SIGNAL(log(QtMsgType, QString)), this,
         SLOT(logCb(QtMsgType, QString)));
@@ -128,6 +129,16 @@ void Programmer::setSkipBB(bool skip)
     skipBB = skip;
 }
 
+bool Programmer::isIncSpare()
+{
+    return incSpare;
+}
+
+void Programmer::setIncSpare(bool isIncSpare)
+{
+    incSpare = isIncSpare;
+}
+
 void Programmer::readChipIdCb(int ret)
 {
     emit readChipIdCompleted(ret);
@@ -180,6 +191,7 @@ void Programmer::eraseChip(uint32_t addr, uint32_t len)
     eraseCmd.addr = addr;
     eraseCmd.len = len;
     eraseCmd.flags.skipBB = skipBB;
+    eraseCmd.flags.incSpare = incSpare;
 
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&eraseCmd),
@@ -216,6 +228,7 @@ void Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len,
     readCmd.addr = addr;
     readCmd.len = len;
     readCmd.flags.skipBB = skipBB;
+    readCmd.flags.incSpare = incSpare;
 
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&readCmd), sizeof(readCmd));
@@ -247,7 +260,7 @@ void Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
         SLOT(writeProgressCb(unsigned int)));
 
     writer.init(usbDevName, SERIAL_PORT_SPEED, buf, addr, len, pageSize,
-        skipBB);
+        skipBB, incSpare);
     writer.start();
 }
 

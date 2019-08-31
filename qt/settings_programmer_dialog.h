@@ -18,6 +18,8 @@ public:
     QString getUsbDevName();
     void setSkipBB(bool skip);
     bool isSkipBB();
+    void setIncSpare(bool incSpare);
+    bool isIncSpare();
 
 private:
     Ui::SettingsProgrammerDialog *ui;
