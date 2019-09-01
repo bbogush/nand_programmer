@@ -22,6 +22,7 @@ Application:
 - NAND read of chip ID support
 - NAND read of bad blocks
 - NAND bad block skip option
+- NAND include spare area option
 - Open KiCad PCB & Schematic
 - Open source code
 - Read & Write LEDs indication
