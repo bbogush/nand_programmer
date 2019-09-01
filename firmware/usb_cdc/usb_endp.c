@@ -78,7 +78,7 @@ typedef struct
 } packet_t;
 
 static packet_t circ_buf[CIRC_BUF_SIZE];
-static uint8_t head, size, tail = CIRC_BUF_SIZE - 1;
+static volatile uint8_t head, size, tail = CIRC_BUF_SIZE - 1;
 
 uint32_t USB_Data_Peek(uint8_t **data)
 {
