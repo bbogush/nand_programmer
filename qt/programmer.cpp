@@ -313,6 +313,10 @@ void Programmer::confChip(ChipInfo *chipInfo)
     confCmd.hiZSetupTime = params.hiZSetupTime;
     confCmd.clrSetupTime = params.clrSetupTime;
     confCmd.arSetupTime = params.arSetupTime;
+    confCmd.rowCycles = static_cast<uint8_t>
+        (chipInfo->params[CHIP_PARAM_ROW_CYCLES]);
+    confCmd.colCycles = static_cast<uint8_t>
+        (chipInfo->params[CHIP_PARAM_COL_CYCLES]);
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(confChipCb(int)));

@@ -1,3 +1,3 @@
-# name, pageSize, blockSize, totalSize, spareSize, tCS, tCLS, tALS, tCLR, tAR, tWP, tRP, tDS, tCH, tCLH, tALH, tWC, tRC, tREA
-K9F2G08U0C, 2048, 131072, 268435456, 64, 20, 12, 12, 10, 10, 12, 12, 12, 5, 5, 5, 25, 25, 20
-K9F1G08U0E, 2048, 131072, 134217728, 64, 20, 12, 12, 10, 10, 12, 12, 12, 5, 5, 5, 25, 25, 20
+# name, pageSize, blockSize, totalSize, spareSize, tCS, tCLS, tALS, tCLR, tAR, tWP, tRP, tDS, tCH, tCLH, tALH, tWC, tRC, tREA, Row cycles, Col. cycles
+K9F2G08U0C, 2048, 131072, 268435456, 64, 20, 12, 12, 10, 10, 12, 12, 12, 5, 5, 5, 25, 25, 20, 3, 2
+K9F1G08U0E, 2048, 131072, 134217728, 64, 20, 12, 12, 10, 10, 12, 12, 12, 5, 5, 5, 25, 25, 20, 3, 2

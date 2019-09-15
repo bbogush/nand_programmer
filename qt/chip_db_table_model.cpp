@@ -1,5 +1,7 @@
 #include "chip_db_table_model.h"
 
+#define CHIP_DB_TABLE_MODEL_MAX_CYCLES 4
+
 ChipDbTableModel::ChipDbTableModel(ChipDb *chipDb, QObject *parent) :
     QAbstractTableModel(parent)
 {
@@ -61,6 +63,10 @@ QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
         return (*chipDb)[index.row()]->params[CHIP_PARAM_T_RC];
     case CHIP_PARAM_T_REA:
         return (*chipDb)[index.row()]->params[CHIP_PARAM_T_REA];
+    case CHIP_PARAM_ROW_CYCLES:
+        return (*chipDb)[index.row()]->params[CHIP_PARAM_ROW_CYCLES];
+    case CHIP_PARAM_COL_CYCLES:
+        return (*chipDb)[index.row()]->params[CHIP_PARAM_COL_CYCLES];
     }
 
     return QVariant();
@@ -92,6 +98,8 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
         case CHIP_PARAM_T_WC: return tr("tWC");
         case CHIP_PARAM_T_RC: return tr("tRC");
         case CHIP_PARAM_T_REA: return tr("tREA");
+        case CHIP_PARAM_ROW_CYCLES: return tr("Row cycles");
+        case CHIP_PARAM_COL_CYCLES: return tr("Col. cycles");
         }
     }
 
@@ -137,6 +145,12 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
             return tr("Read cylce time");
         case CHIP_PARAM_T_REA:
             return tr("Read enable access time");
+        case CHIP_PARAM_ROW_CYCLES:
+            return tr("Number of cycles required for addresing row (page) "
+                "during read/write/erase operation");
+        case CHIP_PARAM_COL_CYCLES:
+            return tr("Number of cycles required for addresing column "
+                "(page offset) during read/write operation");
         }
     }
 
@@ -182,6 +196,15 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
     case CHIP_PARAM_T_REA:
         paramVal = value.toUInt(&convOk);
         if (!convOk)
+            return false;
+        (*chipDb)[index.row()]->params[index.column()] = paramVal;
+        return true;
+    case CHIP_PARAM_ROW_CYCLES:
+    case CHIP_PARAM_COL_CYCLES:
+        paramVal = value.toUInt(&convOk);
+        if (!convOk)
+            return false;
+        if (paramVal > CHIP_DB_TABLE_MODEL_MAX_CYCLES)
             return false;
         (*chipDb)[index.row()]->params[index.column()] = paramVal;
         return true;

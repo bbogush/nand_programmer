@@ -76,6 +76,8 @@ typedef struct __attribute__((__packed__))
     uint8_t hiZSetupTime;
     uint8_t clrSetupTime;
     uint8_t arSetupTime;
+    uint8_t rowCycles;
+    uint8_t colCycles;
 } ConfCmd;
 
 enum

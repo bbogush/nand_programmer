@@ -115,6 +115,8 @@ typedef struct __attribute__((__packed__))
     uint8_t hi_z_setup_time;
     uint8_t clr_setup_time;
     uint8_t ar_setup_time;
+    uint8_t row_cycles;
+    uint8_t col_cycles;
 } np_conf_cmd_t;
 
 enum
@@ -312,7 +314,7 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
     uint32_t status, addr = block * prog->chip_info.block_size;
 
     status = nand_read_data(prog->page.buf, page, 0, prog->chip_info.page_size
-        + 1);
+        + 1, prog->chip_info.row_cycles, prog->chip_info.col_cycles);
     switch (status)
     {
     case NAND_READY:
@@ -650,7 +652,8 @@ static int np_nand_write(np_prog_t *prog)
     DEBUG_PRINT("NAND write at 0x%lx %lu bytes\r\n", prog->addr,
         prog->page_size);
 
-    nand_write_page_async(prog->page.buf, prog->page.page, prog->page_size);
+    nand_write_page_async(prog->page.buf, prog->page.page, prog->page_size,
+        prog->chip_info.row_cycles, prog->chip_info.col_cycles);
 
     prog->nand_wr_in_progress = 1;
 
@@ -794,11 +797,12 @@ static int np_cmd_nand_write(np_prog_t *prog)
 }
 
 static int np_nand_read(uint32_t addr, np_page_t *page, uint32_t page_size,
-    uint32_t block_size)
+    uint32_t block_size, np_prog_t *prog)
 {
     uint32_t status;
 
-    status = nand_read_page(page->buf, page->page, page_size);
+    status = nand_read_page(page->buf, page->page, page_size,
+        prog->chip_info.row_cycles, prog->chip_info.col_cycles);
     switch (status)
     {
     case NAND_READY:
@@ -919,7 +923,7 @@ static int _np_cmd_nand_read(np_prog_t *prog)
             continue;
         }
 
-        if (np_nand_read(addr, &page, page_size, block_size))
+        if (np_nand_read(addr, &page, page_size, block_size, prog))
             return NP_ERR_NAND_RD;
 
         while (page.offset < page_size && len)
@@ -991,6 +995,8 @@ static int np_cmd_nand_conf(np_prog_t *prog)
     prog->chip_info.hi_z_setup_time = conf_cmd->hi_z_setup_time;
     prog->chip_info.clr_setup_time = conf_cmd->clr_setup_time;
     prog->chip_info.ar_setup_time = conf_cmd->ar_setup_time;
+    prog->chip_info.row_cycles = conf_cmd->row_cycles;
+    prog->chip_info.col_cycles = conf_cmd->col_cycles;
     prog->chip_is_conf = 1;
 
     DEBUG_PRINT("Page size: %lu\r\n", prog->chip_info.page_size);
@@ -1003,6 +1009,8 @@ static int np_cmd_nand_conf(np_prog_t *prog)
     DEBUG_PRINT("HiZ setup time: %d\r\n", prog->chip_info.hi_z_setup_time);
     DEBUG_PRINT("CLR setip time: %d\r\n", prog->chip_info.clr_setup_time);
     DEBUG_PRINT("AR setip time: %d\r\n", prog->chip_info.ar_setup_time);
+    DEBUG_PRINT("Row cycles: %d\r\n", prog->chip_info.row_cycles);
+    DEBUG_PRINT("Col. cycles: %d\r\n", prog->chip_info.col_cycles);
 
     nand_init(&prog->chip_info);
 

@@ -18,6 +18,8 @@ typedef struct
     uint8_t hi_z_setup_time;
     uint8_t clr_setup_time;
     uint8_t ar_setup_time;
+    uint8_t row_cycles;
+    uint8_t col_cycles;
 } chip_info_t;
 
 #endif /* _CHIP_INFO_H_ */

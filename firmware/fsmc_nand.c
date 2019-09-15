@@ -93,17 +93,60 @@ void nand_read_id(nand_id_t *nand_id)
     nand_id->fourth_id  = ADDR_4th_CYCLE (data);
 }
 
-void nand_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size)
+void nand_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size,
+    uint8_t row_cycles, uint8_t col_cycles)
 {
     uint32_t i;
 
     *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_WRITE0;
 
-    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
-    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
-    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
-    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
-    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
+    switch (col_cycles)
+    {
+    case 1:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+        break;
+    case 2:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+        break;
+    case 3:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+        break;
+    case 4:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+        break;
+    default:
+        break;
+    }
+
+    switch (row_cycles)
+    {
+    case 1:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+        break;
+    case 2:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+        break;
+    case 3:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
+        break;
+    case 4:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_4th_CYCLE(page);
+        break;
+    default:
+        break;
+    }
 
     for(i = 0; i < page_size; i++)
         *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = buf[i];
@@ -111,25 +154,77 @@ void nand_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size)
     *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_WRITE_TRUE1; 
 }
 
-uint32_t nand_write_page(uint8_t *buf, uint32_t page, uint32_t page_size)
+uint32_t nand_write_page(uint8_t *buf, uint32_t page, uint32_t page_size,
+    uint8_t row_cycles, uint8_t col_cycles)
 {
-    nand_write_page_async(buf, page, page_size);
+    nand_write_page_async(buf, page, page_size, row_cycles, col_cycles);
  
     return nand_get_status();
 }
 
 uint32_t nand_read_data(uint8_t *buf, uint32_t page, uint32_t page_offset,
-    uint32_t data_size)
+    uint32_t data_size, uint8_t row_cycles, uint8_t col_cycles)
 {
     uint32_t i;
 
     *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ0;
-   
-    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page_offset); 
-    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page_offset);
-    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
-    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
-    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
+
+    switch (col_cycles)
+    {
+    case 1:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
+            ADDR_1st_CYCLE(page_offset);
+        break;
+    case 2:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
+            ADDR_1st_CYCLE(page_offset);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
+            ADDR_2nd_CYCLE(page_offset);
+        break;
+    case 3:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
+            ADDR_1st_CYCLE(page_offset);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
+            ADDR_2nd_CYCLE(page_offset);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
+            ADDR_3rd_CYCLE(page_offset);
+        break;
+    case 4:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
+            ADDR_1st_CYCLE(page_offset);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
+            ADDR_2nd_CYCLE(page_offset);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
+            ADDR_3rd_CYCLE(page_offset);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
+            ADDR_4th_CYCLE(page_offset);
+    default:
+        break;
+    }
+
+    switch (row_cycles)
+    {
+    case 1:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+        break;
+    case 2:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+        break;
+    case 3:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
+        break;
+    case 4:
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
+        *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_4th_CYCLE(page);
+        break;
+    default:
+        break;
+    }
 
     *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ1;
 
@@ -139,9 +234,10 @@ uint32_t nand_read_data(uint8_t *buf, uint32_t page, uint32_t page_offset,
     return nand_get_status();
 }
 
-uint32_t nand_read_page(uint8_t *buf, uint32_t page, uint32_t page_size)
+uint32_t nand_read_page(uint8_t *buf, uint32_t page, uint32_t page_size,
+    uint8_t row_cycles, uint8_t col_cycles)
 {
-    return nand_read_data(buf, page, 0, page_size);
+    return nand_read_data(buf, page, 0, page_size, row_cycles, col_cycles);
 }
 
 /**
