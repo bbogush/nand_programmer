@@ -36,7 +36,7 @@ void chipInfoToStmParams(ChipInfo *chipInfo, StmParams *stmParams)
     waitSetupTime = waitSetupTime / tHCLK - 1;
     waitSetupTime = waitSetupTime <= 0 ? 0 : ceil(waitSetupTime);
     stmParams->waitSetupTime = static_cast<uint8_t>(waitSetupTime);
-    /* (WAIT + 1) *tHCLK >= tREA + tsuD_NOE */
+    /* (WAIT + 1) * tHCLK >= tREA + tsuD_NOE */
     waitSetupTime = chipInfo->params[CHIP_PARAM_T_REA] + tsuD_NOE;
     waitSetupTime = waitSetupTime / tHCLK - 1;
     waitSetupTime = waitSetupTime <= 0 ? 0 : ceil(waitSetupTime);
@@ -45,7 +45,7 @@ void chipInfoToStmParams(ChipInfo *chipInfo, StmParams *stmParams)
 
     /* (HIZ + 1) * tHCLK >= max(tCH, tALS, tCLS) + (tWP - tDS) */
     hiZSetupTime = *std::max_element(hiZArr.begin(), hiZArr.end());
-    hiZSetupTime -= chipInfo->params[CHIP_PARAM_T_WP] -
+    hiZSetupTime += chipInfo->params[CHIP_PARAM_T_WP] -
         chipInfo->params[CHIP_PARAM_T_DS];
     hiZSetupTime = hiZSetupTime / tHCLK - 1;
     hiZSetupTime = hiZSetupTime <= 0 ? 0 : ceil(hiZSetupTime);
