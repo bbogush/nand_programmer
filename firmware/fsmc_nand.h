@@ -36,13 +36,6 @@ typedef struct
 #define NAND_ERROR                 ((uint32_t)0x00000001)
 #define NAND_READY                 ((uint32_t)0x00000040)
 
-/* FSMC NAND memory parameters */  
-#define NAND_PAGE_SIZE             ((uint16_t)0x0800) /* 2048 bytes per page w/o Spare Area */
-#define NAND_BLOCK_SIZE            ((uint16_t)0x0040) /* 64 pages per block */
-#define NAND_ZONE_SIZE             ((uint16_t)0x0800) /* 2048 Block per zone (plane) */
-#define NAND_SPARE_AREA_SIZE       ((uint16_t)0x0040) /* last 64 bytes as spare area */
-#define NAND_MAX_ZONE              ((uint16_t)0x0001) /* 1 zones of 2048 block */
-
 /* FSMC NAND memory address computation */  
 #define ADDR_1st_CYCLE(ADDR)       (uint8_t)((ADDR)& 0xFF)               /* 1st addressing cycle */
 #define ADDR_2nd_CYCLE(ADDR)       (uint8_t)(((ADDR)& 0xFF00) >> 8)      /* 2nd addressing cycle */
