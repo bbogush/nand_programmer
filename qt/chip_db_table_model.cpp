@@ -1,4 +1,5 @@
 #include "chip_db_table_model.h"
+#include <limits>
 
 #define CHIP_DB_TABLE_MODEL_MAX_CYCLES 4
 
@@ -20,53 +21,46 @@ int ChipDbTableModel::columnCount(const QModelIndex & /*parent*/) const
 
 QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
 {
+    int column;
+
     if (role != Qt::DisplayRole && role != Qt::EditRole)
         return QVariant();
 
-    switch (index.column())
+    column = index.column();
+    switch (column)
     {
     case CHIP_PARAM_NAME:
         return (*chipDb)[index.row()]->name;
     case CHIP_PARAM_PAGE_SIZE:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_PAGE_SIZE];
     case CHIP_PARAM_BLOCK_SIZE:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_BLOCK_SIZE];
     case CHIP_PARAM_TOTAL_SIZE:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_TOTAL_SIZE];
     case CHIP_PARAM_SPARE_SIZE:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_SPARE_SIZE];
     case CHIP_PARAM_T_CS:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_CS];
     case CHIP_PARAM_T_CLS:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_CLS];
     case CHIP_PARAM_T_ALS:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_ALS];
     case CHIP_PARAM_T_CLR:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_CLR];
     case CHIP_PARAM_T_AR:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_AR];
     case CHIP_PARAM_T_WP:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_WP];
     case CHIP_PARAM_T_RP:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_RP];
     case CHIP_PARAM_T_DS:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_DS];
     case CHIP_PARAM_T_CH:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_CH];
     case CHIP_PARAM_T_CLH:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_CLH];
     case CHIP_PARAM_T_ALH:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_ALH];
     case CHIP_PARAM_T_WC:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_WC];
     case CHIP_PARAM_T_RC:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_RC];
     case CHIP_PARAM_T_REA:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_T_REA];
     case CHIP_PARAM_ROW_CYCLES:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_ROW_CYCLES];
     case CHIP_PARAM_COL_CYCLES:
-        return (*chipDb)[index.row()]->params[CHIP_PARAM_COL_CYCLES];
+    case CHIP_PARAM_READ1_CMD:
+    case CHIP_PARAM_READ2_CMD:
+    case CHIP_PARAM_READ_ID_CMD:
+    case CHIP_PARAM_RESET_CMD:
+    case CHIP_PARAM_WRITE1_CMD:
+    case CHIP_PARAM_WRITE2_CMD:
+    case CHIP_PARAM_ERASE1_CMD:
+    case CHIP_PARAM_ERASE2_CMD:
+    case CHIP_PARAM_STATUS_CMD:
+        return (*chipDb)[index.row()]->params[column];
     }
 
     return QVariant();
@@ -100,6 +94,15 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
         case CHIP_PARAM_T_REA: return tr("tREA");
         case CHIP_PARAM_ROW_CYCLES: return tr("Row cycles");
         case CHIP_PARAM_COL_CYCLES: return tr("Col. cycles");
+        case CHIP_PARAM_READ1_CMD: return  tr("Read 1 com.");
+        case CHIP_PARAM_READ2_CMD: return tr("Read 2 com.");
+        case CHIP_PARAM_READ_ID_CMD: return tr("Read ID com.");
+        case CHIP_PARAM_RESET_CMD: return tr("Reset com.");
+        case CHIP_PARAM_WRITE1_CMD: return tr("Write 1 com.");
+        case CHIP_PARAM_WRITE2_CMD: return tr("Write 2 com.");
+        case CHIP_PARAM_ERASE1_CMD: return tr("Erase 1 com.");
+        case CHIP_PARAM_ERASE2_CMD: return tr("Erase 2 com.");
+        case CHIP_PARAM_STATUS_CMD: return  tr("Status com.");
         }
     }
 
@@ -151,6 +154,24 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
         case CHIP_PARAM_COL_CYCLES:
             return tr("Number of cycles required for addresing column "
                 "(page offset) during read/write operation");
+        case CHIP_PARAM_READ1_CMD:
+            return  tr("Read 1 command");
+        case CHIP_PARAM_READ2_CMD:
+            return tr("Read 2 command");
+        case CHIP_PARAM_READ_ID_CMD:
+            return tr("Read ID command");
+        case CHIP_PARAM_RESET_CMD:
+            return tr("Reset command");
+        case CHIP_PARAM_WRITE1_CMD:
+            return tr("Write 1 command");
+        case CHIP_PARAM_WRITE2_CMD:
+            return tr("Write 2 command");
+        case CHIP_PARAM_ERASE1_CMD:
+            return tr("Erase 1 command");
+        case CHIP_PARAM_ERASE2_CMD:
+            return tr("Erase 2 command");
+        case CHIP_PARAM_STATUS_CMD:
+            return  tr("Status command");
         }
     }
 
@@ -205,6 +226,22 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
         if (!convOk)
             return false;
         if (paramVal > CHIP_DB_TABLE_MODEL_MAX_CYCLES)
+            return false;
+        (*chipDb)[index.row()]->params[index.column()] = paramVal;
+        return true;
+    case CHIP_PARAM_READ1_CMD:
+    case CHIP_PARAM_READ2_CMD:
+    case CHIP_PARAM_READ_ID_CMD:
+    case CHIP_PARAM_RESET_CMD:
+    case CHIP_PARAM_WRITE1_CMD:
+    case CHIP_PARAM_WRITE2_CMD:
+    case CHIP_PARAM_ERASE1_CMD:
+    case CHIP_PARAM_ERASE2_CMD:
+    case CHIP_PARAM_STATUS_CMD:
+        paramVal = value.toUInt(&convOk);
+        if (!convOk)
+            return false;
+        if (paramVal > std::numeric_limits<uint8_t>::max())
             return false;
         (*chipDb)[index.row()]->params[index.column()] = paramVal;
         return true;

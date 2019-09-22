@@ -117,6 +117,15 @@ typedef struct __attribute__((__packed__))
     uint8_t ar_setup_time;
     uint8_t row_cycles;
     uint8_t col_cycles;
+    uint8_t read1_cmd;
+    uint8_t read2_cmd;
+    uint8_t read_id_cmd;
+    uint8_t reset_cmd;
+    uint8_t write1_cmd;
+    uint8_t write2_cmd;
+    uint8_t erase1_cmd;
+    uint8_t erase2_cmd;
+    uint8_t status_cmd;
 } np_conf_cmd_t;
 
 enum
@@ -314,7 +323,7 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
     uint32_t status, addr = block * prog->chip_info.block_size;
 
     status = nand_read_data(prog->page.buf, page, 0, prog->chip_info.page_size
-        + 1, prog->chip_info.row_cycles, prog->chip_info.col_cycles);
+        + 1);
     switch (status)
     {
     case NAND_READY:
@@ -652,8 +661,7 @@ static int np_nand_write(np_prog_t *prog)
     DEBUG_PRINT("NAND write at 0x%lx %lu bytes\r\n", prog->addr,
         prog->page_size);
 
-    nand_write_page_async(prog->page.buf, prog->page.page, prog->page_size,
-        prog->chip_info.row_cycles, prog->chip_info.col_cycles);
+    nand_write_page_async(prog->page.buf, prog->page.page, prog->page_size);
 
     prog->nand_wr_in_progress = 1;
 
@@ -801,8 +809,7 @@ static int np_nand_read(uint32_t addr, np_page_t *page, uint32_t page_size,
 {
     uint32_t status;
 
-    status = nand_read_page(page->buf, page->page, page_size,
-        prog->chip_info.row_cycles, prog->chip_info.col_cycles);
+    status = nand_read_page(page->buf, page->page, page_size);
     switch (status)
     {
     case NAND_READY:
@@ -970,6 +977,57 @@ static int np_cmd_nand_read(np_prog_t *prog)
     return ret;
 }
 
+static void np_fill_chip_info(np_conf_cmd_t *conf_cmd, np_prog_t *prog)
+{
+    prog->chip_info.page_size = conf_cmd->page_size;
+    prog->chip_info.block_size = conf_cmd->block_size;
+    prog->chip_info.total_size = conf_cmd->total_size;
+    prog->chip_info.spare_size = conf_cmd->spare_size;    
+    prog->chip_info.setup_time = conf_cmd->setup_time;
+    prog->chip_info.wait_setup_time = conf_cmd->wait_setup_time;
+    prog->chip_info.hold_setup_time = conf_cmd->hold_setup_time;
+    prog->chip_info.hi_z_setup_time = conf_cmd->hi_z_setup_time;
+    prog->chip_info.clr_setup_time = conf_cmd->clr_setup_time;
+    prog->chip_info.ar_setup_time = conf_cmd->ar_setup_time;
+    prog->chip_info.row_cycles = conf_cmd->row_cycles;
+    prog->chip_info.col_cycles = conf_cmd->col_cycles;
+    prog->chip_info.read1_cmd = conf_cmd->read1_cmd;
+    prog->chip_info.read2_cmd = conf_cmd->read2_cmd;
+    prog->chip_info.read_id_cmd = conf_cmd->read_id_cmd;
+    prog->chip_info.reset_cmd = conf_cmd->reset_cmd;
+    prog->chip_info.write1_cmd = conf_cmd->write1_cmd;
+    prog->chip_info.write2_cmd = conf_cmd->write2_cmd;
+    prog->chip_info.erase1_cmd = conf_cmd->erase1_cmd;
+    prog->chip_info.erase2_cmd = conf_cmd->erase2_cmd;
+    prog->chip_info.status_cmd = conf_cmd->status_cmd;
+    prog->chip_is_conf = 1;    
+}
+
+static void np_print_chip_info(np_prog_t *prog)
+{
+    DEBUG_PRINT("Page size: %lu\r\n", prog->chip_info.page_size);
+    DEBUG_PRINT("Block size: %lu\r\n", prog->chip_info.block_size);
+    DEBUG_PRINT("Total size: %lu\r\n", prog->chip_info.total_size);
+    DEBUG_PRINT("Spare size: %lu\r\n", prog->chip_info.spare_size);    
+    DEBUG_PRINT("Setup time: %d\r\n", prog->chip_info.setup_time);
+    DEBUG_PRINT("Wait setup time: %d\r\n", prog->chip_info.wait_setup_time);
+    DEBUG_PRINT("Hold setup time: %d\r\n", prog->chip_info.hold_setup_time);
+    DEBUG_PRINT("HiZ setup time: %d\r\n", prog->chip_info.hi_z_setup_time);
+    DEBUG_PRINT("CLR setip time: %d\r\n", prog->chip_info.clr_setup_time);
+    DEBUG_PRINT("AR setip time: %d\r\n", prog->chip_info.ar_setup_time);
+    DEBUG_PRINT("Row cycles: %d\r\n", prog->chip_info.row_cycles);
+    DEBUG_PRINT("Col. cycles: %d\r\n", prog->chip_info.col_cycles);
+    DEBUG_PRINT("Read command 1: %d\r\n", prog->chip_info.read1_cmd);
+    DEBUG_PRINT("Read command 2: %d\r\n", prog->chip_info.read2_cmd);
+    DEBUG_PRINT("Read ID command: %d\r\n", prog->chip_info.read_id_cmd);
+    DEBUG_PRINT("Reset command: %d\r\n", prog->chip_info.reset_cmd);
+    DEBUG_PRINT("Write 1 command: %d\r\n", prog->chip_info.write1_cmd);
+    DEBUG_PRINT("Write 2 command: %d\r\n", prog->chip_info.write2_cmd);
+    DEBUG_PRINT("Erase 1 command: %d\r\n", prog->chip_info.erase1_cmd);
+    DEBUG_PRINT("Erase 2 command: %d\r\n", prog->chip_info.erase2_cmd);
+    DEBUG_PRINT("Status command: %d\r\n", prog->chip_info.status_cmd);
+}
+
 static int np_cmd_nand_conf(np_prog_t *prog)
 {
     np_conf_cmd_t *conf_cmd;
@@ -985,32 +1043,8 @@ static int np_cmd_nand_conf(np_prog_t *prog)
 
     conf_cmd = (np_conf_cmd_t *)prog->rx_buf;
 
-    prog->chip_info.page_size = conf_cmd->page_size;
-    prog->chip_info.block_size = conf_cmd->block_size;
-    prog->chip_info.total_size = conf_cmd->total_size;
-    prog->chip_info.spare_size = conf_cmd->spare_size;    
-    prog->chip_info.setup_time = conf_cmd->setup_time;
-    prog->chip_info.wait_setup_time = conf_cmd->wait_setup_time;
-    prog->chip_info.hold_setup_time = conf_cmd->hold_setup_time;
-    prog->chip_info.hi_z_setup_time = conf_cmd->hi_z_setup_time;
-    prog->chip_info.clr_setup_time = conf_cmd->clr_setup_time;
-    prog->chip_info.ar_setup_time = conf_cmd->ar_setup_time;
-    prog->chip_info.row_cycles = conf_cmd->row_cycles;
-    prog->chip_info.col_cycles = conf_cmd->col_cycles;
-    prog->chip_is_conf = 1;
-
-    DEBUG_PRINT("Page size: %lu\r\n", prog->chip_info.page_size);
-    DEBUG_PRINT("Block size: %lu\r\n", prog->chip_info.block_size);
-    DEBUG_PRINT("Total size: %lu\r\n", prog->chip_info.total_size);
-    DEBUG_PRINT("Spare size: %lu\r\n", prog->chip_info.spare_size);    
-    DEBUG_PRINT("Setup time: %d\r\n", prog->chip_info.setup_time);
-    DEBUG_PRINT("Wait setup time: %d\r\n", prog->chip_info.wait_setup_time);
-    DEBUG_PRINT("Hold setup time: %d\r\n", prog->chip_info.hold_setup_time);
-    DEBUG_PRINT("HiZ setup time: %d\r\n", prog->chip_info.hi_z_setup_time);
-    DEBUG_PRINT("CLR setip time: %d\r\n", prog->chip_info.clr_setup_time);
-    DEBUG_PRINT("AR setip time: %d\r\n", prog->chip_info.ar_setup_time);
-    DEBUG_PRINT("Row cycles: %d\r\n", prog->chip_info.row_cycles);
-    DEBUG_PRINT("Col. cycles: %d\r\n", prog->chip_info.col_cycles);
+    np_fill_chip_info(conf_cmd, prog);
+    np_print_chip_info(prog);
 
     nand_init(&prog->chip_info);
 

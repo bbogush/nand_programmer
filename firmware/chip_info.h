@@ -20,6 +20,15 @@ typedef struct
     uint8_t ar_setup_time;
     uint8_t row_cycles;
     uint8_t col_cycles;
+    uint8_t read1_cmd;
+    uint8_t read2_cmd;
+    uint8_t read_id_cmd;
+    uint8_t reset_cmd;
+    uint8_t write1_cmd;
+    uint8_t write2_cmd;
+    uint8_t erase1_cmd;
+    uint8_t erase2_cmd;
+    uint8_t status_cmd;
 } chip_info_t;
 
 #endif /* _CHIP_INFO_H_ */

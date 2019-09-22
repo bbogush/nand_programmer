@@ -12,6 +12,23 @@
 #define ROW_ADDRESS (addr.page + (addr.block + (addr.zone * NAND_ZONE_SIZE)) * \
     NAND_BLOCK_SIZE)
 
+typedef struct
+{
+    uint8_t row_cycles;
+    uint8_t col_cycles;
+    uint8_t read1_cmd;
+    uint8_t read2_cmd;
+    uint8_t read_id_cmd;
+    uint8_t reset_cmd;
+    uint8_t write1_cmd;
+    uint8_t write2_cmd;
+    uint8_t erase1_cmd;
+    uint8_t erase2_cmd;
+    uint8_t status_cmd;
+} fsmc_cmd_t;
+
+static fsmc_cmd_t fsmc_cmd;
+
 static void nand_gpio_init(void)
 {
     GPIO_InitTypeDef gpio_init;
@@ -70,10 +87,26 @@ static void nand_fsmc_init(chip_info_t *chip_info)
     FSMC_NANDCmd(FSMC_Bank2_NAND, ENABLE);
 }
 
+static void nand_cmd_init(chip_info_t *chip_info)
+{
+    fsmc_cmd.row_cycles = chip_info->row_cycles;
+    fsmc_cmd.col_cycles = chip_info->col_cycles;
+    fsmc_cmd.read1_cmd = chip_info->read1_cmd;
+    fsmc_cmd.read2_cmd = chip_info->read2_cmd;
+    fsmc_cmd.read_id_cmd = chip_info->read_id_cmd;
+    fsmc_cmd.reset_cmd = chip_info->reset_cmd;
+    fsmc_cmd.write1_cmd = chip_info->write1_cmd;
+    fsmc_cmd.write2_cmd = chip_info->write2_cmd;
+    fsmc_cmd.erase1_cmd = chip_info->erase1_cmd;
+    fsmc_cmd.erase2_cmd = chip_info->erase2_cmd;
+    fsmc_cmd.status_cmd = chip_info->status_cmd;
+}
+
 void nand_init(chip_info_t *chip_info)
 {
     nand_gpio_init();
     nand_fsmc_init(chip_info);
+    nand_cmd_init(chip_info);
 }
 
 void nand_read_id(nand_id_t *nand_id)
@@ -81,7 +114,7 @@ void nand_read_id(nand_id_t *nand_id)
     uint32_t data = 0;
 
     /* Send Command to the command area */
-    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = 0x90;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.read_id_cmd;
     *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
 
     /* Sequence to read ID from NAND flash */
@@ -93,14 +126,13 @@ void nand_read_id(nand_id_t *nand_id)
     nand_id->fourth_id  = ADDR_4th_CYCLE (data);
 }
 
-void nand_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size,
-    uint8_t row_cycles, uint8_t col_cycles)
+void nand_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size)
 {
     uint32_t i;
 
-    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_WRITE0;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.write1_cmd;
 
-    switch (col_cycles)
+    switch (fsmc_cmd.col_cycles)
     {
     case 1:
         *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
@@ -124,7 +156,7 @@ void nand_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size,
         break;
     }
 
-    switch (row_cycles)
+    switch (fsmc_cmd.row_cycles)
     {
     case 1:
         *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
@@ -151,25 +183,25 @@ void nand_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size,
     for(i = 0; i < page_size; i++)
         *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = buf[i];
 
-    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_WRITE_TRUE1; 
+    if (fsmc_cmd.write2_cmd != 0xFF)
+        *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.write2_cmd;
 }
 
-uint32_t nand_write_page(uint8_t *buf, uint32_t page, uint32_t page_size,
-    uint8_t row_cycles, uint8_t col_cycles)
+uint32_t nand_write_page(uint8_t *buf, uint32_t page, uint32_t page_size)
 {
-    nand_write_page_async(buf, page, page_size, row_cycles, col_cycles);
+    nand_write_page_async(buf, page, page_size);
  
     return nand_get_status();
 }
 
 uint32_t nand_read_data(uint8_t *buf, uint32_t page, uint32_t page_offset,
-    uint32_t data_size, uint8_t row_cycles, uint8_t col_cycles)
+    uint32_t data_size)
 {
     uint32_t i;
 
-    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ0;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.read1_cmd;
 
-    switch (col_cycles)
+    switch (fsmc_cmd.col_cycles)
     {
     case 1:
         *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) =
@@ -202,7 +234,7 @@ uint32_t nand_read_data(uint8_t *buf, uint32_t page, uint32_t page_offset,
         break;
     }
 
-    switch (row_cycles)
+    switch (fsmc_cmd.row_cycles)
     {
     case 1:
         *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
@@ -226,7 +258,8 @@ uint32_t nand_read_data(uint8_t *buf, uint32_t page, uint32_t page_offset,
         break;
     }
 
-    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_READ1;
+    if (fsmc_cmd.read2_cmd != 0xFF)
+        *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.read2_cmd;
 
     for (i = 0; i < data_size; i++)
         buf[i]= *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA);
@@ -234,10 +267,9 @@ uint32_t nand_read_data(uint8_t *buf, uint32_t page, uint32_t page_offset,
     return nand_get_status();
 }
 
-uint32_t nand_read_page(uint8_t *buf, uint32_t page, uint32_t page_size,
-    uint8_t row_cycles, uint8_t col_cycles)
+uint32_t nand_read_page(uint8_t *buf, uint32_t page, uint32_t page_size)
 {
-    return nand_read_data(buf, page, 0, page_size, row_cycles, col_cycles);
+    return nand_read_data(buf, page, 0, page_size);
 }
 
 /**
@@ -361,13 +393,13 @@ uint32_t nand_read_spare_area(uint8_t *buf, nand_addr_t addr,
 
 uint32_t nand_erase_block(uint32_t page)
 {
-    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_ERASE0;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.erase1_cmd;
 
     *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_1st_CYCLE(page);
     *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_2nd_CYCLE(page);
     *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = ADDR_3rd_CYCLE(page);
 
-    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_ERASE1; 
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.erase2_cmd; 
 
     return nand_get_status();
 }
@@ -377,9 +409,9 @@ uint32_t nand_erase_block(uint32_t page)
   * @param  None
   * @retval NAND_READY
   */
-uint32_t nand_reset(void)
+uint32_t nand_reset()
 {
-    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_RESET;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.reset_cmd;
 
     return (NAND_READY);
 }
@@ -425,7 +457,7 @@ uint32_t nand_read_status(void)
     uint32_t data = 0x00, status = NAND_BUSY;
 
     /* Read status operation */
-    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = NAND_CMD_STATUS;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.status_cmd;
     data = *(__IO uint8_t *)(Bank_NAND_ADDR);
 
     if ((data & NAND_ERROR) == NAND_ERROR)

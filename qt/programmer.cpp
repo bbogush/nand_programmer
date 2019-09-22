@@ -317,6 +317,24 @@ void Programmer::confChip(ChipInfo *chipInfo)
         (chipInfo->params[CHIP_PARAM_ROW_CYCLES]);
     confCmd.colCycles = static_cast<uint8_t>
         (chipInfo->params[CHIP_PARAM_COL_CYCLES]);
+    confCmd.read1Cmd = static_cast<uint8_t>
+        (chipInfo->params[CHIP_PARAM_READ1_CMD]);
+    confCmd.read2Cmd = static_cast<uint8_t>
+        (chipInfo->params[CHIP_PARAM_READ2_CMD]);
+    confCmd.readIdCmd = static_cast<uint8_t>
+        (chipInfo->params[CHIP_PARAM_READ_ID_CMD]);
+    confCmd.resetCmd = static_cast<uint8_t>
+        (chipInfo->params[CHIP_PARAM_RESET_CMD]);
+    confCmd.write1Cmd = static_cast<uint8_t>
+        (chipInfo->params[CHIP_PARAM_WRITE1_CMD]);
+    confCmd.write2Cmd = static_cast<uint8_t>
+        (chipInfo->params[CHIP_PARAM_WRITE2_CMD]);
+    confCmd.erase1Cmd = static_cast<uint8_t>
+        (chipInfo->params[CHIP_PARAM_ERASE1_CMD]);
+    confCmd.erase2Cmd = static_cast<uint8_t>
+        (chipInfo->params[CHIP_PARAM_ERASE2_CMD]);
+    confCmd.statusCmd = static_cast<uint8_t>
+        (chipInfo->params[CHIP_PARAM_STATUS_CMD]);
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(confChipCb(int)));
