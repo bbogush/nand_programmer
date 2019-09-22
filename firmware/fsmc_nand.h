@@ -75,15 +75,19 @@ void nand_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size);
 uint32_t nand_read_data(uint8_t *buf, uint32_t page, uint32_t page_offset,
     uint32_t data_size);
 uint32_t nand_read_page(uint8_t *buf, uint32_t page, uint32_t page_size);
+#if 0
 uint32_t nand_write_spare_area(uint8_t *buf, nand_addr_t addr,
     uint32_t num_spare_area_to_write);
 uint32_t nand_read_spare_area(uint8_t *buf, nand_addr_t addr,
     uint32_t num_spare_area_to_read);
+#endif
 uint32_t nand_erase_block(uint32_t page);
 uint32_t nand_reset(void);
 uint32_t nand_get_status(void);
 uint32_t nand_read_status(void);
+#if 0
 uint32_t nand_addr_inc(nand_addr_t *addr);
+#endif
 uint32_t nand_raw_addr_to_nand_addr(uint32_t raw_addr, nand_addr_t *addr);
 
 #endif /* _FSMC_NAND_H_ */

@@ -272,6 +272,7 @@ uint32_t nand_read_page(uint8_t *buf, uint32_t page, uint32_t page_size)
     return nand_read_data(buf, page, 0, page_size);
 }
 
+#if 0
 /**
   * @brief  This routine write the spare area information for the specified
   *         pages addresses.  
@@ -390,6 +391,7 @@ uint32_t nand_read_spare_area(uint8_t *buf, nand_addr_t addr,
 
     return status | address_status;
 }
+#endif
 
 uint32_t nand_erase_block(uint32_t page)
 {
@@ -491,6 +493,7 @@ uint32_t nand_read_status(void)
     return status;
 }
 
+#if 0
 /**
   * @brief  Increment the NAND memory address. 
   * @param  addr: address to be incremented.
@@ -521,6 +524,7 @@ uint32_t nand_addr_inc(nand_addr_t *addr)
 
     return status;
 }
+#endif
 
 uint32_t nand_raw_addr_to_nand_addr(uint32_t raw_addr, nand_addr_t *addr)
 {
