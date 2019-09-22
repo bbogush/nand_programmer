@@ -28,25 +28,6 @@ typedef struct
 
 #define DATA_AREA                  ((uint32_t)0x00000000) 
 
-/* FSMC NAND memory command */  
-#define NAND_CMD_AREA_A            ((uint8_t)0x00)
-#define NAND_CMD_AREA_B            ((uint8_t)0x01)
-#define NAND_CMD_AREA_C            ((uint8_t)0x50)
-
-#define NAND_CMD_READ0             ((uint8_t)0x00)
-#define NAND_CMD_READ1             ((uint8_t)0x30)
-
-#define NAND_CMD_WRITE0            ((uint8_t)0x80)
-#define NAND_CMD_WRITE_TRUE1       ((uint8_t)0x10)
-
-#define NAND_CMD_ERASE0            ((uint8_t)0x60)
-#define NAND_CMD_ERASE1            ((uint8_t)0xD0)
-
-#define NAND_CMD_READID            ((uint8_t)0x90)
-#define NAND_CMD_STATUS            ((uint8_t)0x70)
-#define NAND_CMD_LOCK_STATUS       ((uint8_t)0x7A)
-#define NAND_CMD_RESET             ((uint8_t)0xFF)
-
 /* NAND memory status */  
 #define NAND_VALID_ADDRESS         ((uint32_t)0x00000100)
 #define NAND_INVALID_ADDRESS       ((uint32_t)0x00000200)
