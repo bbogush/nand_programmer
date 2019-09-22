@@ -16,13 +16,6 @@ typedef struct
     uint8_t fourth_id;
 } nand_id_t;
 
-typedef struct 
-{
-    uint16_t zone;
-    uint16_t block;
-    uint16_t page;
-} nand_addr_t;
-
 #define CMD_AREA                   (uint32_t)(1<<16)  /* A16 = CLE  high */
 #define ADDR_AREA                  (uint32_t)(1<<17)  /* A17 = ALE high */
 
