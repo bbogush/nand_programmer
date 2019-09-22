@@ -419,7 +419,8 @@ uint32_t nand_erase_block(uint32_t page)
         break;
     }
 
-    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.erase2_cmd; 
+    if (fsmc_cmd.erase2_cmd != 0xFF)
+        *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.erase2_cmd;
 
     return nand_get_status();
 }
