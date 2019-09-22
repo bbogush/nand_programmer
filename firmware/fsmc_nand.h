@@ -68,7 +68,7 @@ uint32_t nand_get_status(void);
 uint32_t nand_read_status(void);
 #if 0
 uint32_t nand_addr_inc(nand_addr_t *addr);
-#endif
 uint32_t nand_raw_addr_to_nand_addr(uint32_t raw_addr, nand_addr_t *addr);
+#endif
 
 #endif /* _FSMC_NAND_H_ */

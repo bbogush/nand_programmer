@@ -524,7 +524,6 @@ uint32_t nand_addr_inc(nand_addr_t *addr)
 
     return status;
 }
-#endif
 
 uint32_t nand_raw_addr_to_nand_addr(uint32_t raw_addr, nand_addr_t *addr)
 {
@@ -543,3 +542,5 @@ uint32_t nand_raw_addr_to_nand_addr(uint32_t raw_addr, nand_addr_t *addr)
 
     return status;
 }
+
+#endif
