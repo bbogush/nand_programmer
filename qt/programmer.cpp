@@ -335,6 +335,8 @@ void Programmer::confChip(ChipInfo *chipInfo)
         (chipInfo->params[CHIP_PARAM_ERASE2_CMD]);
     confCmd.statusCmd = static_cast<uint8_t>
         (chipInfo->params[CHIP_PARAM_STATUS_CMD]);
+    confCmd.bbMarkOff = static_cast<uint8_t>
+        (chipInfo->params[CHIP_PARAM_BB_MARK_OFF]);
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(confChipCb(int)));

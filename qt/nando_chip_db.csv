@@ -1,3 +1,3 @@
-# name, page size, block size, total size, spare size, tCS, tCLS, tALS, tCLR, tAR, tWP, tRP, tDS, tCH, tCLH, tALH, tWC, tRC, tREA, row cycles, col. cycles, read 1 com., read 2 com., read ID com., reset com., write 1 com., write 2 com., erase 1 com., erase 2 com., status com.
-K9F2G08U0C, 2048, 131072, 268435456, 64, 20, 12, 12, 10, 10, 12, 12, 12, 5, 5, 5, 25, 25, 20, 3, 2, 0, 48, 144, 255, 128, 16, 96, 208, 112
-K9F1G08U0E, 2048, 131072, 134217728, 64, 20, 12, 12, 10, 10, 12, 12, 12, 5, 5, 5, 25, 25, 20, 3, 2, 0, 48, 144, 255, 128, 16, 96, 208, 112
+# name, page size, block size, total size, spare size, tCS, tCLS, tALS, tCLR, tAR, tWP, tRP, tDS, tCH, tCLH, tALH, tWC, tRC, tREA, row cycles, col. cycles, read 1 com., read 2 com., read ID com., reset com., write 1 com., write 2 com., erase 1 com., erase 2 com., status com., bad block mark off.
+K9F2G08U0C, 2048, 131072, 268435456, 64, 20, 12, 12, 10, 10, 12, 12, 12, 5, 5, 5, 25, 25, 20, 3, 2, 0, 48, 144, 255, 128, 16, 96, 208, 112, 0
+K9F1G08U0E, 2048, 131072, 134217728, 64, 20, 12, 12, 10, 10, 12, 12, 12, 5, 5, 5, 25, 25, 20, 3, 2, 0, 48, 144, 255, 128, 16, 96, 208, 112, 0

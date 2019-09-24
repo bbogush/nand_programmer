@@ -126,6 +126,7 @@ typedef struct __attribute__((__packed__))
     uint8_t erase1_cmd;
     uint8_t erase2_cmd;
     uint8_t status_cmd;
+    uint8_t bb_mark_off;
 } np_conf_cmd_t;
 
 enum
@@ -323,7 +324,7 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
     uint32_t status, addr = block * prog->chip_info.block_size;
 
     status = nand_read_data(prog->page.buf, page, 0, prog->chip_info.page_size
-        + 1);
+        + prog->chip_info.spare_size);
     switch (status)
     {
     case NAND_READY:
@@ -339,8 +340,8 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
         return NP_ERR_NAND_RD;
     }
 
-    *is_bad = prog->page.buf[prog->chip_info.page_size] !=
-        NP_NAND_GOOD_BLOCK_MARK;
+    *is_bad = prog->page.buf[prog->chip_info.page_size +
+        prog->chip_info.bb_mark_off] != NP_NAND_GOOD_BLOCK_MARK;
 
     return 0;
 }
@@ -355,7 +356,7 @@ static int _np_cmd_read_bad_blocks(np_prog_t *prog)
     page_num = prog->chip_info.block_size / prog->chip_info.page_size;
 
     /* Bad block - not 0xFF value in the first or second page in the block at
-     * zero offset in the page spare area
+     * some offset in the page spare area
      */
     for (block = 0; block < block_num; block++)
     {
@@ -1000,6 +1001,7 @@ static void np_fill_chip_info(np_conf_cmd_t *conf_cmd, np_prog_t *prog)
     prog->chip_info.erase1_cmd = conf_cmd->erase1_cmd;
     prog->chip_info.erase2_cmd = conf_cmd->erase2_cmd;
     prog->chip_info.status_cmd = conf_cmd->status_cmd;
+    prog->chip_info.bb_mark_off = conf_cmd->bb_mark_off;
     prog->chip_is_conf = 1;    
 }
 
@@ -1026,6 +1028,7 @@ static void np_print_chip_info(np_prog_t *prog)
     DEBUG_PRINT("Erase 1 command: %d\r\n", prog->chip_info.erase1_cmd);
     DEBUG_PRINT("Erase 2 command: %d\r\n", prog->chip_info.erase2_cmd);
     DEBUG_PRINT("Status command: %d\r\n", prog->chip_info.status_cmd);
+    DEBUG_PRINT("Bad block mark offset: %d\r\n", prog->chip_info.bb_mark_off);
 }
 
 static int np_cmd_nand_conf(np_prog_t *prog)

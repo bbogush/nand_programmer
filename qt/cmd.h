@@ -87,6 +87,7 @@ typedef struct __attribute__((__packed__))
     uint8_t erase1Cmd;
     uint8_t erase2Cmd;
     uint8_t statusCmd;
+    uint8_t bbMarkOff;
 } ConfCmd;
 
 enum

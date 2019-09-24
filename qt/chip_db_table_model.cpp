@@ -60,6 +60,7 @@ QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
     case CHIP_PARAM_ERASE1_CMD:
     case CHIP_PARAM_ERASE2_CMD:
     case CHIP_PARAM_STATUS_CMD:
+    case CHIP_PARAM_BB_MARK_OFF:
         return (*chipDb)[index.row()]->params[column];
     }
 
@@ -102,7 +103,8 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
         case CHIP_PARAM_WRITE2_CMD: return tr("Write 2 com.");
         case CHIP_PARAM_ERASE1_CMD: return tr("Erase 1 com.");
         case CHIP_PARAM_ERASE2_CMD: return tr("Erase 2 com.");
-        case CHIP_PARAM_STATUS_CMD: return  tr("Status com.");
+        case CHIP_PARAM_STATUS_CMD: return tr("Status com.");
+        case CHIP_PARAM_BB_MARK_OFF: return tr("BB mark off.");
         }
     }
 
@@ -171,7 +173,9 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
         case CHIP_PARAM_ERASE2_CMD:
             return tr("Erase 2 command");
         case CHIP_PARAM_STATUS_CMD:
-            return  tr("Status command");
+            return tr("Status command");
+        case CHIP_PARAM_BB_MARK_OFF:
+            return tr("Bad block mark offset");
         }
     }
 
@@ -238,6 +242,7 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
     case CHIP_PARAM_ERASE1_CMD:
     case CHIP_PARAM_ERASE2_CMD:
     case CHIP_PARAM_STATUS_CMD:
+    case CHIP_PARAM_BB_MARK_OFF:
         paramVal = value.toUInt(&convOk);
         if (!convOk)
             return false;

@@ -29,6 +29,7 @@ typedef struct
     uint8_t erase1_cmd;
     uint8_t erase2_cmd;
     uint8_t status_cmd;
+    uint8_t bb_mark_off;
 } chip_info_t;
 
 #endif /* _CHIP_INFO_H_ */

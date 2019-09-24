@@ -22,7 +22,7 @@ ChipDbDialog::ChipDbDialog(ChipDb *chipDb, QWidget *parent) : QDialog(parent),
         HEADER_MED_WIDTH);
     for (int i = CHIP_PARAM_T_CS; i <= CHIP_PARAM_T_REA; i++)
         ui->chipDbTableView->setColumnWidth(i, HEADER_SHORT_WIDTH);
-    for (int i = CHIP_PARAM_ROW_CYCLES; i <= CHIP_PARAM_STATUS_CMD; i++)
+    for (int i = CHIP_PARAM_ROW_CYCLES; i <= CHIP_PARAM_BB_MARK_OFF; i++)
         ui->chipDbTableView->setColumnWidth(i, HEADER_MED_WIDTH);
 
     connect(ui->addChipDbButton, SIGNAL(clicked()), this,
