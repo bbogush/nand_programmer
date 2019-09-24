@@ -34,6 +34,7 @@ Application:
 ### Tested chips
 - K9F2G08U0C
 - K9F1G08U0E
+- HY27US08561A
 
 ## Release binaries
 You can download host application deb package for Ubuntu/Windows installer, firmware binary for
