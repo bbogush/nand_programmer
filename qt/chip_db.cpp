@@ -126,7 +126,7 @@ int ChipDb::chipInfoToString(const ChipInfo &ci, QString &s)
         paramsList.append(csvValue);
     }
 
-    s = paramsList.join(',');
+    s = paramsList.join(", ");
 
     return 0;
 }
