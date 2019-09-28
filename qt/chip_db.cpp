@@ -62,7 +62,7 @@ int ChipDb::getOptParamFromString(const QString &value, uint32_t &param)
     return getParamFromString(value, param);
 }
 
-int ChipDb::getStringFromOptParam(uint32_t &param, QString &value)
+int ChipDb::getStringFromOptParam(const uint32_t &param, QString &value)
 {
     if (param == CHIP_PARAM_NOT_DEFINED_VALUE)
     {
