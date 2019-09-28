@@ -1,6 +1,7 @@
 #include "chip_db_table_model.h"
 #include <limits>
 
+#define CHIP_DB_TABLE_MODEL_MIN_CYCLES 1
 #define CHIP_DB_TABLE_MODEL_MAX_CYCLES 4
 
 ChipDbTableModel::ChipDbTableModel(ChipDb *chipDb, QObject *parent) :
@@ -22,6 +23,7 @@ int ChipDbTableModel::columnCount(const QModelIndex & /*parent*/) const
 QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
 {
     int column;
+    QString paramStr;
 
     if (role != Qt::DisplayRole && role != Qt::EditRole)
         return QVariant();
@@ -51,17 +53,23 @@ QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
     case CHIP_PARAM_T_REA:
     case CHIP_PARAM_ROW_CYCLES:
     case CHIP_PARAM_COL_CYCLES:
+    case CHIP_PARAM_BB_MARK_OFF:
+        return (*chipDb)[index.row()]->params[column];
     case CHIP_PARAM_READ1_CMD:
-    case CHIP_PARAM_READ2_CMD:
     case CHIP_PARAM_READ_ID_CMD:
     case CHIP_PARAM_RESET_CMD:
     case CHIP_PARAM_WRITE1_CMD:
-    case CHIP_PARAM_WRITE2_CMD:
     case CHIP_PARAM_ERASE1_CMD:
-    case CHIP_PARAM_ERASE2_CMD:
     case CHIP_PARAM_STATUS_CMD:
-    case CHIP_PARAM_BB_MARK_OFF:
-        return (*chipDb)[index.row()]->params[column];
+        chipDb->getStringFromParam((*chipDb)[index.row()]->params[column],
+            paramStr);
+        return paramStr;
+    case CHIP_PARAM_READ2_CMD:
+    case CHIP_PARAM_WRITE2_CMD:
+    case CHIP_PARAM_ERASE2_CMD:
+        chipDb->getStringFromOptParam((*chipDb)[index.row()]->params[column],
+            paramStr);
+        return paramStr;
     }
 
     return QVariant();
@@ -190,7 +198,6 @@ Qt::ItemFlags ChipDbTableModel::flags (const QModelIndex &index) const
 bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
     int role)
 {
-    bool convOk;
     uint32_t paramVal;
 
     if (role != Qt::EditRole)
@@ -219,34 +226,40 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
     case CHIP_PARAM_T_WC:
     case CHIP_PARAM_T_RC:
     case CHIP_PARAM_T_REA:
-        paramVal = value.toUInt(&convOk);
-        if (!convOk)
+    case CHIP_PARAM_BB_MARK_OFF:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
             return false;
         (*chipDb)[index.row()]->params[index.column()] = paramVal;
         return true;
     case CHIP_PARAM_ROW_CYCLES:
     case CHIP_PARAM_COL_CYCLES:
-        paramVal = value.toUInt(&convOk);
-        if (!convOk)
+        if (chipDb->getParamFromString(value.toString(), paramVal))
             return false;
-        if (paramVal > CHIP_DB_TABLE_MODEL_MAX_CYCLES)
+        if (!chipDb->isParamValid(paramVal, CHIP_DB_TABLE_MODEL_MIN_CYCLES,
+            CHIP_DB_TABLE_MODEL_MAX_CYCLES))
+        {
             return false;
+        }
         (*chipDb)[index.row()]->params[index.column()] = paramVal;
         return true;
     case CHIP_PARAM_READ1_CMD:
-    case CHIP_PARAM_READ2_CMD:
     case CHIP_PARAM_READ_ID_CMD:
     case CHIP_PARAM_RESET_CMD:
     case CHIP_PARAM_WRITE1_CMD:
-    case CHIP_PARAM_WRITE2_CMD:
     case CHIP_PARAM_ERASE1_CMD:
-    case CHIP_PARAM_ERASE2_CMD:
     case CHIP_PARAM_STATUS_CMD:
-    case CHIP_PARAM_BB_MARK_OFF:
-        paramVal = value.toUInt(&convOk);
-        if (!convOk)
+        if (chipDb->getParamFromString(value.toString(), paramVal))
             return false;
-        if (paramVal > std::numeric_limits<uint8_t>::max())
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        (*chipDb)[index.row()]->params[index.column()] = paramVal;
+        return true;
+    case CHIP_PARAM_READ2_CMD:
+    case CHIP_PARAM_WRITE2_CMD:
+    case CHIP_PARAM_ERASE2_CMD:
+        if (chipDb->getOptParamFromString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
             return false;
         (*chipDb)[index.row()]->params[index.column()] = paramVal;
         return true;

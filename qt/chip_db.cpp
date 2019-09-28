@@ -12,6 +12,9 @@
 
 #define CHIP_DB_FILE_NAME "nando_chip_db.csv"
 
+#define CHIP_PARAM_NOT_DEFINED_SYMBOL '-'
+#define CHIP_PARAM_NOT_DEFINED_VALUE 0xFFFFFFFF
+
 QString ChipDb::findFile()
 {
     QString fileName = CHIP_DB_FILE_NAME;
@@ -28,6 +31,57 @@ QString ChipDb::findFile()
     }
 
     return fileName;
+}
+
+int ChipDb::getParamFromString(const QString &value, uint32_t &param)
+{
+    bool ok;
+
+    param = value.toUInt(&ok);
+    if (!ok)
+        return -1;
+
+    return 0;
+}
+
+int ChipDb::getStringFromParam(const uint32_t &param, QString &value)
+{
+    value = QString("%1").arg(param);
+
+    return 0;
+}
+
+int ChipDb::getOptParamFromString(const QString &value, uint32_t &param)
+{
+    if (value.trimmed() == CHIP_PARAM_NOT_DEFINED_SYMBOL)
+    {
+        param = CHIP_PARAM_NOT_DEFINED_VALUE;
+        return 0;
+    }
+
+    return getParamFromString(value, param);
+}
+
+int ChipDb::getStringFromOptParam(uint32_t &param, QString &value)
+{
+    if (param == CHIP_PARAM_NOT_DEFINED_VALUE)
+    {
+        value = CHIP_PARAM_NOT_DEFINED_SYMBOL;
+        return 0;
+    }
+
+    return getStringFromParam(param, value);
+}
+
+bool ChipDb::isParamValid(uint32_t param, uint32_t min, uint32_t max)
+{
+    return param >= min && param <= max;
+}
+
+bool ChipDb::isOptParamValid(uint32_t param, uint32_t min, uint32_t max)
+{
+    return (param == CHIP_PARAM_NOT_DEFINED_VALUE) ||
+        (param >= min && param <= max);
 }
 
 int ChipDb::stringToChipInfo(const QString &s, ChipInfo &ci)
@@ -48,10 +102,7 @@ int ChipDb::stringToChipInfo(const QString &s, ChipInfo &ci)
     ci.name = paramsList[CHIP_PARAM_NAME];
     for (int i = CHIP_PARAM_NAME + 1; i < CHIP_PARAM_NUM; i++)
     {
-        bool ok;
-
-        ci.params[i] = paramsList[i].toUInt(&ok);
-        if (!ok)
+        if (getOptParamFromString(paramsList[i], ci.params[i]))
         {
             QMessageBox::critical(nullptr, tr("Error"), tr("Failed to parse"
                 " parameter %1").arg(paramsList[i]));
@@ -64,11 +115,16 @@ int ChipDb::stringToChipInfo(const QString &s, ChipInfo &ci)
 
 int ChipDb::chipInfoToString(const ChipInfo &ci, QString &s)
 {
+    QString csvValue;
     QStringList paramsList;
 
     paramsList.append(ci.name);
     for (int i = CHIP_PARAM_NAME + 1; i < CHIP_PARAM_NUM; i++)
-        paramsList.append(QString("%1").arg(ci.params[i]));
+    {
+        if (getStringFromOptParam(ci.params[i], csvValue))
+            return -1;
+        paramsList.append(csvValue);
+    }
 
     s = paramsList.join(',');
 
