@@ -350,3 +350,50 @@ void ChipDb::reset()
     chipInfoVector.clear();
     readFromCvs();
 }
+
+ChipInfo *ChipDb::getChipInfo(int chipIndex)
+{
+    return chipIndex >= 0 && chipIndex < chipInfoVector.size() ?
+        &chipInfoVector[chipIndex] : nullptr;
+}
+
+QString ChipDb::getChipName(int chipIndex)
+{
+    ChipInfo *ci = getChipInfo(chipIndex);
+
+    return ci ? ci->name : QString();
+}
+
+int ChipDb::setChipName(int chipIndex, const QString &name)
+{
+    ChipInfo *ci = getChipInfo(chipIndex);
+
+    if (!ci)
+        return -1;
+
+    ci->name = name;
+
+    return 0;
+}
+
+uint32_t ChipDb::getChipParam(int chipIndex, int paramIndex)
+{
+    ChipInfo *ci = getChipInfo(chipIndex);
+
+    if (!ci || paramIndex < 0 || paramIndex > CHIP_PARAM_NUM)
+        return 0;
+
+    return ci->params[paramIndex];
+}
+
+int ChipDb::setChipParam(int chipIndex, int paramIndex, uint32_t paramValue)
+{
+    ChipInfo *ci = getChipInfo(chipIndex);
+
+    if (!ci || paramIndex < 0 || paramIndex > CHIP_PARAM_NUM)
+        return -1;
+
+    ci->params[paramIndex] = paramValue;
+
+    return 0;
+}

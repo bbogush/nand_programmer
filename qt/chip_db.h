@@ -74,6 +74,7 @@ class ChipDb : public QObject
     void readFromCvs();
     int readCommentsFromCsv(QFile &dbFile, QString &comments);
     void writeToCvs();
+    ChipInfo *getChipInfo(int chipIndex);
 
 public:
     explicit ChipDb(QObject *parent = nullptr);
@@ -98,7 +99,10 @@ public:
     int getHexStringFromOptParam(const uint32_t &param, QString &value);
     bool isParamValid(uint32_t param, uint32_t min, uint32_t max);
     bool isOptParamValid(uint32_t param, uint32_t min, uint32_t max);
-    ChipInfo *operator[](int index) { return &chipInfoVector[index]; }
+    QString getChipName(int chipIndex);
+    int setChipName(int chipIndex, const QString &name);
+    uint32_t getChipParam(int chipIndex, int paramIndex);
+    int setChipParam(int chipIndex, int paramIndex, uint32_t paramValue);
 };
 
 

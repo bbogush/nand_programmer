@@ -32,12 +32,12 @@ QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
     switch (column)
     {
     case CHIP_PARAM_NAME:
-        return (*chipDb)[index.row()]->name;
+        return chipDb->getChipName(index.row());
     case CHIP_PARAM_PAGE_SIZE:
     case CHIP_PARAM_BLOCK_SIZE:
     case CHIP_PARAM_TOTAL_SIZE:
     case CHIP_PARAM_SPARE_SIZE:
-        chipDb->getHexStringFromParam((*chipDb)[index.row()]->params[column],
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(), column),
             paramStr);
         return paramStr;
     case CHIP_PARAM_T_CS:
@@ -57,21 +57,21 @@ QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
     case CHIP_PARAM_ROW_CYCLES:
     case CHIP_PARAM_COL_CYCLES:
     case CHIP_PARAM_BB_MARK_OFF:
-        return (*chipDb)[index.row()]->params[column];
+        return chipDb->getChipParam(index.row(), column);
     case CHIP_PARAM_READ1_CMD:
     case CHIP_PARAM_READ_ID_CMD:
     case CHIP_PARAM_RESET_CMD:
     case CHIP_PARAM_WRITE1_CMD:
     case CHIP_PARAM_ERASE1_CMD:
     case CHIP_PARAM_STATUS_CMD:
-        chipDb->getHexStringFromParam((*chipDb)[index.row()]->params[column],
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(), column),
             paramStr);
         return paramStr;
     case CHIP_PARAM_READ2_CMD:
     case CHIP_PARAM_WRITE2_CMD:
     case CHIP_PARAM_ERASE2_CMD:
-        chipDb->getHexStringFromOptParam((*chipDb)[index.row()]->params[column],
-            paramStr);
+        chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
+            column), paramStr);
         return paramStr;
     }
 
@@ -209,7 +209,7 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
     switch (index.column())
     {
     case CHIP_PARAM_NAME:
-        (*chipDb)[index.row()]->name = value.toString();
+        chipDb->setChipName(index.row(), value.toString());
         return true;
     case CHIP_PARAM_PAGE_SIZE:
     case CHIP_PARAM_BLOCK_SIZE:
@@ -217,7 +217,7 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
     case CHIP_PARAM_SPARE_SIZE:
         if (chipDb->getParamFromHexString(value.toString(), paramVal))
             return false;
-        (*chipDb)[index.row()]->params[index.column()] = paramVal;
+        chipDb->setChipParam(index.row(), index.column(), paramVal);
         return true;
     case CHIP_PARAM_T_CS:
     case CHIP_PARAM_T_CLS:
@@ -236,7 +236,7 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
     case CHIP_PARAM_BB_MARK_OFF:
         if (chipDb->getParamFromString(value.toString(), paramVal))
             return false;
-        (*chipDb)[index.row()]->params[index.column()] = paramVal;
+        chipDb->setChipParam(index.row(), index.column(), paramVal);
         return true;
     case CHIP_PARAM_ROW_CYCLES:
     case CHIP_PARAM_COL_CYCLES:
@@ -247,7 +247,7 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
         {
             return false;
         }
-        (*chipDb)[index.row()]->params[index.column()] = paramVal;
+        chipDb->setChipParam(index.row(), index.column(), paramVal);
         return true;
     case CHIP_PARAM_READ1_CMD:
     case CHIP_PARAM_READ_ID_CMD:
@@ -259,7 +259,7 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
             return false;
         if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
             return false;
-        (*chipDb)[index.row()]->params[index.column()] = paramVal;
+        chipDb->setChipParam(index.row(), index.column(), paramVal);
         return true;
     case CHIP_PARAM_READ2_CMD:
     case CHIP_PARAM_WRITE2_CMD:
@@ -268,7 +268,7 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
             return false;
         if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
             return false;
-        (*chipDb)[index.row()]->params[index.column()] = paramVal;
+        chipDb->setChipParam(index.row(), index.column(), paramVal);
         return true;
     }
 
