@@ -44,9 +44,27 @@ int ChipDb::getParamFromString(const QString &value, uint32_t &param)
     return 0;
 }
 
+int ChipDb::getParamFromHexString(const QString &value, uint32_t &param)
+{
+    bool ok;
+
+    param = value.toUInt(&ok, 16);
+    if (!ok)
+        return -1;
+
+    return 0;
+}
+
 int ChipDb::getStringFromParam(const uint32_t &param, QString &value)
 {
     value = QString("%1").arg(param);
+
+    return 0;
+}
+
+int ChipDb::getHexStringFromParam(const uint32_t &param, QString &value)
+{
+    value = QString("0x%1").arg(param, 0, 16, QLatin1Char('0'));
 
     return 0;
 }
@@ -62,6 +80,17 @@ int ChipDb::getOptParamFromString(const QString &value, uint32_t &param)
     return getParamFromString(value, param);
 }
 
+int ChipDb::getOptParamFromHexString(const QString &value, uint32_t &param)
+{
+    if (value.trimmed() == CHIP_PARAM_NOT_DEFINED_SYMBOL)
+    {
+        param = CHIP_PARAM_NOT_DEFINED_VALUE;
+        return 0;
+    }
+
+    return getParamFromHexString(value, param);
+}
+
 int ChipDb::getStringFromOptParam(const uint32_t &param, QString &value)
 {
     if (param == CHIP_PARAM_NOT_DEFINED_VALUE)
@@ -71,6 +100,17 @@ int ChipDb::getStringFromOptParam(const uint32_t &param, QString &value)
     }
 
     return getStringFromParam(param, value);
+}
+
+int ChipDb::getHexStringFromOptParam(const uint32_t &param, QString &value)
+{
+    if (param == CHIP_PARAM_NOT_DEFINED_VALUE)
+    {
+        value = CHIP_PARAM_NOT_DEFINED_SYMBOL;
+        return 0;
+    }
+
+    return getHexStringFromParam(param, value);
 }
 
 bool ChipDb::isParamValid(uint32_t param, uint32_t min, uint32_t max)

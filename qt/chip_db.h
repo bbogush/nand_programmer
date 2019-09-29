@@ -89,9 +89,13 @@ public:
     void commit();
     void reset();
     int getParamFromString(const QString &value, uint32_t &param);
+    int getParamFromHexString(const QString &value, uint32_t &param);
     int getStringFromParam(const uint32_t &param, QString &value);
+    int getHexStringFromParam(const uint32_t &param, QString &value);
     int getOptParamFromString(const QString &value, uint32_t &param);
+    int getOptParamFromHexString(const QString &value, uint32_t &param);
     int getStringFromOptParam(const uint32_t &param, QString &value);
+    int getHexStringFromOptParam(const uint32_t &param, QString &value);
     bool isParamValid(uint32_t param, uint32_t min, uint32_t max);
     bool isOptParamValid(uint32_t param, uint32_t min, uint32_t max);
     ChipInfo *operator[](int index) { return &chipInfoVector[index]; }

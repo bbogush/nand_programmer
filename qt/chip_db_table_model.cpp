@@ -37,6 +37,9 @@ QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
     case CHIP_PARAM_BLOCK_SIZE:
     case CHIP_PARAM_TOTAL_SIZE:
     case CHIP_PARAM_SPARE_SIZE:
+        chipDb->getHexStringFromParam((*chipDb)[index.row()]->params[column],
+            paramStr);
+        return paramStr;
     case CHIP_PARAM_T_CS:
     case CHIP_PARAM_T_CLS:
     case CHIP_PARAM_T_ALS:
@@ -61,13 +64,13 @@ QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
     case CHIP_PARAM_WRITE1_CMD:
     case CHIP_PARAM_ERASE1_CMD:
     case CHIP_PARAM_STATUS_CMD:
-        chipDb->getStringFromParam((*chipDb)[index.row()]->params[column],
+        chipDb->getHexStringFromParam((*chipDb)[index.row()]->params[column],
             paramStr);
         return paramStr;
     case CHIP_PARAM_READ2_CMD:
     case CHIP_PARAM_WRITE2_CMD:
     case CHIP_PARAM_ERASE2_CMD:
-        chipDb->getStringFromOptParam((*chipDb)[index.row()]->params[column],
+        chipDb->getHexStringFromOptParam((*chipDb)[index.row()]->params[column],
             paramStr);
         return paramStr;
     }
@@ -212,6 +215,10 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
     case CHIP_PARAM_BLOCK_SIZE:
     case CHIP_PARAM_TOTAL_SIZE:
     case CHIP_PARAM_SPARE_SIZE:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        (*chipDb)[index.row()]->params[index.column()] = paramVal;
+        return true;
     case CHIP_PARAM_T_CS:
     case CHIP_PARAM_T_CLS:
     case CHIP_PARAM_T_ALS:
@@ -248,7 +255,7 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
     case CHIP_PARAM_WRITE1_CMD:
     case CHIP_PARAM_ERASE1_CMD:
     case CHIP_PARAM_STATUS_CMD:
-        if (chipDb->getParamFromString(value.toString(), paramVal))
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
             return false;
         if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
             return false;
@@ -257,7 +264,7 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
     case CHIP_PARAM_READ2_CMD:
     case CHIP_PARAM_WRITE2_CMD:
     case CHIP_PARAM_ERASE2_CMD:
-        if (chipDb->getOptParamFromString(value.toString(), paramVal))
+        if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
             return false;
         if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
             return false;
