@@ -7,7 +7,7 @@ encoding utf-8
 Sheet 1 1
 Title "NANDO"
 Date ""
-Rev "v3.0"
+Rev "v3.1"
 Comp ""
 Comment1 ""
 Comment2 ""
@@ -223,12 +223,12 @@ $EndComp
 $Comp
 L nand_programmator:GNDD #PWR02
 U 1 1 5885825D
-P 1250 1450
-F 0 "#PWR02" H 1250 1200 50  0001 C CNN
-F 1 "GNDD" H 1250 1300 50  0000 C CNN
-F 2 "" H 1250 1450 50  0000 C CNN
-F 3 "" H 1250 1450 50  0000 C CNN
-	1    1250 1450
+P 650 1500
+F 0 "#PWR02" H 650 1250 50  0001 C CNN
+F 1 "GNDD" H 650 1350 50  0000 C CNN
+F 2 "" H 650 1500 50  0000 C CNN
+F 3 "" H 650 1500 50  0000 C CNN
+	1    650  1500
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -838,8 +838,6 @@ Wire Wire Line
 	2050 7450 2450 7450
 Wire Wire Line
 	900  7050 900  7100
-Wire Wire Line
-	1250 1450 1250 1400
 $Comp
 L nand_programmator:GNDD #PWR016
 U 1 1 5C06872D
@@ -1258,8 +1256,6 @@ Wire Wire Line
 	10600 2650 10650 2650
 Wire Wire Line
 	10400 2750 10600 2750
-Wire Wire Line
-	1250 1400 1550 1400
 Text GLabel 9500 3650 0    60   BiDi ~ 0
 FSMC_D8
 Wire Wire Line
@@ -1478,10 +1474,10 @@ Wire Wire Line
 Wire Wire Line
 	10500 2550 10400 2550
 $Comp
-L nand_programmator:GNDD #PWR?
+L nand_programmator:GNDD #PWR036
 U 1 1 5E55AAEE
 P 9750 2450
-F 0 "#PWR?" H 9750 2200 50  0001 C CNN
+F 0 "#PWR036" H 9750 2200 50  0001 C CNN
 F 1 "GNDD" H 9750 2300 50  0000 C CNN
 F 2 "" H 9750 2450 50  0000 C CNN
 F 3 "" H 9750 2450 50  0000 C CNN
@@ -1493,10 +1489,10 @@ Wire Wire Line
 Wire Wire Line
 	9900 2450 9900 2550
 $Comp
-L nand_programmator:GNDD #PWR?
+L nand_programmator:GNDD #PWR037
 U 1 1 5E5852F6
 P 10450 3750
-F 0 "#PWR?" H 10450 3500 50  0001 C CNN
+F 0 "#PWR037" H 10450 3500 50  0001 C CNN
 F 1 "GNDD" H 10450 3600 50  0000 C CNN
 F 2 "" H 10450 3750 50  0000 C CNN
 F 3 "" H 10450 3750 50  0000 C CNN
@@ -1508,10 +1504,10 @@ Wire Wire Line
 Wire Wire Line
 	10450 3650 10450 3750
 $Comp
-L nand_programmator:+3.3V #PWR?
+L nand_programmator:+3.3V #PWR035
 U 1 1 5E6317BD
 P 9650 3150
-F 0 "#PWR?" H 9650 3000 50  0001 C CNN
+F 0 "#PWR035" H 9650 3000 50  0001 C CNN
 F 1 "+3.3V" H 9650 3290 50  0000 C CNN
 F 2 "" H 9650 3150 50  0000 C CNN
 F 3 "" H 9650 3150 50  0000 C CNN
@@ -1529,4 +1525,67 @@ Wire Wire Line
 Connection ~ 10500 3050
 Wire Wire Line
 	10500 3050 10400 3050
+$Comp
+L nand_programmator:R R1
+U 1 1 5D9B58B5
+P 1150 900
+F 0 "R1" V 1230 900 50  0000 C CNN
+F 1 "10k" V 1150 900 50  0000 C CNN
+F 2 "lib_fp:R_0805_HandSoldering" V 1080 900 50  0001 C CNN
+F 3 "" H 1150 900 50  0000 C CNN
+	1    1150 900 
+	1    0    0    -1  
+$EndComp
+$Comp
+L nand_programmator:+3.3V #PWR01
+U 1 1 5D9CBDC4
+P 1150 650
+F 0 "#PWR01" H 1150 500 50  0001 C CNN
+F 1 "+3.3V" H 1150 790 50  0000 C CNN
+F 2 "" H 1150 650 50  0000 C CNN
+F 3 "" H 1150 650 50  0000 C CNN
+	1    1150 650 
+	1    0    0    -1  
+$EndComp
+$Comp
+L nand_programmator:R R15
+U 1 1 5DA670AF
+P 850 1400
+F 0 "R15" V 930 1400 50  0000 C CNN
+F 1 "510" V 850 1400 50  0000 C CNN
+F 2 "lib_fp:R_0805_HandSoldering" V 780 1400 50  0001 C CNN
+F 3 "" H 850 1400 50  0000 C CNN
+	1    850  1400
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	650  1400 650  1500
+Wire Wire Line
+	1150 650  1150 750 
+$Comp
+L Connector_Generic:Conn_01x02 J5
+U 1 1 5DB1A96D
+P 750 1200
+F 0 "J5" H 670 875 50  0000 C CNN
+F 1 "Conn_01x02" H 670 966 50  0000 C CNN
+F 2 "lib_fp:PinHeader_1x02_P2.54mm_Vertical" H 750 1200 50  0001 C CNN
+F 3 "~" H 750 1200 50  0001 C CNN
+	1    750  1200
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	700  1400 650  1400
+Wire Wire Line
+	1150 1100 950  1100
+Wire Wire Line
+	950  1200 1150 1200
+Wire Wire Line
+	1150 1050 1150 1100
+Wire Wire Line
+	1000 1400 1150 1400
+Wire Wire Line
+	1150 1200 1150 1400
+Connection ~ 1150 1400
+Wire Wire Line
+	1150 1400 1550 1400
 $EndSCHEMATC
