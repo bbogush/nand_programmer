@@ -321,6 +321,8 @@ void Programmer::confChip(ChipInfo *chipInfo)
         (chipInfo->params[CHIP_PARAM_READ1_CMD]);
     confCmd.read2Cmd = static_cast<uint8_t>
         (chipInfo->params[CHIP_PARAM_READ2_CMD]);
+    confCmd.readSpareCmd = static_cast<uint8_t>
+        (chipInfo->params[CHIP_PARAM_READ_SPARE_CMD]);
     confCmd.readIdCmd = static_cast<uint8_t>
         (chipInfo->params[CHIP_PARAM_READ_ID_CMD]);
     confCmd.resetCmd = static_cast<uint8_t>

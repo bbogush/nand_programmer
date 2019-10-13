@@ -68,6 +68,7 @@ QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
             paramStr);
         return paramStr;
     case CHIP_PARAM_READ2_CMD:
+    case CHIP_PARAM_READ_SPARE_CMD:
     case CHIP_PARAM_WRITE2_CMD:
     case CHIP_PARAM_ERASE2_CMD:
         chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
@@ -108,6 +109,7 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
         case CHIP_PARAM_COL_CYCLES: return tr("Col. cycles");
         case CHIP_PARAM_READ1_CMD: return  tr("Read 1 com.");
         case CHIP_PARAM_READ2_CMD: return tr("Read 2 com.");
+        case CHIP_PARAM_READ_SPARE_CMD: return tr("Read spr. com.");
         case CHIP_PARAM_READ_ID_CMD: return tr("Read ID com.");
         case CHIP_PARAM_RESET_CMD: return tr("Reset com.");
         case CHIP_PARAM_WRITE1_CMD: return tr("Write 1 com.");
@@ -168,21 +170,23 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
             return tr("Number of cycles required for addresing column "
                 "(page offset) during read/write operation");
         case CHIP_PARAM_READ1_CMD:
-            return  tr("Read 1 command");
+            return  tr("Read 1 cycle command");
         case CHIP_PARAM_READ2_CMD:
-            return tr("Read 2 command");
+            return tr("Read 2 cycle command");
+        case CHIP_PARAM_READ_SPARE_CMD:
+            return tr("Read spare area command");
         case CHIP_PARAM_READ_ID_CMD:
             return tr("Read ID command");
         case CHIP_PARAM_RESET_CMD:
             return tr("Reset command");
         case CHIP_PARAM_WRITE1_CMD:
-            return tr("Write 1 command");
+            return tr("Write 1 cycle command");
         case CHIP_PARAM_WRITE2_CMD:
-            return tr("Write 2 command");
+            return tr("Write 2 cycle command");
         case CHIP_PARAM_ERASE1_CMD:
-            return tr("Erase 1 command");
+            return tr("Erase 1 cycle command");
         case CHIP_PARAM_ERASE2_CMD:
-            return tr("Erase 2 command");
+            return tr("Erase 2 cycle command");
         case CHIP_PARAM_STATUS_CMD:
             return tr("Status command");
         case CHIP_PARAM_BB_MARK_OFF:
@@ -262,6 +266,7 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
         chipDb->setChipParam(index.row(), index.column(), paramVal);
         return true;
     case CHIP_PARAM_READ2_CMD:
+    case CHIP_PARAM_READ_SPARE_CMD:
     case CHIP_PARAM_WRITE2_CMD:
     case CHIP_PARAM_ERASE2_CMD:
         if (chipDb->getOptParamFromHexString(value.toString(), paramVal))

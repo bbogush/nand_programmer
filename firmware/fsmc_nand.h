@@ -25,6 +25,7 @@ typedef struct
 #define NAND_VALID_ADDRESS         ((uint32_t)0x00000100)
 #define NAND_INVALID_ADDRESS       ((uint32_t)0x00000200)
 #define NAND_TIMEOUT_ERROR         ((uint32_t)0x00000400)
+#define NAND_INVALID_CMD           ((uint32_t)0x00000800)
 #define NAND_BUSY                  ((uint32_t)0x00000000)
 #define NAND_ERROR                 ((uint32_t)0x00000001)
 #define NAND_READY                 ((uint32_t)0x00000040)
@@ -42,6 +43,8 @@ void nand_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size);
 uint32_t nand_read_data(uint8_t *buf, uint32_t page, uint32_t page_offset,
     uint32_t data_size);
 uint32_t nand_read_page(uint8_t *buf, uint32_t page, uint32_t page_size);
+uint32_t nand_read_spare_data(uint8_t *buf, uint32_t page, uint32_t offset,
+    uint32_t data_size);
 #if 0
 uint32_t nand_write_spare_area(uint8_t *buf, nand_addr_t addr,
     uint32_t num_spare_area_to_write);

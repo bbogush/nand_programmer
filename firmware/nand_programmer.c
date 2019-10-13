@@ -119,6 +119,7 @@ typedef struct __attribute__((__packed__))
     uint8_t col_cycles;
     uint8_t read1_cmd;
     uint8_t read2_cmd;
+    uint8_t read_spare_cmd;
     uint8_t read_id_cmd;
     uint8_t reset_cmd;
     uint8_t write1_cmd;
@@ -323,8 +324,14 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
 {
     uint32_t status, addr = block * prog->chip_info.block_size;
 
-    status = nand_read_data(prog->page.buf, page, 0, prog->chip_info.page_size
-        + prog->chip_info.spare_size);
+    status = nand_read_spare_data(prog->page.buf, page,
+        prog->chip_info.bb_mark_off, 1);
+    if (status == NAND_INVALID_CMD)
+    {
+        status = nand_read_data(prog->page.buf, page,
+            prog->chip_info.bb_mark_off, 1);
+    }
+
     switch (status)
     {
     case NAND_READY:
@@ -340,8 +347,7 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
         return NP_ERR_NAND_RD;
     }
 
-    *is_bad = prog->page.buf[prog->chip_info.page_size +
-        prog->chip_info.bb_mark_off] != NP_NAND_GOOD_BLOCK_MARK;
+    *is_bad = prog->page.buf[0] != NP_NAND_GOOD_BLOCK_MARK;
 
     return 0;
 }
@@ -994,6 +1000,7 @@ static void np_fill_chip_info(np_conf_cmd_t *conf_cmd, np_prog_t *prog)
     prog->chip_info.col_cycles = conf_cmd->col_cycles;
     prog->chip_info.read1_cmd = conf_cmd->read1_cmd;
     prog->chip_info.read2_cmd = conf_cmd->read2_cmd;
+    prog->chip_info.read_spare_cmd = conf_cmd->read_spare_cmd;    
     prog->chip_info.read_id_cmd = conf_cmd->read_id_cmd;
     prog->chip_info.reset_cmd = conf_cmd->reset_cmd;
     prog->chip_info.write1_cmd = conf_cmd->write1_cmd;
@@ -1021,6 +1028,7 @@ static void np_print_chip_info(np_prog_t *prog)
     DEBUG_PRINT("Col. cycles: %d\r\n", prog->chip_info.col_cycles);
     DEBUG_PRINT("Read command 1: %d\r\n", prog->chip_info.read1_cmd);
     DEBUG_PRINT("Read command 2: %d\r\n", prog->chip_info.read2_cmd);
+    DEBUG_PRINT("Read spare command: %d\r\n", prog->chip_info.read_spare_cmd);    
     DEBUG_PRINT("Read ID command: %d\r\n", prog->chip_info.read_id_cmd);
     DEBUG_PRINT("Reset command: %d\r\n", prog->chip_info.reset_cmd);
     DEBUG_PRINT("Write 1 command: %d\r\n", prog->chip_info.write1_cmd);

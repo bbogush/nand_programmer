@@ -22,6 +22,7 @@ typedef struct
     uint8_t col_cycles;
     uint8_t read1_cmd;
     uint8_t read2_cmd;
+    uint8_t read_spare_cmd;
     uint8_t read_id_cmd;
     uint8_t reset_cmd;
     uint8_t write1_cmd;

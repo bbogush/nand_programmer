@@ -80,6 +80,7 @@ typedef struct __attribute__((__packed__))
     uint8_t colCycles;
     uint8_t read1Cmd;
     uint8_t read2Cmd;
+    uint8_t readSpareCmd;
     uint8_t readIdCmd;
     uint8_t resetCmd;
     uint8_t write1Cmd;
