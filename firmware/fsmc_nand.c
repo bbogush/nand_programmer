@@ -117,7 +117,6 @@ void nand_read_id(nand_id_t *nand_id)
 {
     uint32_t data = 0;
 
-    /* Send Command to the command area */
     *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.read_id_cmd;
     *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
 
@@ -266,7 +265,7 @@ uint32_t nand_read_data(uint8_t *buf, uint32_t page, uint32_t page_offset,
         *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.read2_cmd;
 
     for (i = 0; i < data_size; i++)
-        buf[i]= *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA);
+        buf[i] = *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA);
 
     return nand_get_status();
 }
@@ -383,11 +382,6 @@ uint32_t nand_erase_block(uint32_t page)
     return nand_get_status();
 }
 
-/**
-  * @brief  This routine reset the NAND FLASH.
-  * @param  None
-  * @retval NAND_READY
-  */
 uint32_t nand_reset()
 {
     *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.reset_cmd;
@@ -395,17 +389,9 @@ uint32_t nand_reset()
     return (NAND_READY);
 }
 
-/**
-  * @brief  Get the NAND operation status.
-  * @param  None
-  * @retval New status of the NAND operation. This parameter can be:
-  *          - NAND_TIMEOUT_ERROR: when the previous operation generate
-  *            a Timeout error
-  *          - NAND_READY: when memory is ready for the next operation
-  */
-uint32_t nand_get_status(void)
+uint32_t nand_get_status()
 {
-    uint32_t timeout = 0x1000000, status = NAND_READY;
+    uint32_t status, timeout = 0x1000000;
 
     status = nand_read_status();
 
@@ -419,29 +405,19 @@ uint32_t nand_get_status(void)
     if (!timeout)
         status =  NAND_TIMEOUT_ERROR;
 
-    /* Return the operation status */
-    return (status);
+    return status;
 }
 
-/**
-  * @brief  Reads the NAND memory status using the Read status command. 
-  * @param  None
-  * @retval The status of the NAND memory. This parameter can be:
-  *          - NAND_BUSY: when memory is busy
-  *          - NAND_READY: when memory is ready for the next operation
-  *          - NAND_ERROR: when the previous operation gererates error
-  */
-uint32_t nand_read_status(void)
+uint32_t nand_read_status()
 {
-    uint32_t data = 0x00, status = NAND_BUSY;
+    uint32_t data, status;
 
-    /* Read status operation */
     *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_cmd.status_cmd;
     data = *(__IO uint8_t *)(Bank_NAND_ADDR);
 
     if ((data & NAND_ERROR) == NAND_ERROR)
         status = NAND_ERROR;
-    else if((data & NAND_READY) == NAND_READY)
+    else if ((data & NAND_READY) == NAND_READY)
         status = NAND_READY;
     else
         status = NAND_BUSY;
