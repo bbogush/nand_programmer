@@ -32,9 +32,13 @@ Application:
 - Extendable chip database
 
 ### Tested chips
+#### Samsung
 - K9F2G08U0C
 - K9F1G08U0E
+#### Hynix
 - HY27US08561A
+#### TOSHIBA
+- TC58NVG2S3E
 
 ## Release binaries
 You can download host application deb package for Ubuntu/Windows installer, firmware binary for
