@@ -32,3 +32,11 @@
 - New board design. Support of internal clock in FW.
 ### Fixed
 - Race condition in packet handling code.
+## [3.1.0] - 2019-11-16
+### Added
+- Read including spare area
+- Configuration of spare area size, number of column and row cycles, commands, bad block mark offset
+- New chips support
+- BOOT0 switch to PCB.
+### Fixed
+- Lost of some packets due to optimization.
