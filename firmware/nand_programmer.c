@@ -301,9 +301,9 @@ static int _np_cmd_nand_read_id(np_prog_t *prog)
     if (np_comm_cb)
         np_comm_cb->send((uint8_t *)&resp, resp_len);
 
-    DEBUG_PRINT("Chip ID: 0x%x 0x%x 0x%x 0x%x\r\n",
+    DEBUG_PRINT("Chip ID: 0x%x 0x%x 0x%x 0x%x 0x%x\r\n",
         resp.nand_id.maker_id, resp.nand_id.device_id, resp.nand_id.third_id,
-        resp.nand_id.fourth_id);
+        resp.nand_id.fourth_id, resp.nand_id.fifth_id);
 
     return 0;
 }

@@ -120,6 +120,7 @@ typedef struct __attribute__((__packed__))
     uint8_t deviceId;
     uint8_t thirdId;
     uint8_t fourthId;
+    uint8_t fifthId;
 } ChipId;
 
 typedef struct __attribute__((__packed__))

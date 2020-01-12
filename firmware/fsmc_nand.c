@@ -122,11 +122,13 @@ void nand_read_id(nand_id_t *nand_id)
 
     /* Sequence to read ID from NAND flash */
     data = *(__IO uint32_t *)(Bank_NAND_ADDR | DATA_AREA);
+    nand_id->maker_id   = ADDR_1st_CYCLE(data);
+    nand_id->device_id  = ADDR_2nd_CYCLE(data);
+    nand_id->third_id   = ADDR_3rd_CYCLE(data);
+    nand_id->fourth_id  = ADDR_4th_CYCLE(data);
 
-    nand_id->maker_id   = ADDR_1st_CYCLE (data);
-    nand_id->device_id  = ADDR_2nd_CYCLE (data);
-    nand_id->third_id   = ADDR_3rd_CYCLE (data);
-    nand_id->fourth_id  = ADDR_4th_CYCLE (data);
+    data = *((__IO uint32_t *)(Bank_NAND_ADDR | DATA_AREA) + 1);
+    nand_id->fifth_id   = ADDR_1st_CYCLE(data);
 }
 
 void nand_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size)

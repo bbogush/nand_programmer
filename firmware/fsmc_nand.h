@@ -14,6 +14,7 @@ typedef struct
     uint8_t device_id;
     uint8_t third_id;
     uint8_t fourth_id;
+    uint8_t fifth_id;
 } nand_id_t;
 
 #define CMD_AREA                   (uint32_t)(1<<16)  /* A16 = CLE  high */

@@ -65,7 +65,7 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>150</width>
+          <width>190</width>
           <height>0</height>
          </size>
         </property>
@@ -165,7 +165,7 @@
         <bool>false</bool>
        </attribute>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,0" columnstretch="0" rowminimumheight="0,0" columnminimumwidth="0">
         <property name="sizeConstraint">
          <enum>QLayout::SetDefaultConstraint</enum>
