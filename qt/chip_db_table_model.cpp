@@ -37,6 +37,14 @@ QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
     case CHIP_PARAM_BLOCK_SIZE:
     case CHIP_PARAM_TOTAL_SIZE:
     case CHIP_PARAM_SPARE_SIZE:
+    case CHIP_PARAM_READ1_CMD:
+    case CHIP_PARAM_READ_ID_CMD:
+    case CHIP_PARAM_RESET_CMD:
+    case CHIP_PARAM_WRITE1_CMD:
+    case CHIP_PARAM_ERASE1_CMD:
+    case CHIP_PARAM_STATUS_CMD:
+    case CHIP_PARAM_ID1:
+    case CHIP_PARAM_ID2:
         chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(), column),
             paramStr);
         return paramStr;
@@ -58,19 +66,13 @@ QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
     case CHIP_PARAM_COL_CYCLES:
     case CHIP_PARAM_BB_MARK_OFF:
         return chipDb->getChipParam(index.row(), column);
-    case CHIP_PARAM_READ1_CMD:
-    case CHIP_PARAM_READ_ID_CMD:
-    case CHIP_PARAM_RESET_CMD:
-    case CHIP_PARAM_WRITE1_CMD:
-    case CHIP_PARAM_ERASE1_CMD:
-    case CHIP_PARAM_STATUS_CMD:
-        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(), column),
-            paramStr);
-        return paramStr;
     case CHIP_PARAM_READ2_CMD:
     case CHIP_PARAM_READ_SPARE_CMD:
     case CHIP_PARAM_WRITE2_CMD:
     case CHIP_PARAM_ERASE2_CMD:
+    case CHIP_PARAM_ID3:
+    case CHIP_PARAM_ID4:
+    case CHIP_PARAM_ID5:
         chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
             column), paramStr);
         return paramStr;
@@ -118,6 +120,11 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
         case CHIP_PARAM_ERASE2_CMD: return tr("Erase 2 com.");
         case CHIP_PARAM_STATUS_CMD: return tr("Status com.");
         case CHIP_PARAM_BB_MARK_OFF: return tr("BB mark off.");
+        case CHIP_PARAM_ID1: return tr("ID 1");
+        case CHIP_PARAM_ID2: return tr("ID 2");
+        case CHIP_PARAM_ID3: return tr("ID 3");
+        case CHIP_PARAM_ID4: return tr("ID 4");
+        case CHIP_PARAM_ID5: return tr("ID 5");
         }
     }
 
@@ -191,6 +198,16 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
             return tr("Status command");
         case CHIP_PARAM_BB_MARK_OFF:
             return tr("Bad block mark offset");
+        case CHIP_PARAM_ID1:
+            return tr("Chip ID 1st byte");
+        case CHIP_PARAM_ID2:
+            return tr("Chip ID 2nd byte");
+        case CHIP_PARAM_ID3:
+            return tr("Chip ID 3rd byte");
+        case CHIP_PARAM_ID4:
+            return tr("Chip ID 4th byte");
+        case CHIP_PARAM_ID5:
+            return tr("Chip ID 5th byte");
         }
     }
 
@@ -259,6 +276,8 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
     case CHIP_PARAM_WRITE1_CMD:
     case CHIP_PARAM_ERASE1_CMD:
     case CHIP_PARAM_STATUS_CMD:
+    case CHIP_PARAM_ID1:
+    case CHIP_PARAM_ID2:
         if (chipDb->getParamFromHexString(value.toString(), paramVal))
             return false;
         if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
@@ -269,6 +288,9 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
     case CHIP_PARAM_READ_SPARE_CMD:
     case CHIP_PARAM_WRITE2_CMD:
     case CHIP_PARAM_ERASE2_CMD:
+    case CHIP_PARAM_ID3:
+    case CHIP_PARAM_ID4:
+    case CHIP_PARAM_ID5:
         if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
             return false;
         if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
