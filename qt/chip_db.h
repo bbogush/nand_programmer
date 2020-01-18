@@ -86,6 +86,8 @@ public:
     explicit ChipDb(QObject *parent = nullptr);
     QStringList getNames();
     ChipInfo *chipInfoGetById(int id);
+    int getIdByChipId(uint32_t id1, uint32_t id2, uint32_t id3, uint32_t id4,
+        uint32_t id5);
     uint32_t pageSizeGetById(int id);
     uint32_t extendedPageSizeGetById(int id);
     uint32_t totalSizeGetById(int id);

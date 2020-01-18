@@ -285,6 +285,49 @@ ChipInfo *ChipDb::chipInfoGetById(int id)
     return &chipInfoVector[id];
 }
 
+int ChipDb::getIdByChipId(uint32_t id1, uint32_t id2, uint32_t id3,
+    uint32_t id4, uint32_t id5)
+{
+    for(int i = 0; i < chipInfoVector.size(); i++)
+    {
+        // Mandatory IDs
+        if (id1 != chipInfoVector[i].params[CHIP_PARAM_ID1] ||
+            id2 != chipInfoVector[i].params[CHIP_PARAM_ID2])
+        {
+            continue;
+        }
+
+        // Optinal IDs
+        if (chipInfoVector[i].params[CHIP_PARAM_ID3] ==
+            CHIP_PARAM_NOT_DEFINED_VALUE)
+        {
+            return i;
+        }
+        if (id3 != chipInfoVector[i].params[CHIP_PARAM_ID3])
+            continue;
+
+        if (chipInfoVector[i].params[CHIP_PARAM_ID4] ==
+            CHIP_PARAM_NOT_DEFINED_VALUE)
+        {
+            return i;
+        }
+        if (id4 != chipInfoVector[i].params[CHIP_PARAM_ID4])
+            continue;
+
+        if (chipInfoVector[i].params[CHIP_PARAM_ID5] ==
+            CHIP_PARAM_NOT_DEFINED_VALUE)
+        {
+            return i;
+        }
+        if (id5 != chipInfoVector[i].params[CHIP_PARAM_ID5])
+            continue;
+
+        return i;
+    }
+
+    return -1;
+}
+
 uint32_t ChipDb::pageSizeGetById(int id)
 {
     ChipInfo *info = chipInfoGetById(id);

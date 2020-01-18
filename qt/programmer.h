@@ -54,6 +54,7 @@ public:
         uint32_t pageSize);
     void readChipBadBlocks();
     void confChip(ChipInfo *chipInfo);
+    void detectChip();
     QString fwVersionToString(FwVersion fwVersion);
 
 signals:

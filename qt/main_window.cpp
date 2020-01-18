@@ -26,6 +26,7 @@
 #define CHIP_NAME_DEFAULT "NONE"
 #define CHIP_INDEX_DEFAULT 0
 #define CHIP_INDEX2ID(index) (index - 1)
+#define CHIP_ID2INDEX(id) (id + 1)
 
 void MainWindow::initBufTable()
 {
@@ -84,6 +85,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotSettingsChipDb()));
     connect(ui->actionAbout, SIGNAL(triggered()), this,
         SLOT(slotAboutDialog()));
+    connect(ui->detectPushButton, SIGNAL(clicked()), this,
+        SLOT(slotDetectChip()));
 }
 
 MainWindow::~MainWindow()
@@ -181,6 +184,7 @@ void MainWindow::slotFileSave()
 void MainWindow::setUiStateConnected(bool isConnected)
 {
     ui->chipSelectComboBox->setEnabled(isConnected);
+    ui->detectPushButton->setEnabled(isConnected);
     if (!isConnected)
         ui->chipSelectComboBox->setCurrentIndex(CHIP_INDEX_DEFAULT);
 }
@@ -463,7 +467,6 @@ void MainWindow::slotProgSelectCompleted(int status)
 
 void MainWindow::slotSelectChip(int selectedChipNum)
 {
-    int index;
     QString name;
     ChipInfo *chipInfo;
 
@@ -478,8 +481,66 @@ void MainWindow::slotSelectChip(int selectedChipNum)
     connect(prog, SIGNAL(confChipCompleted(int)), this,
         SLOT(slotProgSelectCompleted(int)));
 
-    index = ui->chipSelectComboBox->currentIndex();
-    chipInfo = chipDb.chipInfoGetById(CHIP_INDEX2ID(index));
+    chipInfo = chipDb.chipInfoGetById(CHIP_INDEX2ID(selectedChipNum));
+    prog->confChip(chipInfo);
+}
+
+void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
+{
+    QString idStr;
+    int id;
+
+    disconnect(prog, SIGNAL(readChipIdCompleted(int)), this,
+        SLOT(slotProgDetectChipReadChipIdCompleted(int)));
+
+    if (status)
+        return;
+
+    idStr.sprintf("0x%02X 0x%02X 0x%02X 0x%02X 0x%02X", chipId.makerId,
+        chipId.deviceId, chipId.thirdId, chipId.fourthId, chipId.fifthId);
+    ui->deviceValueLabel->setText(idStr);
+
+    qInfo() << QString("ID ").append(idStr).toLatin1().data();
+
+    if ((id = chipDb.getIdByChipId(chipId.makerId, chipId.deviceId,
+        chipId.thirdId, chipId.fourthId, chipId.fifthId)) < 0)
+    {
+        qInfo() << "Chip not found in database";
+        return;
+    }
+
+    ui->chipSelectComboBox->setCurrentIndex(CHIP_ID2INDEX(id));
+}
+
+void MainWindow::slotProgDetectChipConfCompleted(int status)
+{
+    disconnect(prog, SIGNAL(confChipCompleted(int)), this,
+        SLOT(slotProgDetectChipConfCompleted(int)));
+
+    if (status)
+        return;
+
+    connect(prog, SIGNAL(readChipIdCompleted(int)), this,
+        SLOT(slotProgDetectChipReadChipIdCompleted(int)));
+    prog->readChipId(&chipId);
+}
+
+void MainWindow::slotDetectChip()
+{
+    ChipInfo *chipInfo;
+
+    qInfo() << "Detecting chip ...";
+
+    // Assuming read of ID is the same for all chips thereby use settings of the
+    // first one.
+    if (!(chipInfo = chipDb.chipInfoGetById(0)))
+    {
+        qCritical() << "Failed to get information from chip database";
+        return;
+    }
+
+    connect(prog, SIGNAL(confChipCompleted(int)), this,
+        SLOT(slotProgDetectChipConfCompleted(int)));
     prog->confChip(chipInfo);
 }
 
