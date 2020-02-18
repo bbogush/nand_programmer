@@ -13,7 +13,7 @@ static uint32_t nand_bad_block_table[NAND_BAD_BLOCK_TABLE_SIZE];
 
 void nand_bad_block_table_init()
 {
-    memset(nand_bad_block_table, 0, NAND_BAD_BLOCK_TABLE_SIZE);
+    memset(nand_bad_block_table, 0, sizeof(nand_bad_block_table));
     nand_bad_block_table_count = 0;
 }
 
