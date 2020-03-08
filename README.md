@@ -30,6 +30,7 @@ Application:
 - Read speed: 640KBytes/s
 - Erase speed: 256MBytes/s
 - Extendable chip database
+- Chip autodetection
 
 ### Tested chips
 #### Samsung
