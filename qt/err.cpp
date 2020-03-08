@@ -48,7 +48,8 @@ static code_str_t err[] =
     { NP_ERR_LEN_NOT_ALIGN, "Data length is not page aligned" },
     { NP_ERR_LEN_EXCEEDED, "Data length exceeded chip size" },
     { NP_ERR_LEN_INVALID, "Wrong data length" },
-    { NP_ERR_BBT_OVERFLOW, "Bad block table overflow" },
+    { NP_ERR_BBT_OVERFLOW, "Bad block table overflow. Probably some pins of "
+        "chip are not connected to the programmer" },
 };
 
 const char *errCode2str(long int code)
