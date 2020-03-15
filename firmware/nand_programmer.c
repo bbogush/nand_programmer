@@ -328,8 +328,8 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
         prog->chip_info.bb_mark_off, 1);
     if (status == NAND_INVALID_CMD)
     {
-        status = nand_read_data(prog->page.buf, page,
-            prog->chip_info.bb_mark_off, 1);
+        status = nand_read_page(prog->page.buf, page,
+            prog->chip_info.page_size + prog->chip_info.spare_size);
     }
 
     switch (status)
@@ -347,7 +347,8 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
         return NP_ERR_NAND_RD;
     }
 
-    *is_bad = prog->page.buf[0] != NP_NAND_GOOD_BLOCK_MARK;
+    *is_bad = prog->page.buf[prog->chip_info.page_size +
+        prog->chip_info.bb_mark_off] != NP_NAND_GOOD_BLOCK_MARK;
 
     return 0;
 }
