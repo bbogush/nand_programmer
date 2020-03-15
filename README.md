@@ -41,6 +41,8 @@ Application:
 - HY27US08561A
 #### TOSHIBA
 - TC58NVG2S3E
+#### ESMT
+- F59L2G81A
 
 ## Release binaries
 You can download host application deb package for Ubuntu/Windows installer, firmware binary for
