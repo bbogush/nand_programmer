@@ -36,6 +36,7 @@ Application:
 #### Samsung
 - K9F2G08U0C
 - K9F1G08U0E
+- K9F1208U0B
 #### Hynix
 - HY27US08561A
 #### TOSHIBA
