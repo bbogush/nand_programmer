@@ -1,6 +1,7 @@
 LIB_NAME=libstm32f10x.a
 
-SRC_DIR=STM32F10x_StdPeriph_Driver/src/ STM32_USB-FS-Device_Driver/src/
+SRC_DIR=CMSIS/CM3/CoreSupport/ STM32F10x_StdPeriph_Driver/src/ \
+  STM32_USB-FS-Device_Driver/src/
 OBJ_DIR=obj/
 
 TOOLCHAIN=../../../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
@@ -26,6 +27,8 @@ CFLAGS+=-ffreestanding -nostdlib
 
 vpath %.c $(SRC_DIR)
 
+SRCS_CORE=core_cm3.c
+
 SRCS_PERIPH=misc.c stm32f10x_cec.c stm32f10x_dma.c stm32f10x_gpio.c \
   stm32f10x_rcc.c stm32f10x_tim.c stm32f10x_adc.c stm32f10x_crc.c \
   stm32f10x_exti.c stm32f10x_i2c.c stm32f10x_rtc.c stm32f10x_usart.c \
@@ -35,7 +38,7 @@ SRCS_PERIPH=misc.c stm32f10x_cec.c stm32f10x_dma.c stm32f10x_gpio.c \
 
 SRCS_USB=usb_core.c usb_init.c usb_int.c usb_mem.c usb_regs.c usb_sil.c
 
-SRCS=$(SRCS_PERIPH) $(SRCS_USB)
+SRCS=$(SRCS_CORE) $(SRCS_PERIPH) $(SRCS_USB)
 
 OBJS=$(addprefix $(OBJ_DIR),$(SRCS:.c=.o))
 DEPS=$(OBJS:%.o=%.d)
