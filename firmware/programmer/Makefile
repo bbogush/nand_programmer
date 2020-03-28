@@ -9,7 +9,6 @@ USB_DIR=../usb_cdc/
 OBJ_DIR=obj/
 LIB_DIR=../libs
 INCLUDE_DIR=../
-EXTRA_DIR=../../extra/
 TOOLCHAIN=../../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
 PROG=$(OBJ_DIR)$(PROG_NAME)
 
