@@ -7,12 +7,12 @@ PROG_NAME=nando_fw
 SRC_DIR=./
 USB_DIR=../usb_cdc/
 OBJ_DIR=obj/
-LIB_DIR=../libs
+LIB_DIR=../libs/
 INCLUDE_DIR=../
 TOOLCHAIN=../../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
 PROG=$(OBJ_DIR)$(PROG_NAME)
 
-SPL_PATH=$(LIB_DIR)/spl/
+SPL_PATH=$(LIB_DIR)spl/
 SPL_DEVICE_SUPPORT_PATH=$(SPL_PATH)CMSIS/CM3/DeviceSupport/ST/STM32F10x/
 SPL_CORE_SUPPORT=$(SPL_PATH)CMSIS/CM3/CoreSupport/
 SPL_PERIPH_PATH=$(SPL_PATH)STM32F10x_StdPeriph_Driver/
