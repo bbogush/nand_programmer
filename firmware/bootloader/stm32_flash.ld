@@ -15,7 +15,8 @@ _estack = 0x2000c000;
 
 MEMORY
 {
-    FLASH(rx) : ORIGIN = 0x08000000, LENGTH = 16K
+    FLASH(rx) : ORIGIN = 0x08000000, LENGTH = 14K
+    DATA(rw) : ORIGIN = 0x08003800, LENGTH = 2K
     RAM(xrw) : ORIGIN = 0x20000000, LENGTH = 48K
 }
 
@@ -88,6 +89,13 @@ SECTIONS
         KEEP(*(SORT(.fini_array.*)))
         PROVIDE_HIDDEN(__fini_array_end = .);
     } > FLASH
+
+    .user_data :
+    {
+        . = ALIGN(4);
+        KEEP(*(.user_data))
+        . = ALIGN(4);
+    } > DATA
 
     /* Used by startup code to initialize data */
     _sidata = .;
