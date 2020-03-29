@@ -3,42 +3,47 @@
 # it under the terms of the GNU General Public License version 3.
 
 BOOT_NAME=bootloader_fw.hex
-PROG_NAME=app_fw.hex
+APP1_NAME=app_fw_1.hex
+APP2_NAME=app_fw_2.hex
 GEN_NAME=nando_fw
 
 BOOT_DIR=bootloader/
-PROG_DIR=programmer/
+APP_DIR=programmer/
 
 BOOT_OBJ_DIR=$(BOOT_DIR)obj/
-PROG_OBJ_DIR=$(PROG_DIR)obj/
+APP_OBJ_DIR=$(APP_DIR)obj/
 
 BOOT_PATH=$(BOOT_OBJ_DIR)$(BOOT_NAME)
-PROG_PATH=$(PROG_OBJ_DIR)$(PROG_NAME)
+APP1_PATH=$(APP_OBJ_DIR)$(APP1_NAME)
+APP2_PATH=$(APP_OBJ_DIR)$(APP2_NAME)
 
 OBJ_DIR=obj/
 
-TOOLCHAIN=../../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
+TOOLCHAIN=../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
 OBJCOPY=$(TOOLCHAIN)objcopy
 
 all:
 	$(MAKE) -C $(BOOT_DIR)
-	$(MAKE) -C $(PROG_DIR)
+	$(MAKE) -C $(APP_DIR)
 	mkdir -p $(OBJ_DIR)
 	cp $(BOOT_PATH) $(OBJ_DIR)
-	cp $(PROG_PATH) $(OBJ_DIR)
-	cd $(OBJ_DIR) && sed -i '$$d' $(BOOT_NAME) && \
-	cat $(BOOT_NAME) $(PROG_NAME) > $(GEN_NAME).hex && \
-	$(OBJCOPY) --input-target=ihex --output-target=binary $(GEN_NAME).hex \
-	  $(GEN_NAME).bin
+	cp $(APP1_PATH) $(OBJ_DIR)
+	cp $(APP2_PATH) $(OBJ_DIR)
+	sed -i '$$d' $(OBJ_DIR)$(BOOT_NAME)
+	sed -i '$$d' $(OBJ_DIR)$(APP1_NAME)
+	cat $(OBJ_DIR)$(BOOT_NAME) $(OBJ_DIR)$(APP1_NAME) \
+	  $(OBJ_DIR)$(APP2_NAME) > $(OBJ_DIR)$(GEN_NAME).hex
+	$(OBJCOPY) --input-target=ihex --output-target=binary \
+	  $(OBJ_DIR)$(GEN_NAME).hex $(OBJ_DIR)$(GEN_NAME).bin
 
 clean:
 	$(MAKE) -C $(BOOT_DIR) clean
-	$(MAKE) -C $(PROG_DIR) clean
+	$(MAKE) -C $(APP_DIR) clean
 	rm -rf obj/
 
 distclean:
 	$(MAKE) -C $(BOOT_DIR) distclean
-	$(MAKE) -C $(PROG_DIR) distclean
+	$(MAKE) -C $(APP_DIR) distclean
 	rm -rf obj/
 
 erase:

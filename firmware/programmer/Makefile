@@ -2,7 +2,7 @@
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 3.
 
-PROG_NAME=app_fw
+APP_NAME=app_fw
 
 SRC_DIR=./
 USB_DIR=../usb_cdc/
@@ -10,7 +10,8 @@ OBJ_DIR=obj/
 LIB_DIR=../libs/
 INCLUDE_DIR=../
 TOOLCHAIN=../../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
-PROG=$(OBJ_DIR)$(PROG_NAME)
+APP_1=$(OBJ_DIR)$(APP_NAME)_1
+APP_2=$(OBJ_DIR)$(APP_NAME)_2
 
 SPL_PATH=$(LIB_DIR)spl/
 SPL_DEVICE_SUPPORT_PATH=$(SPL_PATH)CMSIS/CM3/DeviceSupport/ST/STM32F10x/
@@ -42,7 +43,8 @@ CFLAGS+=-ffunction-sections -fdata-sections
 CFLAGS+=-mcpu=cortex-m3 -mthumb
 CFLAGS+=$(SPL_FLAGS)
 
-LDFLAGS=-mcpu=cortex-m3 -mthumb -Wl,--gc-sections -Wl,-Map=$(PROG).map
+LDFLAGS_1=-mcpu=cortex-m3 -mthumb -Wl,--gc-sections -Wl,-Map=$(APP_1).map
+LDFLAGS_2=-mcpu=cortex-m3 -mthumb -Wl,--gc-sections -Wl,-Map=$(APP_2).map
 
 vpath %.c $(SRC_DIR) $(SPL_DEVICE_SUPPORT_PATH) $(SRC_BSP_DIR) $(USB_DIR)
 vpath %.s $(SRC_DIR)
@@ -58,9 +60,10 @@ OBJS=$(addprefix $(OBJ_DIR),$(SRCS:.c=.o)) \
   $(addprefix $(OBJ_DIR),$(STARTUP:.s=.o))
 DEPS=$(OBJS:%.o=%.d)
 
-LINKER_SCRIPT=$(SRC_DIR)stm32_flash.ld
+LINKER_SCRIPT_1=$(SRC_DIR)stm32_flash_1.ld
+LINKER_SCRIPT_2=$(SRC_DIR)stm32_flash_2.ld
 
-all: lib dirs $(PROG).elf
+all: lib dirs $(APP_1).elf $(APP_2).elf
 
 lib:
 	$(MAKE) -C $(SPL_PATH)
@@ -68,12 +71,21 @@ lib:
 dirs:
 	mkdir -p $(OBJ_DIR)
 
-$(PROG).elf: $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) -T$(LINKER_SCRIPT)
-	$(OBJCOPY) -O ihex $(PROG).elf $(PROG).hex
-	$(OBJCOPY) -O binary $(PROG).elf $(PROG).bin
-	$(OBJDUMP) -St $(PROG).elf > $(PROG).lst
-	$(SIZE) $(PROG).elf
+$(APP_1).elf: $(OBJS)
+	$(CC) $(LDFLAGS_1) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) \
+	  -T$(LINKER_SCRIPT_1)
+	$(OBJCOPY) -O ihex $(APP_1).elf $(APP_1).hex
+	$(OBJCOPY) -O binary $(APP_1).elf $(APP_1).bin
+	$(OBJDUMP) -St $(APP_1).elf > $(APP_1).lst
+	$(SIZE) $(APP_1).elf
+
+$(APP_2).elf: $(OBJS)
+	$(CC) $(LDFLAGS_2) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) \
+	  -T$(LINKER_SCRIPT_2)
+	$(OBJCOPY) -O ihex $(APP_2).elf $(APP_2).hex
+	$(OBJCOPY) -O binary $(APP_2).elf $(APP_2).bin
+	$(OBJDUMP) -St $(APP_2).elf > $(APP_2).lst
+	$(SIZE) $(APP_2).elf
 
 $(OBJ_DIR)%.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@ 
@@ -90,4 +102,4 @@ distclean: clean
 	$(MAKE) -C $(SPL_PATH) clean
 
 program:
-	st-flash write $(PROG).bin 0x8004000
+	st-flash write $(APP_1).bin 0x8004000
