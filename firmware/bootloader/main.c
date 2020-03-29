@@ -34,19 +34,19 @@
 #define APP2_ADDRESS_OFFSET 0x22000
 #define APP2_ADDRESS (FLASH_BASE + APP2_ADDRESS_OFFSET)
 
+#define BOOT_DATA_ADDRESS 0x08003800
+
 typedef void (*app_func_t)(void);
 typedef struct __attribute__((__packed__))
 {
     uint8_t active_image;
 } config_t;
 
-__attribute__((__section__(".user_data"))) const char data[1];
-
 int main()
 {
     app_func_t app;
     uint32_t jump_addr, vt_offset, sp_addr;
-    config_t *config = (config_t *)data;
+    volatile config_t *config = (config_t *)BOOT_DATA_ADDRESS;
 
     uart_init();
     print(VERSION);

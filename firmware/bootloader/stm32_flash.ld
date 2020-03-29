@@ -90,13 +90,6 @@ SECTIONS
         PROVIDE_HIDDEN(__fini_array_end = .);
     } > FLASH
 
-    .user_data :
-    {
-        . = ALIGN(4);
-        KEEP(*(.user_data))
-        . = ALIGN(4);
-    } > DATA
-
     /* Used by startup code to initialize data */
     _sidata = .;
 
