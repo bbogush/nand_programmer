@@ -24,6 +24,9 @@ class Writer : public QThread
     uint32_t bytesWritten;
     bool skipBB;
     bool incSpare;
+    uint8_t startCmd;
+    uint8_t dataCmd;
+    uint8_t endCmd;
 
     int write(uint8_t *data, uint32_t dataLen);
     int read(uint8_t *data, uint32_t dataLen);
@@ -46,7 +49,8 @@ class Writer : public QThread
 public:
     void init(const QString &portName, qint32 baudRate, uint8_t *buf,
         uint32_t addr, uint32_t len, uint32_t pageSize,
-        bool skipBB, bool incSpare);
+        bool skipBB, bool incSpare, uint8_t startCmd, uint8_t dataCmd,
+        uint8_t endCmd);
 signals:
     void result(int ret);
     void progress(unsigned int progress);

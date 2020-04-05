@@ -15,7 +15,8 @@
 Q_DECLARE_METATYPE(QtMsgType)
 
 void Writer::init(const QString &portName, qint32 baudRate, uint8_t *buf,
-    uint32_t addr, uint32_t len, uint32_t pageSize, bool skipBB, bool incSpare)
+    uint32_t addr, uint32_t len, uint32_t pageSize, bool skipBB, bool incSpare,
+    uint8_t startCmd, uint8_t dataCmd, uint8_t endCmd)
 {
     this->portName = portName;
     this->baudRate = baudRate;
@@ -25,6 +26,9 @@ void Writer::init(const QString &portName, qint32 baudRate, uint8_t *buf,
     this->pageSize = pageSize;
     this->skipBB = skipBB;
     this->incSpare = incSpare;
+    this->startCmd = startCmd;
+    this->dataCmd = dataCmd;
+    this->endCmd = endCmd;
     bytesWritten = 0;
     bytesAcked = 0;
 }
@@ -212,7 +216,7 @@ int Writer::writeStart()
 {
     WriteStartCmd writeStartCmd;
 
-    writeStartCmd.cmd.code = CMD_NAND_WRITE_S;
+    writeStartCmd.cmd.code = startCmd;
     writeStartCmd.addr = addr;
     writeStartCmd.len = len;
     writeStartCmd.flags.skipBB = skipBB;
@@ -236,7 +240,7 @@ int Writer::writeData()
     WriteDataCmd *writeDataCmd = reinterpret_cast<WriteDataCmd *>(pbuf);
     uint32_t dataLen, dataLenMax, headerLen, pageLim;
 
-    writeDataCmd->cmd.code = CMD_NAND_WRITE_D;
+    writeDataCmd->cmd.code = dataCmd;
     headerLen = sizeof(WriteDataCmd);
     dataLenMax = BUF_SIZE - headerLen;
 
@@ -270,7 +274,7 @@ int Writer::writeEnd()
 {
     WriteEndCmd writeEndCmd;
 
-    writeEndCmd.cmd.code = CMD_NAND_WRITE_E;
+    writeEndCmd.cmd.code = endCmd;
 
     if (write(reinterpret_cast<uint8_t *>(&writeEndCmd), sizeof(WriteEndCmd)))
         return -1;

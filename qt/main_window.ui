@@ -280,6 +280,8 @@
     </property>
     <addaction name="actionProgrammer"/>
     <addaction name="actionChipDb"/>
+    <addaction name="separator"/>
+    <addaction name="actionFirmwareUpdate"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -381,6 +383,14 @@
   <action name="actionAbout">
    <property name="text">
     <string>About NANDO</string>
+   </property>
+  </action>
+  <action name="actionFirmwareUpdate">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Firmware update</string>
    </property>
   </action>
  </widget>

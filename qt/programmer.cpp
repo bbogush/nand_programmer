@@ -25,6 +25,7 @@ Programmer::Programmer(QObject *parent) : QObject(parent)
     skipBB = true;
     incSpare = false;
     isConn = false;
+    firmwareBuffer = nullptr;
     QObject::connect(&reader, SIGNAL(log(QtMsgType, QString)), this,
         SLOT(logCb(QtMsgType, QString)));
     QObject::connect(&writer, SIGNAL(log(QtMsgType, QString)), this,
@@ -260,7 +261,7 @@ void Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
         SLOT(writeProgressCb(unsigned int)));
 
     writer.init(usbDevName, SERIAL_PORT_SPEED, buf, addr, len, pageSize,
-        skipBB, incSpare);
+        skipBB, incSpare, CMD_NAND_WRITE_S, CMD_NAND_WRITE_D, CMD_NAND_WRITE_E);
     writer.start();
 }
 
@@ -376,6 +377,155 @@ QString Programmer::fwVersionToString(FwVersion fwVersion)
 {
     return QString("%1.%2.%3").arg(fwVersion.major).
         arg(fwVersion.minor).arg(fwVersion.build);
+}
+
+int Programmer::firmwareImageRead()
+{
+    qint64 ret, fileSize;
+    uint32_t updateImageSize, updateImageOffset;
+
+    QFile file(firmwareFileName);
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        qCritical() << "Failed to open file:" << firmwareFileName <<
+            ", error:" << file.errorString();
+        goto Error;
+    }
+
+    fileSize = file.size();
+    if (fileSize != (firmwareImage[FIRMWARE_IMAGE_LAST - 1].offset +
+        firmwareImage[FIRMWARE_IMAGE_LAST - 1].size))
+    {
+        qCritical() << "Firmware image " << firmwareFileName <<
+            " size " << fileSize << "is invalid, expected " << 256 * 1024;
+        goto Error;
+    }
+
+    updateImage = activeImage == FIRMWARE_IMAGE_1 ? FIRMWARE_IMAGE_2 :
+        FIRMWARE_IMAGE_1;
+    updateImageSize = firmwareImage[updateImage].size;
+    updateImageOffset = firmwareImage[updateImage].offset;
+    if (!(firmwareBuffer = new (std::nothrow) char[updateImageSize]))
+    {
+        qCritical() << "Failed to allocate memory for firmware image " <<
+            firmwareFileName;
+        goto Error;
+    }
+
+    if (!file.seek(updateImageOffset))
+    {
+        qCritical() << "Failed to seek firmware image " << firmwareFileName;
+        goto Error;
+    }
+
+    if ((ret = file.read(firmwareBuffer, updateImageSize)) < 0)
+    {
+        qCritical() << "Failed to read firmware image " << firmwareFileName <<
+            ", error:" << file.errorString();
+        goto Error;
+    }
+
+    if (ret != updateImageSize)
+    {
+        qCritical() << "Firmware image " << firmwareFileName <<
+            " was partially read, length" << ret;
+        goto Error;
+    }
+
+    return 0;
+
+Error:
+    if (firmwareBuffer)
+    {
+        delete [] firmwareBuffer;
+        firmwareBuffer = nullptr;
+    }
+    emit firmwareUpdateCompleted(-1);
+    return -1;
+}
+
+void Programmer::firmwareUpdateProgressCb(unsigned int progress)
+{
+    emit firmwareUpdateProgress(progress);
+}
+
+void Programmer::firmwareUpdateCb(int ret)
+{
+    QObject::disconnect(&writer, SIGNAL(progress(unsigned int)), this,
+        SLOT(firmwareUpdateProgressCb(unsigned int)));
+    QObject::disconnect(&writer, SIGNAL(result(int)), this,
+        SLOT(firmwareUpdateCb(int)));
+
+    delete [] firmwareBuffer;
+    firmwareBuffer = nullptr;
+
+    emit firmwareUpdateCompleted(ret);
+}
+
+void Programmer::firmwareUpdateStart()
+{
+    if (firmwareImageRead())
+    {
+        emit firmwareUpdateCompleted(-1);
+        return;
+    }
+
+    QObject::connect(&writer, SIGNAL(result(int)), this,
+        SLOT(firmwareUpdateCb(int)));
+    QObject::connect(&writer, SIGNAL(progress(unsigned int)), this,
+        SLOT(firmwareUpdateProgressCb(unsigned int)));
+
+    writer.init(usbDevName, SERIAL_PORT_SPEED,
+        reinterpret_cast<uint8_t *>(firmwareBuffer),
+        firmwareImage[updateImage].address, firmwareImage[updateImage].size,
+        flashPageSize, 0, 0, CMD_FW_UPDATE_S, CMD_FW_UPDATE_D, CMD_FW_UPDATE_E);
+    writer.start();
+}
+
+void Programmer::getActiveImageCb(int ret)
+{
+    QObject::disconnect(&reader, SIGNAL(result(int)), this,
+        SLOT(getActiveImageCb(int)));
+
+    if (ret < 0)
+    {
+        qCritical() << "Failed to get active firmware image";
+        goto Error;
+    }
+
+    if (activeImage >= FIRMWARE_IMAGE_LAST)
+    {
+        qCritical() << "Wrong active firmware image: " << activeImage;
+        goto Error;
+    }
+
+    qInfo() << "Active firmware image: " << activeImage;
+
+    firmwareUpdateStart();
+    return;
+
+Error:
+    emit firmwareUpdateCompleted(-1);
+}
+
+void Programmer::firmwareUpdate(const QString &fileName)
+{
+    Cmd cmd;
+
+    firmwareFileName = fileName;
+
+    QObject::connect(&reader, SIGNAL(result(int)), this,
+        SLOT(getActiveImageCb(int)));
+
+    cmd.code = CMD_ACTIVE_IMAGE_GET;
+
+    writeData.clear();
+    writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
+    reader.init(usbDevName, SERIAL_PORT_SPEED, &activeImage,
+        sizeof(activeImage),
+        reinterpret_cast<const uint8_t *>(writeData.constData()),
+        static_cast<uint32_t>(writeData.size()), false, false);
+    reader.start();
 }
 
 

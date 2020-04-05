@@ -51,6 +51,7 @@ private slots:
     void slotProgSelectCompleted(int status);
     void slotProgDetectChipConfCompleted(int status);
     void slotProgDetectChipReadChipIdCompleted(int status);
+    void slotProgFirmwareUpdateCompleted(int status);
 
 public slots:
     void slotFileOpen();
@@ -66,6 +67,7 @@ public slots:
     void slotSettingsProgrammer();
     void slotSettingsChipDb();
     void slotAboutDialog();
+    void slotFirmwareUpdate();
 };
 
 #endif // MAIN_WINDOW_H

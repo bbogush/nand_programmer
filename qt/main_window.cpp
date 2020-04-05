@@ -87,6 +87,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotAboutDialog()));
     connect(ui->detectPushButton, SIGNAL(clicked()), this,
         SLOT(slotDetectChip()));
+    connect(ui->actionFirmwareUpdate, SIGNAL(triggered()), this,
+        SLOT(slotFirmwareUpdate()));
 }
 
 MainWindow::~MainWindow()
@@ -185,6 +187,7 @@ void MainWindow::setUiStateConnected(bool isConnected)
 {
     ui->chipSelectComboBox->setEnabled(isConnected);
     ui->detectPushButton->setEnabled(isConnected);
+    ui->actionFirmwareUpdate->setEnabled(isConnected);
     if (!isConnected)
         ui->chipSelectComboBox->setCurrentIndex(CHIP_INDEX_DEFAULT);
 }
@@ -597,4 +600,24 @@ void MainWindow::slotAboutDialog()
 void MainWindow::setProgress(unsigned int progress)
 {
     statusBar()->showMessage(tr("Progress: %1%").arg(progress));
+}
+
+void MainWindow::slotProgFirmwareUpdateCompleted(int status)
+{
+    if (!status)
+        qInfo() << "Firmware update completed. Please restart device.";
+}
+
+void MainWindow::slotFirmwareUpdate()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
+        ".", tr("Binary Files (*.bin)"));
+
+    if (fileName.isNull())
+        return;
+
+    qInfo() << "Firmware update ...";
+    connect(prog, SIGNAL(firmwareUpdateCompleted(int)), this,
+        SLOT(slotProgFirmwareUpdateCompleted(int)));
+    prog->firmwareUpdate(fileName);
 }

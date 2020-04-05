@@ -5,15 +5,19 @@
 
 enum
 {
-    CMD_NAND_READ_ID = 0x00,
-    CMD_NAND_ERASE   = 0x01,
-    CMD_NAND_READ    = 0x02,
-    CMD_NAND_WRITE_S = 0x03,
-    CMD_NAND_WRITE_D = 0x04,
-    CMD_NAND_WRITE_E = 0x05,
-    CMD_NAND_CONF    = 0x06,
-    CMD_NAND_READ_BB = 0x07,
-    CMD_VERSION_GET  = 0x08,
+    CMD_NAND_READ_ID     = 0x00,
+    CMD_NAND_ERASE       = 0x01,
+    CMD_NAND_READ        = 0x02,
+    CMD_NAND_WRITE_S     = 0x03,
+    CMD_NAND_WRITE_D     = 0x04,
+    CMD_NAND_WRITE_E     = 0x05,
+    CMD_NAND_CONF        = 0x06,
+    CMD_NAND_READ_BB     = 0x07,
+    CMD_VERSION_GET      = 0x08,
+    CMD_ACTIVE_IMAGE_GET = 0x09,
+    CMD_FW_UPDATE_S      = 0x0a,
+    CMD_FW_UPDATE_D      = 0x0b,
+    CMD_FW_UPDATE_E      = 0x0c
 };
 
 typedef struct __attribute__((__packed__))

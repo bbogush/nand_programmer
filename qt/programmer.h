@@ -21,6 +21,28 @@ class Programmer : public QObject
 {
     Q_OBJECT
 
+    typedef enum
+    {
+        FIRMWARE_IMAGE_1    = 0,
+        FIRMWARE_IMAGE_2    = 1,
+        FIRMWARE_IMAGE_LAST = 2,
+    } FirmwareImageNum;
+
+    typedef struct
+    {
+        FirmwareImageNum num;
+        uint32_t address;
+        uint32_t offset;
+        uint32_t size;
+    } FirmwareImage;
+
+    const FirmwareImage firmwareImage[FIRMWARE_IMAGE_LAST] =
+    {
+        { FIRMWARE_IMAGE_1, 0x08004000, 0x00004000, 0x1e000 },
+        { FIRMWARE_IMAGE_2, 0x08022000, 0x00022000, 0x1e000 },
+    };
+    const uint32_t flashPageSize = 0x800;
+
     QSerialPort serialPort;
     QString usbDevName;
     Writer writer;
@@ -29,9 +51,15 @@ class Programmer : public QObject
     bool skipBB;
     bool incSpare;
     FwVersion fwVersion;
+    uint8_t activeImage;
+    uint8_t updateImage;
+    QString firmwareFileName;
+    char *firmwareBuffer;
 
     int serialPortConnect();
     void serialPortDisconnect();
+    int firmwareImageRead();
+    void firmwareUpdateStart();
 
 public:
     QByteArray writeData;
@@ -56,6 +84,7 @@ public:
     void confChip(ChipInfo *chipInfo);
     void detectChip();
     QString fwVersionToString(FwVersion fwVersion);
+    void firmwareUpdate(const QString &fileName);
 
 signals:
     void connectCompleted(int ret);
@@ -68,6 +97,8 @@ signals:
     void eraseChipProgress(unsigned int progress);
     void readChipBadBlocksCompleted(int ret);
     void confChipCompleted(int ret);
+    void firmwareUpdateCompleted(int ret);
+    void firmwareUpdateProgress(unsigned int progress);
 
 private slots:
     void readChipIdCb(int ret);
@@ -81,6 +112,9 @@ private slots:
     void confChipCb(int ret);
     void logCb(QtMsgType msgType, QString msg);
     void connectCb(int ret);
+    void getActiveImageCb(int ret);
+    void firmwareUpdateCb(int ret);
+    void firmwareUpdateProgressCb(unsigned int progress);
 };
 
 #endif // PROGRAMMER_H
