@@ -61,7 +61,7 @@ dirs:
 
 $(PROG).elf: $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) -T$(LINKER_SCRIPT)
-	$(OBJCOPY) -O ihex $(PROG).elf $(PROG).hex
+	$(OBJCOPY) --pad-to 0x8003800 -O ihex $(PROG).elf $(PROG).hex
 	$(OBJCOPY) -O binary $(PROG).elf $(PROG).bin
 	$(OBJDUMP) -St $(PROG).elf > $(PROG).lst
 	$(SIZE) $(PROG).elf

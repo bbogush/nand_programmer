@@ -74,7 +74,7 @@ dirs:
 $(APP_1).elf: $(OBJS)
 	$(CC) $(LDFLAGS_1) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) \
 	  -T$(LINKER_SCRIPT_1)
-	$(OBJCOPY) -O ihex $(APP_1).elf $(APP_1).hex
+	$(OBJCOPY) --pad-to 0x08022000 -O ihex $(APP_1).elf $(APP_1).hex
 	$(OBJCOPY) -O binary $(APP_1).elf $(APP_1).bin
 	$(OBJDUMP) -St $(APP_1).elf > $(APP_1).lst
 	$(SIZE) $(APP_1).elf
@@ -82,7 +82,7 @@ $(APP_1).elf: $(OBJS)
 $(APP_2).elf: $(OBJS)
 	$(CC) $(LDFLAGS_2) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) \
 	  -T$(LINKER_SCRIPT_2)
-	$(OBJCOPY) -O ihex $(APP_2).elf $(APP_2).hex
+	$(OBJCOPY) --pad-to 0x08040000 -O ihex $(APP_2).elf $(APP_2).hex
 	$(OBJCOPY) -O binary $(APP_2).elf $(APP_2).bin
 	$(OBJDUMP) -St $(APP_2).elf > $(APP_2).lst
 	$(SIZE) $(APP_2).elf
