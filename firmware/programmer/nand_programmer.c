@@ -10,6 +10,7 @@
 #include "led.h"
 #include "log.h"
 #include "version.h"
+#include "flash.h"
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
@@ -22,18 +23,28 @@
 
 #define NP_NAND_GOOD_BLOCK_MARK 0xFF
 
+#define BOOT_CONFIG_ADDR 0x08003800
+#define FLASH_START_ADDR 0x08000000
+#define FLASH_SIZE 0x40000
+#define FLASH_PAGE_SIZE 0x800
+#define FLASH_BLOCK_SIZE 0x800
+
 typedef enum
 {
-    NP_CMD_NAND_READ_ID = 0x00,
-    NP_CMD_NAND_ERASE   = 0x01,
-    NP_CMD_NAND_READ    = 0x02,
-    NP_CMD_NAND_WRITE_S = 0x03,
-    NP_CMD_NAND_WRITE_D = 0x04,
-    NP_CMD_NAND_WRITE_E = 0x05,
-    NP_CMD_NAND_CONF    = 0x06,
-    NP_CMD_NAND_READ_BB = 0x07,
-    NP_CMD_VERSION_GET  = 0x08,
-    NP_CMD_NAND_LAST    = 0x09,
+    NP_CMD_NAND_READ_ID     = 0x00,
+    NP_CMD_NAND_ERASE       = 0x01,
+    NP_CMD_NAND_READ        = 0x02,
+    NP_CMD_NAND_WRITE_S     = 0x03,
+    NP_CMD_NAND_WRITE_D     = 0x04,
+    NP_CMD_NAND_WRITE_E     = 0x05,
+    NP_CMD_NAND_CONF        = 0x06,
+    NP_CMD_NAND_READ_BB     = 0x07,
+    NP_CMD_VERSION_GET      = 0x08,
+    NP_CMD_ACTIVE_IMAGE_GET = 0x09,
+    NP_CMD_FW_UPDATE_S      = 0x0a,
+    NP_CMD_FW_UPDATE_D      = 0x0b,
+    NP_CMD_FW_UPDATE_E      = 0x0c,
+    NP_CMD_NAND_LAST        = 0x0d,
 } np_cmd_code_t;
 
 enum
@@ -197,6 +208,12 @@ typedef struct __attribute__((__packed__))
     version_t version;
 } np_resp_version_t;
 
+typedef struct __attribute__((__packed__))
+{
+    np_resp_t header;
+    uint8_t active_image;
+} np_resp_active_image_t;
+
 typedef struct
 {
     uint32_t addr;
@@ -210,12 +227,18 @@ typedef struct
     uint32_t offset;
 } np_page_t;
 
+typedef struct __attribute__((__packed__))
+{
+    uint8_t active_image;
+} boot_config_t;
+
 typedef struct
 {
     uint8_t *rx_buf;
     uint32_t rx_buf_len;
     uint32_t addr;
     uint32_t len;
+    uint32_t base_addr;
     uint32_t page_size;
     uint32_t block_size;
     uint32_t total_size;
@@ -234,6 +257,7 @@ typedef struct
 typedef struct
 {
     int id;
+    bool is_chip_cmd;
     int (*exec)(np_prog_t *prog);
 } np_cmd_handler_t;
 
@@ -1118,17 +1142,268 @@ int np_cmd_version_get(np_prog_t *prog)
     return 0;
 }
 
+static int np_boot_config_read(boot_config_t *config)
+{
+    if (flash_read(BOOT_CONFIG_ADDR, (uint8_t *)config, sizeof(boot_config_t))
+        < 0)
+    {
+        return -1;
+    }
+    
+    return 0;
+}
+
+static int np_boot_config_write(boot_config_t *config)
+{
+    if (flash_page_erase(BOOT_CONFIG_ADDR) < 0)
+        return -1;
+
+    if (flash_write(BOOT_CONFIG_ADDR, (uint8_t *)config, sizeof(boot_config_t))
+        < 0)
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
+static int np_cmd_active_image_get(np_prog_t *prog)
+{
+    boot_config_t boot_config;
+    np_resp_active_image_t resp;
+    size_t resp_len = sizeof(resp);
+
+    DEBUG_PRINT("Get active image command\r\n");
+
+    if (np_boot_config_read(&boot_config))
+        return NP_ERR_INTERNAL;
+
+    resp.header.code = NP_RESP_DATA;
+    resp.header.info = resp_len - sizeof(resp.header);
+    resp.active_image = boot_config.active_image;
+
+    if (np_comm_cb)
+        np_comm_cb->send((uint8_t *)&resp, resp_len);
+
+    return 0;
+}
+
+static int np_cmd_fw_update_start(np_prog_t *prog)
+{
+    uint32_t addr, len;
+    np_write_start_cmd_t *write_start_cmd;
+
+    if (prog->rx_buf_len < sizeof(np_write_start_cmd_t))
+    {
+        ERROR_PRINT("Wrong buffer length for write start command %lu\r\n",
+            prog->rx_buf_len);
+        return NP_ERR_LEN_INVALID;
+    }
+
+    write_start_cmd = (np_write_start_cmd_t *)prog->rx_buf;
+    addr = write_start_cmd->addr;
+    len = write_start_cmd->len;
+
+    DEBUG_PRINT("Write at 0x%lx 0x%lx bytes command\r\n", addr, len);
+
+    prog->base_addr = FLASH_START_ADDR;
+    prog->page_size = FLASH_PAGE_SIZE;
+    prog->block_size = FLASH_BLOCK_SIZE;
+    prog->total_size = FLASH_SIZE;
+
+    if (addr + len > prog->base_addr + prog->total_size)
+    {
+        ERROR_PRINT("Write address 0x%lx+0x%lx is more then flash size "
+            "0x%lx\r\n", addr, len, prog->base_addr + prog->total_size);
+        return NP_ERR_ADDR_EXCEEDED;
+    }
+
+    if (addr % prog->page_size)
+    {
+        ERROR_PRINT("Address 0x%lx is not aligned to page size 0x%lx\r\n", addr,
+            prog->page_size);
+        return NP_ERR_ADDR_NOT_ALIGN;
+    }
+
+    if (!len)
+    {
+        ERROR_PRINT("Length is 0\r\n");
+        return NP_ERR_LEN_INVALID;
+    }
+
+    if (len % prog->page_size)
+    {
+        ERROR_PRINT("Length 0x%lx is not aligned to page size 0x%lx\r\n", len,
+            prog->page_size);
+        return NP_ERR_LEN_NOT_ALIGN;
+    }
+
+    prog->addr = addr;
+    prog->len = len;
+    prog->addr_is_set = 1;
+
+    prog->page.page = addr / prog->page_size;
+    prog->page.offset = 0;
+
+    prog->bytes_written = 0;
+    prog->bytes_ack = 0;
+
+    return np_send_ok_status();
+}
+
+static int np_cmd_fw_update_data(np_prog_t *prog)
+{
+    uint32_t write_len, bytes_left, len;
+    np_write_data_cmd_t *write_data_cmd;
+
+    if (prog->rx_buf_len < sizeof(np_write_data_cmd_t))
+    {
+        ERROR_PRINT("Wrong buffer length for write data command %lu\r\n",
+            prog->rx_buf_len);
+        return NP_ERR_LEN_INVALID;
+    }
+
+    write_data_cmd = (np_write_data_cmd_t *)prog->rx_buf;
+    len = write_data_cmd->len;
+    if (len + sizeof(np_write_data_cmd_t) > NP_PACKET_BUF_SIZE)
+    {
+        ERROR_PRINT("Data size is wrong 0x%lx\r\n", len);
+        return NP_ERR_CMD_DATA_SIZE;
+    }
+
+    if (len + sizeof(np_write_data_cmd_t) != prog->rx_buf_len)
+    {
+        ERROR_PRINT("Buffer len 0x%lx is bigger then command 0x%lx\r\n",
+            prog->rx_buf_len, len + sizeof(np_write_data_cmd_t));
+        return NP_ERR_CMD_DATA_SIZE;
+    }
+
+    if (!prog->addr_is_set)
+    {
+        ERROR_PRINT("Write address is not set\r\n");
+        return NP_ERR_ADDR_INVALID;
+    }
+
+    if (prog->page.offset + len > prog->page_size)
+        write_len = prog->page_size - prog->page.offset;
+    else
+        write_len = len;
+
+    memcpy(prog->page.buf + prog->page.offset, write_data_cmd->data, write_len);
+    prog->page.offset += write_len;
+
+    if (prog->page.offset == prog->page_size)
+    {
+        if (prog->addr >= prog->base_addr + prog->total_size)
+        {
+            ERROR_PRINT("Write address 0x%lx is more then flash size 0x%lx\r\n",
+                prog->addr, prog->base_addr + prog->total_size);
+            return NP_ERR_ADDR_EXCEEDED;
+        }
+
+        if (flash_page_erase(prog->addr) < 0)
+            return NP_ERR_INTERNAL;
+
+        if (flash_write(prog->addr, prog->page.buf, prog->page_size) < 0)
+            return NP_ERR_INTERNAL;
+
+        prog->addr += prog->page_size;
+        prog->page.page++;
+        prog->page.offset = 0;
+    }
+
+    bytes_left = len - write_len;
+    if (bytes_left)
+    {
+        memcpy(prog->page.buf, write_data_cmd->data + write_len, bytes_left);
+        prog->page.offset += bytes_left;
+    }
+
+    prog->bytes_written += len;
+    if (prog->bytes_written - prog->bytes_ack >= prog->page_size ||
+        prog->bytes_written == prog->len)
+    {
+        if (np_send_write_ack(prog->bytes_written))
+            return -1;
+        prog->bytes_ack = prog->bytes_written;
+    }
+
+    if (prog->bytes_written > prog->len)
+    {
+        ERROR_PRINT("Actual write data length 0x%lx is more then 0x%lx\r\n",
+            prog->bytes_written, prog->len);
+        return NP_ERR_LEN_EXCEEDED;
+    }
+
+    return 0;
+}
+
+static int np_cmd_fw_update_end(np_prog_t *prog)
+{
+    boot_config_t boot_config;
+
+    prog->addr_is_set = 0;
+
+    if (prog->page.offset)
+    {
+        ERROR_PRINT("Data of 0x%lx length was not written\r\n",
+            prog->page.offset);
+        return NP_ERR_NAND_WR;
+    }
+
+    if (np_boot_config_read(&boot_config))
+        return NP_ERR_INTERNAL;
+
+    boot_config.active_image = boot_config.active_image ? 0 : 1;
+    if (np_boot_config_write(&boot_config))
+        return NP_ERR_INTERNAL;
+
+    return np_send_ok_status();
+}
+
+static int np_cmd_fw_update(np_prog_t *prog)
+{
+    np_cmd_t *cmd = (np_cmd_t *)prog->rx_buf;
+    int ret = 0;
+
+    switch (cmd->code)
+    {
+    case NP_CMD_FW_UPDATE_S:
+        led_wr_set(true);
+        ret = np_cmd_fw_update_start(prog);
+        break;
+    case NP_CMD_FW_UPDATE_D:
+        ret = np_cmd_fw_update_data(prog);
+        break;
+    case NP_CMD_FW_UPDATE_E:
+        ret = np_cmd_fw_update_end(prog);
+        led_wr_set(false);
+        break;
+    default:
+        break;
+    }
+
+    if (ret < 0)
+        led_wr_set(false);
+
+    return ret;
+}
+
 static np_cmd_handler_t cmd_handler[] =
 {
-    { NP_CMD_NAND_READ_ID, np_cmd_nand_read_id },
-    { NP_CMD_NAND_ERASE, np_cmd_nand_erase },
-    { NP_CMD_NAND_READ, np_cmd_nand_read },
-    { NP_CMD_NAND_WRITE_S, np_cmd_nand_write },
-    { NP_CMD_NAND_WRITE_D, np_cmd_nand_write },
-    { NP_CMD_NAND_WRITE_E, np_cmd_nand_write },
-    { NP_CMD_NAND_CONF, np_cmd_nand_conf },
-    { NP_CMD_NAND_READ_BB, np_cmd_read_bad_blocks },
-    { NP_CMD_VERSION_GET, np_cmd_version_get },
+    { NP_CMD_NAND_READ_ID, 1, np_cmd_nand_read_id },
+    { NP_CMD_NAND_ERASE, 1, np_cmd_nand_erase },
+    { NP_CMD_NAND_READ, 1, np_cmd_nand_read },
+    { NP_CMD_NAND_WRITE_S, 1, np_cmd_nand_write },
+    { NP_CMD_NAND_WRITE_D, 1, np_cmd_nand_write },
+    { NP_CMD_NAND_WRITE_E, 1, np_cmd_nand_write },
+    { NP_CMD_NAND_CONF, 0, np_cmd_nand_conf },
+    { NP_CMD_NAND_READ_BB, 1, np_cmd_read_bad_blocks },
+    { NP_CMD_VERSION_GET, 0, np_cmd_version_get },
+    { NP_CMD_ACTIVE_IMAGE_GET, 0, np_cmd_active_image_get },
+    { NP_CMD_FW_UPDATE_S, 0, np_cmd_fw_update },
+    { NP_CMD_FW_UPDATE_D, 0, np_cmd_fw_update },
+    { NP_CMD_FW_UPDATE_E, 0, np_cmd_fw_update },    
 };
 
 static bool np_cmd_is_valid(np_cmd_code_t code)
@@ -1148,17 +1423,16 @@ static int np_cmd_handler(np_prog_t *prog)
     }
     cmd = (np_cmd_t *)prog->rx_buf;
 
-    if (!prog->chip_is_conf && cmd->code != NP_CMD_NAND_CONF &&
-        cmd->code != NP_CMD_VERSION_GET)
-    {
-        ERROR_PRINT("Chip is not configured\r\n");
-        return NP_ERR_CHIP_NOT_CONF;
-    }
-
     if (!np_cmd_is_valid(cmd->code))
     {
         ERROR_PRINT("Invalid cmd code %d\r\n", cmd->code);
         return NP_ERR_CMD_INVALID;
+    }
+
+    if (!prog->chip_is_conf && cmd_handler[cmd->code].is_chip_cmd)
+    {
+        ERROR_PRINT("Chip is not configured\r\n");
+        return NP_ERR_CHIP_NOT_CONF;
     }
 
     return cmd_handler[cmd->code].exec(prog);
