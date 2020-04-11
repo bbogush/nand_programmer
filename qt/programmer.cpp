@@ -446,7 +446,8 @@ Error:
 
 void Programmer::firmwareUpdateProgressCb(unsigned int progress)
 {
-    emit firmwareUpdateProgress(progress);
+    emit firmwareUpdateProgress(progress * 100ULL /
+        firmwareImage[updateImage].size);
 }
 
 void Programmer::firmwareUpdateCb(int ret)

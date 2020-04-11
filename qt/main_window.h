@@ -52,6 +52,7 @@ private slots:
     void slotProgDetectChipConfCompleted(int status);
     void slotProgDetectChipReadChipIdCompleted(int status);
     void slotProgFirmwareUpdateCompleted(int status);
+    void slotProgFirmwareUpdateProgress(unsigned int progress);
 
 public slots:
     void slotFileOpen();

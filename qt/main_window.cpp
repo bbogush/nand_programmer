@@ -604,8 +604,20 @@ void MainWindow::setProgress(unsigned int progress)
 
 void MainWindow::slotProgFirmwareUpdateCompleted(int status)
 {
+    disconnect(prog, SIGNAL(firmwareUpdateProgress(unsigned int)), this,
+        SLOT(slotProgFirmwareUpdateProgress(unsigned int)));
+    disconnect(prog, SIGNAL(firmwareUpdateCompleted(int)), this,
+        SLOT(slotProgFirmwareUpdateCompleted(int)));
+
     if (!status)
         qInfo() << "Firmware update completed. Please restart device.";
+
+    setProgress(100);
+}
+
+void MainWindow::slotProgFirmwareUpdateProgress(unsigned int progress)
+{
+    setProgress(progress);
 }
 
 void MainWindow::slotFirmwareUpdate()
@@ -619,5 +631,7 @@ void MainWindow::slotFirmwareUpdate()
     qInfo() << "Firmware update ...";
     connect(prog, SIGNAL(firmwareUpdateCompleted(int)), this,
         SLOT(slotProgFirmwareUpdateCompleted(int)));
+    connect(prog, SIGNAL(firmwareUpdateProgress(unsigned int)), this,
+        SLOT(slotProgFirmwareUpdateProgress(unsigned int)));
     prog->firmwareUpdate(fileName);
 }
