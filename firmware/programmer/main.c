@@ -38,6 +38,10 @@ int main()
     cdc_init();
     printf("done.\r\n");
 
+    printf("Programmer init...");
+    np_init();
+    printf("done.\r\n");
+
     while (1)
         np_handler();
 

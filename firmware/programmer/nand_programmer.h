@@ -16,6 +16,7 @@ typedef struct
 
 int np_comm_register(np_comm_cb_t *cb);
 void np_comm_unregister(np_comm_cb_t *cb);
+void np_init();
 void np_handler();
 
 #endif

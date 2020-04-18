@@ -252,6 +252,7 @@ typedef struct
     int nand_wr_in_progress;
     uint32_t nand_timeout;
     chip_info_t chip_info;
+    uint8_t active_image;
 } np_prog_t;
 
 typedef struct
@@ -262,6 +263,7 @@ typedef struct
 } np_cmd_handler_t;
 
 static np_comm_cb_t *np_comm_cb;
+static np_prog_t prog;
 
 uint8_t np_packet_send_buf[NP_PACKET_BUF_SIZE];
 
@@ -1175,12 +1177,16 @@ static int np_cmd_active_image_get(np_prog_t *prog)
 
     DEBUG_PRINT("Get active image command\r\n");
 
-    if (np_boot_config_read(&boot_config))
-        return NP_ERR_INTERNAL;
+    if (prog->active_image == 0xff)
+    {
+        if (np_boot_config_read(&boot_config))
+            return NP_ERR_INTERNAL;
+        prog->active_image = boot_config.active_image;
+    }
 
     resp.header.code = NP_RESP_DATA;
     resp.header.info = resp_len - sizeof(resp.header);
-    resp.active_image = boot_config.active_image;
+    resp.active_image = prog->active_image;
 
     if (np_comm_cb)
         np_comm_cb->send((uint8_t *)&resp, resp_len);
@@ -1354,7 +1360,9 @@ static int np_cmd_fw_update_end(np_prog_t *prog)
     if (np_boot_config_read(&boot_config))
         return NP_ERR_INTERNAL;
 
-    boot_config.active_image = boot_config.active_image ? 0 : 1;
+    if (prog->active_image == 0xff)
+        prog->active_image = boot_config.active_image;
+    boot_config.active_image = prog->active_image ? 0 : 1;
     if (np_boot_config_write(&boot_config))
         return NP_ERR_INTERNAL;
 
@@ -1467,10 +1475,13 @@ static void np_nand_handler(np_prog_t *prog)
     }
 }
 
+void np_init()
+{
+    prog.active_image = 0xff;
+}
+
 void np_handler()
 {
-    static np_prog_t prog;
-
     np_packet_handler(&prog);
     np_nand_handler(&prog);
 }
