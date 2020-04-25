@@ -1,3 +1,8 @@
+/*  Copyright (C) 2017 Bogdan Bogush <bogdan.s.bogush@gmail.com>
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License version 3.
+ */
+
 #ifndef CHIP_DB_DALOG_H
 #define CHIP_DB_DALOG_H
 
