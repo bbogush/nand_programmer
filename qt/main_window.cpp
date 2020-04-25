@@ -7,6 +7,7 @@
 #include "ui_main_window.h"
 #include "settings_programmer_dialog.h"
 #include "chip_db_dialog.h"
+#include "firmware_update_dialog.h"
 #include "chip_db.h"
 #include "logger.h"
 #include "about_dialog.h"
@@ -88,7 +89,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->detectPushButton, SIGNAL(clicked()), this,
         SLOT(slotDetectChip()));
     connect(ui->actionFirmwareUpdate, SIGNAL(triggered()), this,
-        SLOT(slotFirmwareUpdate()));
+        SLOT(slotFirmwareUpdateDialog()));
 }
 
 MainWindow::~MainWindow()
@@ -620,10 +621,14 @@ void MainWindow::slotProgFirmwareUpdateProgress(unsigned int progress)
     setProgress(progress);
 }
 
-void MainWindow::slotFirmwareUpdate()
+void MainWindow::slotFirmwareUpdateDialog()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
-        ".", tr("Binary Files (*.bin)"));
+    FirmwareUpdateDialog fwUpdateDialog(this);
+
+    if (fwUpdateDialog.exec() != QDialog::Accepted)
+        return;
+
+    QString fileName = fwUpdateDialog.getFilePath();
 
     if (fileName.isNull())
         return;

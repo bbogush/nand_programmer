@@ -68,7 +68,7 @@ public slots:
     void slotSettingsProgrammer();
     void slotSettingsChipDb();
     void slotAboutDialog();
-    void slotFirmwareUpdate();
+    void slotFirmwareUpdateDialog();
 };
 
 #endif // MAIN_WINDOW_H
