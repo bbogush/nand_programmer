@@ -31,6 +31,7 @@ Application:
 - Erase speed: 256MBytes/s
 - Extendable chip database
 - Chip autodetection
+- Firmware update
 
 ### Tested chips
 #### Samsung
