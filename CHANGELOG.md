@@ -40,3 +40,11 @@
 - BOOT0 switch to PCB.
 ### Fixed
 - Lost of some packets due to optimization.
+## [3.2.0] - 2020-03-14
+### Added
+- Chip autodetection.
+- Firmware update.
+- Support of K9F1208U0B and F59L2G81A.
+### Fixed
+- Bad block table initialization.
+- Read of bad blocks.

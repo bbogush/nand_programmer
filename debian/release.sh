@@ -1,5 +1,5 @@
 BINARY_NAME=nando
-RELEASE=3.1.0
+RELEASE=3.2.0
 FULL_NAME=$BINARY_NAME-$RELEASE
 TAR_NAME=$FULL_NAME.tar.gz
 EMAIL=bogdan.s.bogush@gmail.com
