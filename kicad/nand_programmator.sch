@@ -25,17 +25,6 @@ F 3 "" H 4450 3700 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L nand_programmator:USB_OTG P1
-U 1 1 588508F5
-P 9150 5850
-F 0 "P1" H 9475 5725 50  0000 C CNN
-F 1 "USB_OTG" H 9150 6050 50  0000 C CNN
-F 2 "Connector_USB:USB_Micro-B_Molex-105017-0001" V 9100 5750 50  0001 C CNN
-F 3 "" V 9100 5750 50  0000 C CNN
-	1    9150 5850
-	0    1    1    0   
-$EndComp
-$Comp
 L nand_programmator:LM1117-3.3 U1
 U 1 1 58851592
 P 1650 7050
@@ -126,12 +115,12 @@ $EndComp
 $Comp
 L nand_programmator:GNDD #PWR022
 U 1 1 58853209
-P 8750 6300
-F 0 "#PWR022" H 8750 6050 50  0001 C CNN
-F 1 "GNDD" H 8750 6150 50  0000 C CNN
-F 2 "" H 8750 6300 50  0000 C CNN
-F 3 "" H 8750 6300 50  0000 C CNN
-	1    8750 6300
+P 9150 6300
+F 0 "#PWR022" H 9150 6050 50  0001 C CNN
+F 1 "GNDD" H 9150 6150 50  0000 C CNN
+F 2 "" H 9150 6300 50  0000 C CNN
+F 3 "" H 9150 6300 50  0000 C CNN
+	1    9150 6300
 	-1   0    0    -1  
 $EndComp
 $Comp
@@ -147,17 +136,17 @@ F 3 "" H 8150 5850 50  0000 C CNN
 $EndComp
 Text GLabel 8400 5250 1    60   BiDi ~ 0
 USB_DP
-Text GLabel 8600 5250 1    60   BiDi ~ 0
+Text GLabel 8550 5250 1    60   BiDi ~ 0
 USB_DN
 $Comp
 L nand_programmator:R R7
 U 1 1 58854FF3
-P 8600 5500
-F 0 "R7" V 8680 5500 50  0000 C CNN
-F 1 "22" V 8600 5500 50  0000 C CNN
-F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 8530 5500 50  0001 C CNN
-F 3 "" H 8600 5500 50  0000 C CNN
-	1    8600 5500
+P 8550 5500
+F 0 "R7" V 8630 5500 50  0000 C CNN
+F 1 "22" V 8550 5500 50  0000 C CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 8480 5500 50  0001 C CNN
+F 3 "" H 8550 5500 50  0000 C CNN
+	1    8550 5500
 	-1   0    0    -1  
 $EndComp
 $Comp
@@ -590,24 +579,11 @@ Connection ~ 4450 6600
 Connection ~ 4550 6600
 Connection ~ 4650 6600
 Wire Wire Line
-	8750 5600 8750 5650
-Wire Wire Line
-	8750 5650 8850 5650
-Wire Wire Line
-	8850 6050 8750 6050
-Wire Wire Line
-	8750 6050 8750 6250
-Wire Wire Line
-	8600 5650 8600 5750
-Wire Wire Line
-	8600 5750 8850 5750
-Wire Wire Line
 	8400 5650 8400 5850
 Wire Wire Line
 	8300 5850 8400 5850
-Connection ~ 8400 5850
 Wire Wire Line
-	8600 5250 8600 5350
+	8550 5250 8550 5350
 Wire Wire Line
 	8400 5250 8400 5350
 Wire Wire Line
@@ -620,9 +596,6 @@ Wire Wire Line
 	7550 2300 7350 2300
 Wire Wire Line
 	7350 2400 7650 2400
-Wire Wire Line
-	8750 6250 9250 6250
-Connection ~ 8750 6250
 Wire Wire Line
 	1550 2000 1450 2000
 Wire Wire Line
@@ -802,9 +775,7 @@ Wire Wire Line
 Wire Wire Line
 	4650 6600 4750 6600
 Wire Wire Line
-	8400 5850 8850 5850
-Wire Wire Line
-	8750 6250 8750 6300
+	9150 6250 9150 6300
 Wire Wire Line
 	600  2200 600  2300
 Wire Wire Line
@@ -1096,7 +1067,7 @@ Wire Wire Line
 	7550 1200 7550 700 
 Wire Wire Line
 	7550 700  7600 700 
-Text Label 8600 5750 0    60   ~ 0
+Text Label 8600 5950 0    60   ~ 0
 USB_N
 Text Label 8600 5850 0    60   ~ 0
 USB_P
@@ -1577,4 +1548,30 @@ Wire Wire Line
 	1150 1400 1550 1400
 Wire Wire Line
 	600  1900 600  2200
+$Comp
+L Connector:USB_B_Micro P1
+U 1 1 588508F5
+P 9150 5850
+F 0 "P1" H 8950 6200 50  0000 C CNN
+F 1 "USB" H 9150 6200 50  0000 C CNN
+F 2 "Connector_USB:USB_Micro-B_Molex-105017-0001" V 9100 5750 50  0001 C CNN
+F 3 "" V 9100 5750 50  0000 C CNN
+	1    9150 5850
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	9150 6250 9250 6250
+Wire Wire Line
+	8850 5650 8750 5650
+Wire Wire Line
+	8750 5650 8750 5600
+Connection ~ 9150 6250
+Wire Wire Line
+	8850 5850 8400 5850
+Connection ~ 8400 5850
+Wire Wire Line
+	8550 5650 8550 5950
+Wire Wire Line
+	8550 5950 8850 5950
+NoConn ~ 8850 6050
 $EndSCHEMATC
