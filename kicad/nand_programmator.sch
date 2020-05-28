@@ -637,8 +637,6 @@ Wire Wire Line
 	700  2200 600  2200
 Connection ~ 600  2200
 Wire Wire Line
-	600  1900 600  2050
-Wire Wire Line
 	1500 1600 1550 1600
 Wire Wire Line
 	1400 750  1400 850 
@@ -1103,12 +1101,12 @@ USB_N
 Text Label 8600 5850 0    60   ~ 0
 USB_P
 $Comp
-L Device:Crystal_GND24 Y1
+L Device:Crystal Y1
 U 1 1 5C102083
 P 1150 2050
 F 0 "Y1" V 1341 2096 50  0000 L TNN
 F 1 "Crystal_GND24_8MHz_16pF_KX-9A" H 1341 2005 50  0000 R TNN
-F 2 "lib_fp:Crystal_SMD_5032-4Pin_5.0x3.2mm" H 1150 2050 50  0001 C CNN
+F 2 "Crystal:Crystal_SMD_HC49-SD" H 1150 2050 50  0001 C CNN
 F 3 "~" H 1150 2050 50  0001 C CNN
 	1    1150 2050
 	0    -1   -1   0   
@@ -1123,16 +1121,6 @@ Wire Wire Line
 Connection ~ 1150 2200
 Wire Wire Line
 	1150 2200 1450 2200
-Wire Wire Line
-	950  2050 600  2050
-Connection ~ 600  2050
-Wire Wire Line
-	600  2050 600  2200
-Wire Wire Line
-	1350 2050 1350 2300
-Wire Wire Line
-	1350 2300 600  2300
-Connection ~ 600  2300
 $Comp
 L nand_programmator:Conn_02x12_Odd_Even_Left J3
 U 1 1 5CFB4F1C
@@ -1567,7 +1555,7 @@ U 1 1 5DB1A96D
 P 750 1200
 F 0 "J5" H 670 875 50  0000 C CNN
 F 1 "Conn_01x02" H 670 966 50  0000 C CNN
-F 2 "lib_fp:PinHeader_1x02_P2.54mm_Vertical" H 750 1200 50  0001 C CNN
+F 2 "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm" H 750 1200 50  0001 C CNN
 F 3 "~" H 750 1200 50  0001 C CNN
 	1    750  1200
 	-1   0    0    1   
@@ -1587,4 +1575,6 @@ Wire Wire Line
 Connection ~ 1150 1400
 Wire Wire Line
 	1150 1400 1550 1400
+Wire Wire Line
+	600  1900 600  2200
 $EndSCHEMATC
