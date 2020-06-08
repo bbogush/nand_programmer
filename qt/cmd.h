@@ -64,6 +64,7 @@ typedef struct __attribute__((__packed__))
 {
     Cmd cmd;
     uint8_t len;
+    uint8_t data[];
 } WriteDataCmd;
 
 typedef struct __attribute__((__packed__))
@@ -135,6 +136,7 @@ typedef struct __attribute__((__packed__))
 {
     uint8_t code;
     uint8_t info;
+    uint8_t data[];
 } RespHeader;
 
 typedef struct __attribute__((__packed__))
