@@ -350,8 +350,8 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
 {
     uint32_t status, addr = block * prog->chip_info.block_size;
 
-    status = nand_read_spare_data(prog->page.buf, page,
-        prog->chip_info.bb_mark_off, 1);
+    status = nand_read_spare_data(&prog->page.buf[prog->chip_info.page_size +
+            prog->chip_info.bb_mark_off], page, prog->chip_info.bb_mark_off, 1);
     if (status == NAND_INVALID_CMD)
     {
         status = nand_read_page(prog->page.buf, page,
