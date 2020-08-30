@@ -12,7 +12,7 @@
   (page A4)
   (title_block
     (title NANDO)
-    (rev v3.1)
+    (rev v3.3)
   )
 
   (layers
@@ -2200,7 +2200,7 @@
     )
   )
 
-  (gr_text "NANDO v3.2" (at 192.0875 46.736) (layer F.SilkS)
+  (gr_text "NANDO v3.3" (at 192.0875 46.736) (layer F.SilkS)
     (effects (font (size 1.4 1.4) (thickness 0.3)) (justify left))
   )
   (gr_text BOOT0 (at 177.546 82.931) (layer F.SilkS) (tstamp 5D9740B9)
