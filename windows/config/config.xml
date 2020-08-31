@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Installer>
     <Name>NANDO</Name>
-    <Version>2.2.0</Version>
+    <Version>3.3.0</Version>
     <Title>NANDO Installer</Title>
     <Publisher>NANDO</Publisher>
     <StartMenuDir>NANDO</StartMenuDir>
