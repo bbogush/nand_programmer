@@ -48,3 +48,9 @@
 ### Fixed
 - Bad block table initialization.
 - Read of bad blocks.
+## [3.3.0] - 2020-08-31
+### Added
+- Single side components PCB 
+- Support of HY27US08121B.
+### Fixed
+- Fixed read of bad blocks when read spare area command is available.
