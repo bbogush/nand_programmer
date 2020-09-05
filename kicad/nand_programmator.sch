@@ -7,7 +7,7 @@ encoding utf-8
 Sheet 1 1
 Title "NANDO"
 Date ""
-Rev "v3.3"
+Rev "v3.4"
 Comp ""
 Comment1 ""
 Comment2 ""
@@ -367,25 +367,25 @@ FSMC_NWAIT
 $Comp
 L nand_programmator:R R12
 U 1 1 588EC712
-P 9600 900
-F 0 "R12" V 9680 900 50  0000 C CNN
-F 1 "10k" V 9600 900 50  0000 C CNN
-F 2 "lib_fp:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 9530 900 50  0001 C CNN
-F 3 "" H 9600 900 50  0000 C CNN
-F 4 "2447553" H 9600 900 50  0001 C CNN "Farnell Ref"
-	1    9600 900 
-	1    0    0    -1  
+P 9300 950
+F 0 "R12" V 9380 950 50  0000 C CNN
+F 1 "10k" V 9300 950 50  0000 C CNN
+F 2 "lib_fp:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" V 9230 950 50  0001 C CNN
+F 3 "" H 9300 950 50  0000 C CNN
+F 4 "2447553" H 9300 950 50  0001 C CNN "Farnell Ref"
+	1    9300 950 
+	0    -1   -1   0   
 $EndComp
 $Comp
 L nand_programmator:+3.3V #PWR026
 U 1 1 588EC76B
-P 9600 700
-F 0 "#PWR026" H 9600 550 50  0001 C CNN
-F 1 "+3.3V" H 9600 840 50  0000 C CNN
-F 2 "" H 9600 700 50  0000 C CNN
-F 3 "" H 9600 700 50  0000 C CNN
-	1    9600 700 
-	1    0    0    -1  
+P 9100 950
+F 0 "#PWR026" H 9100 800 50  0001 C CNN
+F 1 "+3.3V" H 9100 1090 50  0000 C CNN
+F 2 "" H 9100 950 50  0000 C CNN
+F 3 "" H 9100 950 50  0000 C CNN
+	1    9100 950 
+	0    -1   -1   0   
 $EndComp
 $Comp
 L nand_programmator:+3.3V #PWR027
@@ -413,7 +413,7 @@ Text GLabel 1150 6000 0    60   Output ~ 0
 FSMC_CLE
 Text GLabel 1150 6150 0    60   Output ~ 0
 FSMC_ALE
-Text GLabel 9400 1600 0    60   Input ~ 0
+Text GLabel 9500 1600 0    60   Input ~ 0
 FSMC_ALE
 $Comp
 L nand_programmator:R R11
@@ -972,44 +972,26 @@ Wire Wire Line
 $Comp
 L Connector_Generic:Conn_01x03 J2
 U 1 1 5D0A1D76
-P 8100 1900
-F 0 "J2" H 8180 1942 50  0000 L CNN
-F 1 "Conn_01x03" H 8180 1851 50  0000 L CNN
-F 2 "lib_fp:PinHeader_1x03_P2.54mm_Vertical" H 8100 1900 50  0001 C CNN
-F 3 "~" H 8100 1900 50  0001 C CNN
-F 4 "3049527" H 8100 1900 50  0001 C CNN "Farnell Ref"
-	1    8100 1900
+P 10650 5450
+F 0 "J2" H 10730 5492 50  0000 L CNN
+F 1 "Conn_01x03" H 10730 5401 50  0000 L CNN
+F 2 "lib_fp:PinHeader_1x03_P2.54mm_Vertical" H 10650 5450 50  0001 C CNN
+F 3 "~" H 10650 5450 50  0001 C CNN
+F 4 "3049527" H 10650 5450 50  0001 C CNN "Farnell Ref"
+	1    10650 5450
 	1    0    0    -1  
 $EndComp
 $Comp
 L nand_programmator:GNDD #PWR031
 U 1 1 5D0AECED
-P 7750 1550
-F 0 "#PWR031" H 7750 1300 50  0001 C CNN
-F 1 "GNDD" V 7755 1422 50  0000 R CNN
-F 2 "" H 7750 1550 50  0000 C CNN
-F 3 "" H 7750 1550 50  0000 C CNN
-	1    7750 1550
-	1    0    0    -1  
+P 10400 5350
+F 0 "#PWR031" H 10400 5100 50  0001 C CNN
+F 1 "GNDD" V 10405 5222 50  0000 R CNN
+F 2 "" H 10400 5350 50  0000 C CNN
+F 3 "" H 10400 5350 50  0000 C CNN
+	1    10400 5350
+	0    1    1    0   
 $EndComp
-Wire Wire Line
-	7350 2200 7550 2200
-Wire Wire Line
-	7750 1550 7750 1500
-Wire Wire Line
-	7550 2200 7550 2000
-Wire Wire Line
-	7550 2000 7900 2000
-Wire Wire Line
-	7900 1900 7500 1900
-Wire Wire Line
-	7500 1900 7500 2100
-Wire Wire Line
-	7500 2100 7350 2100
-Wire Wire Line
-	7750 1500 7900 1500
-Wire Wire Line
-	7900 1500 7900 1800
 $Comp
 L nand_programmator:LED D2
 U 1 1 5D1A0E8C
@@ -1153,14 +1135,7 @@ F 4 "3049468" H 10100 3050 50  0001 C CNN "Farnell Ref"
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	9500 1100 9600 1100
-Wire Wire Line
-	9600 1050 9600 1100
-Connection ~ 9600 1100
-Wire Wire Line
-	9600 1100 9900 1100
-Wire Wire Line
-	9600 700  9600 750 
+	9100 950  9150 950 
 Wire Wire Line
 	9500 1250 9600 1250
 Wire Wire Line
@@ -1191,8 +1166,6 @@ Wire Wire Line
 	10400 1300 10600 1300
 Wire Wire Line
 	10400 1500 10600 1500
-Wire Wire Line
-	9400 1600 9900 1600
 Wire Wire Line
 	10650 1750 10550 1750
 Wire Wire Line
@@ -1615,4 +1588,107 @@ Wire Wire Line
 Wire Wire Line
 	8550 5950 8850 5950
 NoConn ~ 8850 6050
+Text GLabel 7650 1350 2    60   Output ~ 0
+SPI1_NSS
+Text GLabel 7650 1500 2    60   Output ~ 0
+SPI1_SCK
+Text GLabel 7650 1800 2    60   Output ~ 0
+SPI1_MOSI
+Wire Wire Line
+	10400 5350 10450 5350
+Text GLabel 7650 1650 2    60   Input ~ 0
+SPI1_MISO
+Text GLabel 7650 2100 2    60   Input ~ 0
+USART1_RX
+Wire Wire Line
+	7650 2100 7550 2100
+Wire Wire Line
+	7550 2100 7550 2200
+Wire Wire Line
+	7550 2200 7350 2200
+Text GLabel 7650 1950 2    60   Output ~ 0
+USART1_TX
+Wire Wire Line
+	7350 2100 7500 2100
+Wire Wire Line
+	7500 2100 7500 1950
+Wire Wire Line
+	7500 1950 7650 1950
+Text GLabel 10300 5600 0    60   Output ~ 0
+USART1_RX
+Text GLabel 10300 5450 0    60   Input ~ 0
+USART1_TX
+Wire Wire Line
+	10300 5450 10450 5450
+Wire Wire Line
+	10300 5600 10450 5600
+Wire Wire Line
+	10450 5600 10450 5550
+Wire Wire Line
+	7350 1900 7600 1900
+Wire Wire Line
+	7600 1900 7600 1800
+Wire Wire Line
+	7600 1800 7650 1800
+Wire Wire Line
+	7350 1800 7550 1800
+Wire Wire Line
+	7550 1800 7550 1650
+Wire Wire Line
+	7550 1650 7650 1650
+Wire Wire Line
+	7350 1700 7500 1700
+Wire Wire Line
+	7500 1700 7500 1500
+Wire Wire Line
+	7500 1500 7650 1500
+Wire Wire Line
+	7350 1600 7450 1600
+Wire Wire Line
+	7450 1600 7450 1350
+Wire Wire Line
+	7450 1350 7650 1350
+Wire Wire Line
+	9500 1100 9600 1100
+Wire Wire Line
+	9450 950  9600 950 
+Wire Wire Line
+	9600 950  9600 1100
+Connection ~ 9600 1100
+Wire Wire Line
+	9600 1100 9900 1100
+Text GLabel 9500 600  0    60   Input ~ 0
+SPI1_NSS
+Text GLabel 9500 750  0    60   Output ~ 0
+SPI1_MISO
+Text GLabel 10650 750  2    60   Input ~ 0
+SPI1_MOSI
+Text GLabel 10650 600  2    60   Input ~ 0
+SPI1_SCK
+Wire Wire Line
+	10650 600  10550 600 
+Wire Wire Line
+	10550 600  10550 800 
+Wire Wire Line
+	10550 800  10400 800 
+Wire Wire Line
+	10650 750  10600 750 
+Wire Wire Line
+	10600 750  10600 900 
+Wire Wire Line
+	10600 900  10400 900 
+Wire Wire Line
+	9900 900  9550 900 
+Wire Wire Line
+	9550 900  9550 750 
+Wire Wire Line
+	9550 750  9500 750 
+Wire Wire Line
+	9500 600  9600 600 
+Wire Wire Line
+	9600 600  9600 800 
+Wire Wire Line
+	9600 800  9900 800 
+Wire Wire Line
+	9500 1600 9900 1600
 $EndSCHEMATC
