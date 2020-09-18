@@ -1,5 +1,17 @@
 EESchema-DOCLIB  Version 2.0
 #
+$CMP AT45DB161D-SU
+D 16Mb Serial DataFlash, 2.5V Vcc, SOIC-8
+K Adesto Flash Memory DataFlash
+F https://www.adestotech.com/wp-content/uploads/doc3500.pdf
+$ENDCMP
+#
+$CMP Conn_02x07_Odd_Even
+D Generic connector, double row, 02x07, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)
+K connector
+F ~
+$ENDCMP
+#
 $CMP Conn_02x12_Odd_Even_Left
 D Generic connector, double row, 02x12, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)
 K connector
