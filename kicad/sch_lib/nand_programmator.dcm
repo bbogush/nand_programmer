@@ -6,6 +6,24 @@ K Adesto Flash Memory DataFlash
 F https://www.adestotech.com/wp-content/uploads/doc3500.pdf
 $ENDCMP
 #
+$CMP Conn_01x02
+D Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)
+K connector
+F ~
+$ENDCMP
+#
+$CMP Conn_01x03
+D Generic connector, single row, 01x03, script generated (kicad-library-utils/schlib/autogen/connector/)
+K connector
+F ~
+$ENDCMP
+#
+$CMP Conn_01x04
+D Generic connector, single row, 01x04, script generated (kicad-library-utils/schlib/autogen/connector/)
+K connector
+F ~
+$ENDCMP
+#
 $CMP Conn_02x07_Odd_Even
 D Generic connector, double row, 02x07, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)
 K connector
@@ -21,6 +39,24 @@ $ENDCMP
 $CMP Conn_02x12_Odd_Even_Right
 D Generic connector, double row, 02x12, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)
 K connector
+F ~
+$ENDCMP
+#
+$CMP Crystal
+D Two pin crystal
+K quartz ceramic resonator oscillator
+F ~
+$ENDCMP
+#
+$CMP USB_B_Micro
+D USB Micro Type B connector
+K connector USB micro
+F ~
+$ENDCMP
+#
+$CMP USB_B_Mini
+D USB Mini Type B connector
+K connector USB mini
 F ~
 $ENDCMP
 #

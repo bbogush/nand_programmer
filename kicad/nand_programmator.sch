@@ -856,7 +856,7 @@ F 4 "2447553" H 7750 3100 50  0001 C CNN "Farnell Ref"
 	0    1    1    0   
 $EndComp
 $Comp
-L Connector_Generic:Conn_01x04 J1
+L nand_programmator:Conn_01x04 J1
 U 1 1 5C069405
 P 10650 4450
 F 0 "J1" H 10730 4442 50  0000 L CNN
@@ -970,7 +970,7 @@ Wire Wire Line
 Wire Wire Line
 	7350 3100 7600 3100
 $Comp
-L Connector_Generic:Conn_01x03 J2
+L nand_programmator:Conn_01x03 J2
 U 1 1 5D0A1D76
 P 10650 5450
 F 0 "J2" H 10730 5492 50  0000 L CNN
@@ -1089,7 +1089,7 @@ USB_N
 Text Label 8600 5850 0    60   ~ 0
 USB_P
 $Comp
-L Device:Crystal Y1
+L nand_programmator:Crystal Y1
 U 1 1 5C102083
 P 1150 2050
 F 0 "Y1" V 1341 2096 50  0000 L TNN
@@ -1534,7 +1534,7 @@ Wire Wire Line
 Wire Wire Line
 	1150 650  1150 750 
 $Comp
-L Connector_Generic:Conn_01x02 J5
+L nand_programmator:Conn_01x02 J5
 U 1 1 5DB1A96D
 P 750 1200
 F 0 "J5" H 670 875 50  0000 C CNN
@@ -1562,7 +1562,7 @@ Wire Wire Line
 Wire Wire Line
 	600  1900 600  2200
 $Comp
-L Connector:USB_B_Micro P1
+L nand_programmator:USB_B_Micro P1
 U 1 1 588508F5
 P 9150 5850
 F 0 "P1" H 8950 6200 50  0000 C CNN
