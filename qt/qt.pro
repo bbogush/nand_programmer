@@ -54,7 +54,8 @@ HEADERS += main_window.h \
     err.h \
     about_dialog.h \
     version.h \
-    firmware_update_dialog.h
+    firmware_update_dialog.h \
+    settings.h
 
 FORMS += main_window.ui \
     settings_programmer_dialog.ui \

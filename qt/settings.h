@@ -1,0 +1,18 @@
+/*  Copyright (C) 2017 Bogdan Bogush <bogdan.s.bogush@gmail.com>
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License version 3.
+ */
+
+#ifndef SETTINGS_H
+#define SETTINGS_H
+
+#define SETTINGS_ORGANIZATION_NAME "NANDO"
+#define SETTINGS_APPLICATION_NAME "NANDO"
+
+#define SETTINGS_PROGRAMMER_SECTION "programmer/"
+#define SETTINGS_USB_DEV_NAME SETTINGS_PROGRAMMER_SECTION "usb_dev_name"
+#define SETTINGS_SKIP_BAD_BLOCKS SETTINGS_PROGRAMMER_SECTION "skip_bad_blocks"
+#define SETTINGS_INCLUDE_SPARE_AREA SETTINGS_PROGRAMMER_SECTION \
+    "include_spare_area"
+
+#endif // SETTINGS_H

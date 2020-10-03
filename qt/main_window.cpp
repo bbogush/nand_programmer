@@ -11,9 +11,11 @@
 #include "chip_db.h"
 #include "logger.h"
 #include "about_dialog.h"
+#include "settings.h"
 #include <QDebug>
 #include <QFileDialog>
 #include <QFile>
+#include <QSettings>
 #include <QStringList>
 #include <QMessageBox>
 #include <memory>
@@ -551,16 +553,25 @@ void MainWindow::slotDetectChip()
 void MainWindow::slotSettingsProgrammer()
 {
     SettingsProgrammerDialog progDialog(this);
+    QSettings settings(SETTINGS_ORGANIZATION_NAME, SETTINGS_APPLICATION_NAME);
 
-    progDialog.setUsbDevName(prog->getUsbDevName());
-    progDialog.setSkipBB(prog->isSkipBB());
-    progDialog.setIncSpare(prog->isIncSpare());
+    progDialog.setUsbDevName(settings.value(SETTINGS_USB_DEV_NAME,
+        prog->getUsbDevName()).toString());
+    progDialog.setSkipBB((settings.value(SETTINGS_SKIP_BAD_BLOCKS,
+        prog->isSkipBB())).toBool());
+    progDialog.setIncSpare((settings.value(SETTINGS_INCLUDE_SPARE_AREA,
+        prog->isIncSpare())).toBool());
 
     if (progDialog.exec() == QDialog::Accepted)
     {
         prog->setUsbDevName(progDialog.getUsbDevName());
         prog->setSkipBB(progDialog.isSkipBB());
         prog->setIncSpare(progDialog.isIncSpare());
+
+        settings.setValue(SETTINGS_USB_DEV_NAME, progDialog.getUsbDevName());
+        settings.setValue(SETTINGS_SKIP_BAD_BLOCKS, progDialog.isSkipBB());
+        settings.setValue(SETTINGS_INCLUDE_SPARE_AREA, progDialog.isIncSpare());
+        settings.sync();
     }
 }
 
