@@ -246,7 +246,7 @@ void MainWindow::slotProgReadDeviceIdCompleted(int status)
     if (status)
         return;
 
-    idStr.sprintf("0x%02X 0x%02X 0x%02X 0x%02X 0x%02X", chipId.makerId,
+    idStr.asprintf("0x%02X 0x%02X 0x%02X 0x%02X 0x%02X", chipId.makerId,
         chipId.deviceId, chipId.thirdId, chipId.fourthId, chipId.fifthId);
     ui->deviceValueLabel->setText(idStr);
 
@@ -502,7 +502,7 @@ void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
     if (status)
         return;
 
-    idStr.sprintf("0x%02X 0x%02X 0x%02X 0x%02X 0x%02X", chipId.makerId,
+    idStr.asprintf("0x%02X 0x%02X 0x%02X 0x%02X 0x%02X", chipId.makerId,
         chipId.deviceId, chipId.thirdId, chipId.fourthId, chipId.fifthId);
     ui->deviceValueLabel->setText(idStr);
 
