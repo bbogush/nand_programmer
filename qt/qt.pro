@@ -73,3 +73,6 @@ install_conf.path = $$DESTDIR
 install_conf.files += $$PWD/nando_chip_db.csv
 
 INSTALLS += install_conf
+
+RESOURCES += \
+    icons.qrc

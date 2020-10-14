@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>NANDO Programmer</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="icons.qrc">
+    <normaloff>:/icons/img/app_icon.ico</normaloff>:/icons/img/app_icon.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <property name="autoFillBackground">
     <bool>false</bool>
@@ -395,6 +399,8 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections/>
 </ui>
