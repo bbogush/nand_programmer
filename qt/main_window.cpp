@@ -221,6 +221,10 @@ void MainWindow::slotProgConnect()
 {
     if (!prog->isConnected())
     {
+        QSettings settings(SETTINGS_ORGANIZATION_NAME, SETTINGS_APPLICATION_NAME);
+        if(settings.contains(SETTINGS_USB_DEV_NAME))
+            prog->setUsbDevName(settings.value(SETTINGS_USB_DEV_NAME).toString());
+
         if (!prog->connect())
         {
             connect(prog, SIGNAL(connectCompleted(int)), this,
