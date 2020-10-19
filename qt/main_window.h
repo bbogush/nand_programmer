@@ -37,6 +37,7 @@ private:
     void setUiStateSelected(bool isSelected);
     void updateChipList();
     void setProgress(unsigned int progress);
+    void updateProgSettings();
 
 private slots:
     void slotProgConnectCompleted(int status);
