@@ -12,7 +12,7 @@
   #define SERIAL_PORT_SPEED 4000000
 #else
   #define USB_DEV_NAME "COM1"
-  #define SERIAL_PORT_SPEED 115200
+  #define SERIAL_PORT_SPEED 4000000
 #endif
 
 #define READ_TIMEOUT_MS 100
