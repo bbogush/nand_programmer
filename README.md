@@ -48,6 +48,8 @@ Application:
 - F59L2G81A
 #### Micron
 - MT29F4G08ABAD
+#### Macronix
+- MX30LF2G18AC
 
 ## Release binaries
 You can download host application deb package for Ubuntu/Windows installer, firmware binary for
