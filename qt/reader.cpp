@@ -10,7 +10,7 @@
 #include <QTextBlock>
 #include <QTextCursor>
 
-#define READ_TIMEOUT 5000
+#define READ_TIMEOUT 10000
 #define BUF_SIZE 4096
 #define NOTIFY_LIMIT 131072 // 128KB
 
