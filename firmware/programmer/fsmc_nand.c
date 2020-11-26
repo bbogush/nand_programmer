@@ -113,7 +113,7 @@ void nand_init(chip_info_t *chip_info)
     nand_cmd_init(chip_info);
 }
 
-void nand_read_id(nand_id_t *nand_id)
+void nand_read_id(chip_id_t *nand_id)
 {
     uint32_t data = 0;
 

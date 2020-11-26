@@ -167,7 +167,7 @@ enum
 typedef struct __attribute__((__packed__))
 {
     np_resp_t header;
-    nand_id_t nand_id;
+    chip_id_t nand_id;
 } np_resp_id_t;
 
 typedef struct __attribute__((__packed__))

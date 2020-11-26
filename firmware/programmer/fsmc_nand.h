@@ -7,15 +7,7 @@
 #define _FSMC_NAND_H_
 
 #include "chip_info.h"
-
-typedef struct
-{
-    uint8_t maker_id;
-    uint8_t device_id;
-    uint8_t third_id;
-    uint8_t fourth_id;
-    uint8_t fifth_id;
-} nand_id_t;
+#include "chip.h"
 
 #define CMD_AREA                   (uint32_t)(1<<16)  /* A16 = CLE  high */
 #define ADDR_AREA                  (uint32_t)(1<<17)  /* A17 = ALE high */
@@ -38,7 +30,7 @@ typedef struct
 #define ADDR_4th_CYCLE(ADDR)       (uint8_t)(((ADDR)& 0xFF000000) >> 24) /* 4th addressing cycle */   
 
 void nand_init(chip_info_t *chip_info);
-void nand_read_id(nand_id_t *nand_id);
+void nand_read_id(chip_id_t *nand_id);
 uint32_t nand_write_page(uint8_t *buf, uint32_t page, uint32_t page_size);
 void nand_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size);
 uint32_t nand_read_data(uint8_t *buf, uint32_t page, uint32_t page_offset,
