@@ -3,7 +3,7 @@ Upstream-Name: nando
 Source: https://github.com/bbogush/nand_programmer
 
 Files: *
-Copyright: 2019 Bogdan Bogush <bogdan.s.bogush@gmail.com>
+Copyright: 2020 NANDO authors
 License: GPL-3.0
 
 License: GPL-3.0

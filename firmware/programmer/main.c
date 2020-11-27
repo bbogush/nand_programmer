@@ -1,4 +1,4 @@
-/*  Copyright (C) 2017 Bogdan Bogush <bogdan.s.bogush@gmail.com>
+/*  Copyright (C) 2020 NANDO authors
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License version 3.
  */
@@ -11,6 +11,7 @@
 #include "jtag.h"
 #include "version.h"
 #include "clock.h"
+#include "spi_flash.h"
 #include <stdio.h>
 
 int main()
@@ -41,6 +42,11 @@ int main()
     printf("Programmer init...");
     np_init();
     printf("done.\r\n");
+
+    spi_flash_init();
+    chip_id_t chip_id = {};
+    spi_flash_read_id(&chip_id);
+    printf("id=%d %d %d %d", chip_id.maker_id, chip_id.device_id, chip_id.third_id, chip_id.fourth_id);
 
     while (1)
         np_handler();
