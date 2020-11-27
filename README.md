@@ -5,11 +5,11 @@ NANDO is open source NAND programmer based on STM32 processor.
 
 PCB boards:
 
-<img src="img/board_v3_0.jpg" width="800">
+<img src="img/board.jpeg" width="800">
 
 Application:
 
-<img src="img/host_app_v2_1.jpeg">
+<img src="img/host_app.jpeg">
 
 ## Features
 - USB interface
