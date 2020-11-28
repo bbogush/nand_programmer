@@ -480,7 +480,7 @@ void MainWindow::slotSelectChip(int selectedChipNum)
 {
     QString name;
     ChipInfo *chipInfo;
-    SpiChipInfo *spiChipInfo;
+    uint8_t hal;
 
     if (selectedChipNum <= CHIP_INDEX_DEFAULT)
     {
@@ -495,8 +495,11 @@ void MainWindow::slotSelectChip(int selectedChipNum)
         return;
     }
 
-    if (!(chipInfo = parallelChipDb.chipInfoGetByName(name)) &&
-        !(spiChipInfo = spiChipDb.chipInfoGetByName(name)))
+    if ((chipInfo = parallelChipDb.chipInfoGetByName(name)))
+        hal = parallelChipDb.getHal();
+    else if ((chipInfo = spiChipDb.chipInfoGetByName(name)))
+        hal = spiChipDb.getHal();
+    else
     {
         qCritical() << "Failed to find chip in DB";
         return;
@@ -508,15 +511,13 @@ void MainWindow::slotSelectChip(int selectedChipNum)
         SLOT(slotProgSelectCompleted(int)));
 
     if (chipInfo)
-        prog->confChip(chipInfo);
-    else
-        prog->confChip(spiChipInfo);
+        prog->confChip(chipInfo, hal);
 }
 
 void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
 {
     QString idStr;
-    int id;
+    QString chipName;
 
     disconnect(prog, SIGNAL(readChipIdCompleted(int)), this,
         SLOT(slotProgDetectChipReadChipIdCompleted(int)));
@@ -529,20 +530,32 @@ void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
         .arg(chipId.deviceId, 2, 16, QLatin1Char('0'))
         .arg(chipId.thirdId, 2, 16, QLatin1Char('0'))
         .arg(chipId.fourthId, 2, 16, QLatin1Char('0'))
-        .arg(chipId.fifthId, 2, 16), QLatin1Char('0');
+        .arg(chipId.fifthId, 2, 16, QLatin1Char('0'));
 
     ui->deviceValueLabel->setText(idStr);
 
     qInfo() << QString("ID ").append(idStr).toLatin1().data();
 
-    if ((id = parallelChipDb.getIdByChipId(chipId.makerId, chipId.deviceId,
-        chipId.thirdId, chipId.fourthId, chipId.fifthId)) < 0)
+    chipName = currentChipDb->getNameByChipId(chipId.makerId, chipId.deviceId,
+        chipId.thirdId, chipId.fourthId, chipId.fifthId);
+
+    if (chipName.isEmpty())
     {
-        qInfo() << "Chip not found in database";
+        if (currentChipDb->getHal() == spiChipDb.getHal())
+            qInfo() << "Chip not found in database";
+        else
+        {
+            // Search in next DB
+            detectChip(&spiChipDb);
+        }
         return;
     }
 
-    ui->chipSelectComboBox->setCurrentIndex(CHIP_ID2INDEX(id));
+    for (int i = 0; i < ui->chipSelectComboBox->count(); i++)
+    {
+        if (!ui->chipSelectComboBox->itemText(i).compare(chipName))
+            ui->chipSelectComboBox->setCurrentIndex(i);
+    }
 }
 
 void MainWindow::slotProgDetectChipConfCompleted(int status)
@@ -558,15 +571,15 @@ void MainWindow::slotProgDetectChipConfCompleted(int status)
     prog->readChipId(&chipId);
 }
 
-void MainWindow::slotDetectChip()
+void MainWindow::detectChip(ChipDb *chipDb)
 {
     ChipInfo *chipInfo;
 
-    qInfo() << "Detecting chip ...";
+    currentChipDb = chipDb;
 
     // Assuming read of ID is the same for all chips thereby use settings of the
     // first one.
-    if (!(chipInfo = parallelChipDb.chipInfoGetById(0)))
+    if (!(chipInfo = currentChipDb->chipInfoGetById(0)))
     {
         qCritical() << "Failed to get information from chip database";
         return;
@@ -574,7 +587,14 @@ void MainWindow::slotDetectChip()
 
     connect(prog, SIGNAL(confChipCompleted(int)), this,
         SLOT(slotProgDetectChipConfCompleted(int)));
-    prog->confChip(chipInfo);
+    prog->confChip(chipInfo, currentChipDb->getHal());
+}
+
+void MainWindow::slotDetectChip()
+{
+    qInfo() << "Detecting chip ...";
+
+    detectChip(&parallelChipDb);
 }
 
 void MainWindow::slotSettingsProgrammer()

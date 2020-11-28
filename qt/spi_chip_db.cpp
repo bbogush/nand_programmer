@@ -127,23 +127,23 @@ bool SpiChipDb::isOptParamValid(uint32_t param, uint32_t min, uint32_t max)
         (param >= min && param <= max);
 }
 
-int SpiChipDb::stringToChipInfo(const QString &s, SpiChipInfo &ci)
+int SpiChipDb::stringToChipInfo(const QString &s, ChipInfo &ci)
 {
     int paramNum;
     QStringList paramsList;
 
     paramsList = s.split(',');
     paramNum = paramsList.size();
-    if (paramNum != SPI_CHIP_PARAM_NUM)
+    if (paramNum != CHIP_PARAM_NUM)
     {
         QMessageBox::critical(nullptr, QObject::tr("Error"),
             QObject::tr("Failed to read chip DB entry. Expected %2 parameters, "
-            "but read %3").arg(SPI_CHIP_PARAM_NUM).arg(paramNum));
+            "but read %3").arg(CHIP_PARAM_NUM).arg(paramNum));
         return -1;
     }
 
-    ci.name = paramsList[SPI_CHIP_PARAM_NAME];
-    for (int i = SPI_CHIP_PARAM_NAME + 1; i < SPI_CHIP_PARAM_NUM; i++)
+    ci.name = paramsList[CHIP_PARAM_NAME];
+    for (int i = CHIP_PARAM_NAME + 1; i < CHIP_PARAM_NUM; i++)
     {
         if (getOptParamFromString(paramsList[i], ci.params[i]))
         {
@@ -156,13 +156,13 @@ int SpiChipDb::stringToChipInfo(const QString &s, SpiChipInfo &ci)
     return 0;
 }
 
-int SpiChipDb::chipInfoToString(const SpiChipInfo &ci, QString &s)
+int SpiChipDb::chipInfoToString(const ChipInfo &ci, QString &s)
 {
     QString csvValue;
     QStringList paramsList;
 
     paramsList.append(ci.name);
-    for (int i = SPI_CHIP_PARAM_NAME + 1; i < SPI_CHIP_PARAM_NUM; i++)
+    for (int i = CHIP_PARAM_NAME + 1; i < CHIP_PARAM_NUM; i++)
     {
         if (getStringFromOptParam(ci.params[i], csvValue))
             return -1;
@@ -176,7 +176,7 @@ int SpiChipDb::chipInfoToString(const SpiChipInfo &ci, QString &s)
 
 void SpiChipDb::readFromCvs(void)
 {
-    SpiChipInfo chipInfo;
+    ChipInfo chipInfo;
     QFile dbFile;
     QString fileName = findFile();
 
@@ -282,7 +282,7 @@ QStringList SpiChipDb::getNames()
     return namesList;
 }
 
-SpiChipInfo *SpiChipDb::chipInfoGetById(int id)
+ChipInfo *SpiChipDb::chipInfoGetById(int id)
 {
     if (id >= chipInfoVector.size() || id < 0)
         return nullptr;
@@ -290,7 +290,7 @@ SpiChipInfo *SpiChipDb::chipInfoGetById(int id)
     return &chipInfoVector[id];
 }
 
-SpiChipInfo *SpiChipDb::chipInfoGetByName(QString name)
+ChipInfo *SpiChipDb::chipInfoGetByName(QString name)
 {
     for(int i = 0; i < chipInfoVector.size(); i++)
     {
@@ -307,35 +307,35 @@ int SpiChipDb::getIdByChipId(uint32_t id1, uint32_t id2, uint32_t id3,
     for(int i = 0; i < chipInfoVector.size(); i++)
     {
         // Mandatory IDs
-        if (id1 != chipInfoVector[i].params[SPI_CHIP_PARAM_ID1] ||
-            id2 != chipInfoVector[i].params[SPI_CHIP_PARAM_ID2])
+        if (id1 != chipInfoVector[i].params[CHIP_PARAM_ID1] ||
+            id2 != chipInfoVector[i].params[CHIP_PARAM_ID2])
         {
             continue;
         }
 
         // Optinal IDs
-        if (chipInfoVector[i].params[SPI_CHIP_PARAM_ID3] ==
+        if (chipInfoVector[i].params[CHIP_PARAM_ID3] ==
             CHIP_PARAM_NOT_DEFINED_VALUE)
         {
             return i;
         }
-        if (id3 != chipInfoVector[i].params[SPI_CHIP_PARAM_ID3])
+        if (id3 != chipInfoVector[i].params[CHIP_PARAM_ID3])
             continue;
 
-        if (chipInfoVector[i].params[SPI_CHIP_PARAM_ID4] ==
+        if (chipInfoVector[i].params[CHIP_PARAM_ID4] ==
             CHIP_PARAM_NOT_DEFINED_VALUE)
         {
             return i;
         }
-        if (id4 != chipInfoVector[i].params[SPI_CHIP_PARAM_ID4])
+        if (id4 != chipInfoVector[i].params[CHIP_PARAM_ID4])
             continue;
 
-        if (chipInfoVector[i].params[SPI_CHIP_PARAM_ID5] ==
+        if (chipInfoVector[i].params[CHIP_PARAM_ID5] ==
             CHIP_PARAM_NOT_DEFINED_VALUE)
         {
             return i;
         }
-        if (id5 != chipInfoVector[i].params[SPI_CHIP_PARAM_ID5])
+        if (id5 != chipInfoVector[i].params[CHIP_PARAM_ID5])
             continue;
 
         return i;
@@ -344,47 +344,90 @@ int SpiChipDb::getIdByChipId(uint32_t id1, uint32_t id2, uint32_t id3,
     return -1;
 }
 
+QString SpiChipDb::getNameByChipId(uint32_t id1, uint32_t id2,
+    uint32_t id3, uint32_t id4, uint32_t id5)
+{
+    for(int i = 0; i < chipInfoVector.size(); i++)
+    {
+        // Mandatory IDs
+        if (id1 != chipInfoVector[i].params[CHIP_PARAM_ID1] ||
+            id2 != chipInfoVector[i].params[CHIP_PARAM_ID2])
+        {
+            continue;
+        }
+
+        // Optinal IDs
+        if (chipInfoVector[i].params[CHIP_PARAM_ID3] ==
+            CHIP_PARAM_NOT_DEFINED_VALUE)
+        {
+            return chipInfoVector[i].name;
+        }
+        if (id3 != chipInfoVector[i].params[CHIP_PARAM_ID3])
+            continue;
+
+        if (chipInfoVector[i].params[CHIP_PARAM_ID4] ==
+            CHIP_PARAM_NOT_DEFINED_VALUE)
+        {
+            return chipInfoVector[i].name;
+        }
+        if (id4 != chipInfoVector[i].params[CHIP_PARAM_ID4])
+            continue;
+
+        if (chipInfoVector[i].params[CHIP_PARAM_ID5] ==
+            CHIP_PARAM_NOT_DEFINED_VALUE)
+        {
+            return chipInfoVector[i].name;
+        }
+        if (id5 != chipInfoVector[i].params[CHIP_PARAM_ID5])
+            continue;
+
+        return chipInfoVector[i].name;
+    }
+
+    return QString();
+}
+
 uint32_t SpiChipDb::pageSizeGetById(int id)
 {
-    SpiChipInfo *info = chipInfoGetById(id);
+    ChipInfo *info = chipInfoGetById(id);
 
-    return info ? info->params[SPI_CHIP_PARAM_PAGE_SIZE] : 0;
+    return info ? info->params[CHIP_PARAM_PAGE_SIZE] : 0;
 }
 
 uint32_t SpiChipDb::extendedPageSizeGetById(int id)
 {
-    SpiChipInfo *info = chipInfoGetById(id);
+    ChipInfo *info = chipInfoGetById(id);
 
     if (!info)
         return 0;
 
-    return info->params[SPI_CHIP_PARAM_PAGE_SIZE] +
-        info->params[SPI_CHIP_PARAM_SPARE_SIZE];
+    return info->params[CHIP_PARAM_PAGE_SIZE] +
+        info->params[CHIP_PARAM_SPARE_SIZE];
 }
 
 uint32_t SpiChipDb::totalSizeGetById(int id)
 {
-    SpiChipInfo *info = chipInfoGetById(id);
+    ChipInfo *info = chipInfoGetById(id);
 
-    return info ? info->params[SPI_CHIP_PARAM_TOTAL_SIZE] : 0;
+    return info ? info->params[CHIP_PARAM_TOTAL_SIZE] : 0;
 }
 
 uint32_t SpiChipDb::extendedTotalSizeGetById(int id)
 {
     uint32_t totalSize, totalSpare;
-    SpiChipInfo *info = chipInfoGetById(id);
+    ChipInfo *info = chipInfoGetById(id);
 
     if (!info)
         return 0;
 
-    totalSize = info->params[SPI_CHIP_PARAM_TOTAL_SIZE];
-    totalSpare = info->params[SPI_CHIP_PARAM_SPARE_SIZE] * (totalSize /
-        info->params[SPI_CHIP_PARAM_PAGE_SIZE]);
+    totalSize = info->params[CHIP_PARAM_TOTAL_SIZE];
+    totalSpare = info->params[CHIP_PARAM_SPARE_SIZE] * (totalSize /
+        info->params[CHIP_PARAM_PAGE_SIZE]);
 
     return totalSize + totalSpare;
 }
 
-void SpiChipDb::addChip(SpiChipInfo &chipInfo)
+void SpiChipDb::addChip(ChipInfo &chipInfo)
 {
     chipInfoVector.append(chipInfo);
 }
@@ -410,7 +453,7 @@ void SpiChipDb::reset()
     readFromCvs();
 }
 
-SpiChipInfo *SpiChipDb::getChipInfo(int chipIndex)
+ChipInfo *SpiChipDb::getChipInfo(int chipIndex)
 {
     return chipIndex >= 0 && chipIndex < chipInfoVector.size() ?
         &chipInfoVector[chipIndex] : nullptr;
@@ -418,14 +461,14 @@ SpiChipInfo *SpiChipDb::getChipInfo(int chipIndex)
 
 QString SpiChipDb::getChipName(int chipIndex)
 {
-    SpiChipInfo *ci = getChipInfo(chipIndex);
+    ChipInfo *ci = getChipInfo(chipIndex);
 
     return ci ? ci->name : QString();
 }
 
 int SpiChipDb::setChipName(int chipIndex, const QString &name)
 {
-    SpiChipInfo *ci = getChipInfo(chipIndex);
+    ChipInfo *ci = getChipInfo(chipIndex);
 
     if (!ci)
         return -1;
@@ -437,9 +480,9 @@ int SpiChipDb::setChipName(int chipIndex, const QString &name)
 
 uint32_t SpiChipDb::getChipParam(int chipIndex, int paramIndex)
 {
-    SpiChipInfo *ci = getChipInfo(chipIndex);
+    ChipInfo *ci = getChipInfo(chipIndex);
 
-    if (!ci || paramIndex < 0 || paramIndex > SPI_CHIP_PARAM_NUM)
+    if (!ci || paramIndex < 0 || paramIndex > CHIP_PARAM_NUM)
         return 0;
 
     return ci->params[paramIndex];
@@ -448,12 +491,17 @@ uint32_t SpiChipDb::getChipParam(int chipIndex, int paramIndex)
 int SpiChipDb::setChipParam(int chipIndex, int paramIndex,
     uint32_t paramValue)
 {
-    SpiChipInfo *ci = getChipInfo(chipIndex);
+    ChipInfo *ci = getChipInfo(chipIndex);
 
-    if (!ci || paramIndex < 0 || paramIndex > SPI_CHIP_PARAM_NUM)
+    if (!ci || paramIndex < 0 || paramIndex > CHIP_PARAM_NUM)
         return -1;
 
     ci->params[paramIndex] = paramValue;
 
     return 0;
+}
+
+uint8_t SpiChipDb::getHal()
+{
+    return CHIP_HAL_SPI;
 }

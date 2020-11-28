@@ -33,6 +33,7 @@ private:
     ChipId chipId;
     ParallelChipDb parallelChipDb;
     SpiChipDb spiChipDb;
+    ChipDb *currentChipDb;
 
     void initBufTable();
     void resetBufTable();
@@ -41,6 +42,7 @@ private:
     void updateChipList();
     void setProgress(unsigned int progress);
     void updateProgSettings();
+    void detectChip(ChipDb *chipDb);
 
 private slots:
     void slotProgConnectCompleted(int status);

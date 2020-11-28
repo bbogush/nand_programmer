@@ -82,8 +82,7 @@ public:
     void writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
         uint32_t pageSize);
     void readChipBadBlocks();
-    void confChip(ChipInfo *chipInfo);
-    void confChip(SpiChipInfo *chipInfo);
+    void confChip(ChipInfo *chipInfo, uint8_t hal);
     void detectChip();
     QString fwVersionToString(FwVersion fwVersion);
     void firmwareUpdate(const QString &fileName);
