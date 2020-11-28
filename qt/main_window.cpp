@@ -248,11 +248,11 @@ void MainWindow::slotProgReadDeviceIdCompleted(int status)
         return;
 
     idStr = tr("0x%1 0x%2 0x%3 0x%4 0x%5")
-        .arg(chipId.makerId, 2, 16)
-        .arg(chipId.deviceId, 2, 16)
-        .arg(chipId.thirdId, 2, 16)
-        .arg(chipId.fourthId, 2, 16)
-        .arg(chipId.fifthId, 2, 16);
+        .arg(chipId.makerId, 2, 16, QLatin1Char('0'))
+        .arg(chipId.deviceId, 2, 16, QLatin1Char('0'))
+        .arg(chipId.thirdId, 2, 16, QLatin1Char('0'))
+        .arg(chipId.fourthId, 2, 16, QLatin1Char('0'))
+        .arg(chipId.fifthId, 2, 16, QLatin1Char('0'));
     ui->deviceValueLabel->setText(idStr);
 
     qInfo() << QString("ID ").append(idStr).toLatin1().data();
@@ -525,11 +525,11 @@ void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
         return;
 
     idStr = tr("0x%1 0x%2 0x%3 0x%4 0x%5")
-        .arg(chipId.makerId, 2, 16)
-        .arg(chipId.deviceId, 2, 16)
-        .arg(chipId.thirdId, 2, 16)
-        .arg(chipId.fourthId, 2, 16)
-        .arg(chipId.fifthId, 2, 16);
+        .arg(chipId.makerId, 2, 16, QLatin1Char('0'))
+        .arg(chipId.deviceId, 2, 16, QLatin1Char('0'))
+        .arg(chipId.thirdId, 2, 16, QLatin1Char('0'))
+        .arg(chipId.fourthId, 2, 16, QLatin1Char('0'))
+        .arg(chipId.fifthId, 2, 16), QLatin1Char('0');
 
     ui->deviceValueLabel->setText(idStr);
 
