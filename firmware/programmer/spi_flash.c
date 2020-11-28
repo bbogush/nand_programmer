@@ -278,6 +278,11 @@ static uint32_t spi_flash_erase_block(uint32_t page)
     return spi_flash_get_status();
 }
 
+static inline bool spi_flash_is_bb_supported()
+{
+    return false;
+}
+
 flash_hal_t hal_spi =
 {
     .init = spi_flash_init,
@@ -287,5 +292,6 @@ flash_hal_t hal_spi =
     .read_page = spi_flash_read_page,
     .read_spare_data = spi_flash_read_spare_data, 
     .write_page_async = spi_flash_write_page_async,
-    .read_status = spi_flash_read_status
+    .read_status = spi_flash_read_status,
+    .is_bb_supported = spi_flash_is_bb_supported
 };

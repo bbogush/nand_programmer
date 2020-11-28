@@ -8,6 +8,7 @@
 
 #include "chip.h"
 #include "chip_info.h"
+#include <stdbool.h>
 
 enum
 {
@@ -29,6 +30,7 @@ typedef struct
         uint32_t data_size);
     void (*write_page_async)(uint8_t *buf, uint32_t page, uint32_t page_size);
     uint32_t (*read_status)();
+    bool (*is_bb_supported)();
 } flash_hal_t;
 
 #endif /* _FLASH_HAL_H_ */

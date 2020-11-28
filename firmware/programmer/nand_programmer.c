@@ -392,6 +392,9 @@ static int _np_cmd_read_bad_blocks(np_prog_t *prog)
     bool is_bad;
     uint32_t block, block_num, page_num, page;
 
+    if (!hal[prog->hal]->is_bb_supported())
+        goto Exit;
+
     block_num = prog->chip_info.total_size / prog->chip_info.block_size;
     page_num = prog->chip_info.block_size / prog->chip_info.page_size;
 
@@ -417,6 +420,7 @@ static int _np_cmd_read_bad_blocks(np_prog_t *prog)
             return NP_ERR_BBT_OVERFLOW;
     }
 
+Exit:
     prog->bb_is_read = 1;
 
     return 0;

@@ -438,6 +438,11 @@ static uint32_t nand_erase_block(uint32_t page)
     return nand_get_status();
 }
 
+static inline bool nand_is_bb_supported()
+{
+    return true;
+}
+
 flash_hal_t hal_fsmc =
 {
     .init = nand_init,
@@ -447,6 +452,7 @@ flash_hal_t hal_fsmc =
     .read_page = nand_read_page,
     .read_spare_data = nand_read_spare_data,
     .write_page_async = nand_write_page_async,
-    .read_status = nand_read_status
+    .read_status = nand_read_status,
+    .is_bb_supported = nand_is_bb_supported
 };
 
