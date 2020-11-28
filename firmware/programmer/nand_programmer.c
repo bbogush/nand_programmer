@@ -117,6 +117,7 @@ typedef struct __attribute__((__packed__))
 typedef struct __attribute__((__packed__))
 {
     np_cmd_t cmd;
+    uint8_t hal;
     uint32_t page_size;
     uint32_t block_size;
     uint32_t total_size;
@@ -1091,6 +1092,7 @@ static int np_cmd_nand_conf(np_prog_t *prog)
     np_fill_chip_info(conf_cmd, prog);
     np_print_chip_info(prog);
 
+    prog->hal = conf_cmd->hal;
     hal[prog->hal]->init(&prog->chip_info);
 
     nand_bad_block_table_init();
