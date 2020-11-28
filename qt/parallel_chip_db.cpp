@@ -394,9 +394,27 @@ uint32_t ParallelChipDb::pageSizeGetById(int id)
     return info ? info->params[CHIP_PARAM_PAGE_SIZE] : 0;
 }
 
+uint32_t ParallelChipDb::pageSizeGetByName(const QString &name)
+{
+    ChipInfo *info = chipInfoGetByName(name);
+
+    return info ? info->params[CHIP_PARAM_PAGE_SIZE] : 0;
+}
+
 uint32_t ParallelChipDb::extendedPageSizeGetById(int id)
 {
     ChipInfo *info = chipInfoGetById(id);
+
+    if (!info)
+        return 0;
+
+    return info->params[CHIP_PARAM_PAGE_SIZE] +
+        info->params[CHIP_PARAM_SPARE_SIZE];
+}
+
+uint32_t ParallelChipDb::extendedPageSizeGetByName(const QString &name)
+{
+    ChipInfo *info = chipInfoGetByName(name);
 
     if (!info)
         return 0;
@@ -412,10 +430,32 @@ uint32_t ParallelChipDb::totalSizeGetById(int id)
     return info ? info->params[CHIP_PARAM_TOTAL_SIZE] : 0;
 }
 
+uint32_t ParallelChipDb::totalSizeGetByName(const QString &name)
+{
+    ChipInfo *info = chipInfoGetByName(name);
+
+    return info ? info->params[CHIP_PARAM_TOTAL_SIZE] : 0;
+}
+
 uint32_t ParallelChipDb::extendedTotalSizeGetById(int id)
 {
     uint32_t totalSize, totalSpare;
     ChipInfo *info = chipInfoGetById(id);
+
+    if (!info)
+        return 0;
+
+    totalSize = info->params[CHIP_PARAM_TOTAL_SIZE];
+    totalSpare = info->params[CHIP_PARAM_SPARE_SIZE] * (totalSize /
+        info->params[CHIP_PARAM_PAGE_SIZE]);
+
+    return totalSize + totalSpare;
+}
+
+uint32_t ParallelChipDb::extendedTotalSizeGetByName(const QString &name)
+{
+    uint32_t totalSize, totalSpare;
+    ChipInfo *info = chipInfoGetByName(name);
 
     if (!info)
         return 0;

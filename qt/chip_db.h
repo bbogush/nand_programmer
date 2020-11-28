@@ -70,6 +70,10 @@ public:
     virtual ChipInfo *chipInfoGetById(int id) = 0;
     virtual QString getNameByChipId(uint32_t id1, uint32_t id2,
         uint32_t id3, uint32_t id4, uint32_t id5) = 0;
+    virtual uint32_t pageSizeGetByName(const QString &name) = 0;
+    virtual uint32_t extendedPageSizeGetByName(const QString &name) = 0;
+    virtual uint32_t totalSizeGetByName(const QString &name) = 0;
+    virtual uint32_t extendedTotalSizeGetByName(const QString &name) = 0;
     virtual uint8_t getHal() = 0;
 };
 

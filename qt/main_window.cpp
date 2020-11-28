@@ -282,10 +282,10 @@ void MainWindow::slotProgEraseCompleted(int status)
 void MainWindow::slotProgEraseProgress(unsigned int progress)
 {
     uint32_t progressPercent;
-    int index = ui->chipSelectComboBox->currentIndex();
+    QString chipName = ui->chipSelectComboBox->currentText();
     uint32_t eraseSize = prog->isIncSpare() ?
-        parallelChipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
-        parallelChipDb.totalSizeGetById(CHIP_INDEX2ID(index));
+        currentChipDb->extendedTotalSizeGetByName(chipName) :
+        currentChipDb->totalSizeGetByName(chipName);
 
     progressPercent = progress * 100ULL / eraseSize;
     setProgress(progressPercent);
@@ -293,10 +293,10 @@ void MainWindow::slotProgEraseProgress(unsigned int progress)
 
 void MainWindow::slotProgErase()
 {
-    int index = ui->chipSelectComboBox->currentIndex();
+    QString chipName = ui->chipSelectComboBox->currentText();
     uint32_t eraseSize = prog->isIncSpare() ?
-        parallelChipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
-        parallelChipDb.totalSizeGetById(CHIP_INDEX2ID(index));
+        currentChipDb->extendedTotalSizeGetByName(chipName) :
+        currentChipDb->totalSizeGetByName(chipName);
 
     if (!eraseSize)
     {
@@ -339,10 +339,10 @@ void MainWindow::slotProgReadCompleted(int status)
 void MainWindow::slotProgReadProgress(unsigned int progress)
 {
     uint32_t progressPercent;
-    int index = ui->chipSelectComboBox->currentIndex();
+    QString chipName = ui->chipSelectComboBox->currentText();
     uint32_t readSize = prog->isIncSpare() ?
-        parallelChipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
-        parallelChipDb.totalSizeGetById(CHIP_INDEX2ID(index));
+        currentChipDb->extendedTotalSizeGetByName(chipName) :
+        currentChipDb->totalSizeGetByName(chipName);
 
     progressPercent = progress * 100ULL / readSize;
     setProgress(progressPercent);
@@ -350,10 +350,10 @@ void MainWindow::slotProgReadProgress(unsigned int progress)
 
 void MainWindow::slotProgRead()
 {
-    int index = ui->chipSelectComboBox->currentIndex();
+    QString chipName = ui->chipSelectComboBox->currentText();
     uint32_t readSize = prog->isIncSpare() ?
-        parallelChipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
-        parallelChipDb.totalSizeGetById(CHIP_INDEX2ID(index));
+        currentChipDb->extendedTotalSizeGetByName(chipName) :
+        currentChipDb->totalSizeGetByName(chipName);
 
     if (!readSize)
     {
@@ -401,7 +401,7 @@ void MainWindow::slotProgWriteProgress(unsigned int progress)
 void MainWindow::slotProgWrite()
 {
     int index;
-    QString name;
+    QString chipName;
     uint32_t pageSize, bufferSize;
 
     if (buffer.isEmpty())
@@ -417,9 +417,10 @@ void MainWindow::slotProgWrite()
         return;
     }
 
+    chipName = ui->chipSelectComboBox->currentText();
     pageSize = prog->isIncSpare() ?
-        parallelChipDb.extendedPageSizeGetById(CHIP_INDEX2ID(index)) :
-        parallelChipDb.pageSizeGetById(CHIP_INDEX2ID(index));
+        currentChipDb->extendedPageSizeGetByName(chipName) :
+        currentChipDb->pageSizeGetByName(chipName);
     if (!pageSize)
     {
         qInfo() << "Chip page size is unknown";
@@ -480,7 +481,6 @@ void MainWindow::slotSelectChip(int selectedChipNum)
 {
     QString name;
     ChipInfo *chipInfo;
-    uint8_t hal;
 
     if (selectedChipNum <= CHIP_INDEX_DEFAULT)
     {
@@ -496,9 +496,9 @@ void MainWindow::slotSelectChip(int selectedChipNum)
     }
 
     if ((chipInfo = parallelChipDb.chipInfoGetByName(name)))
-        hal = parallelChipDb.getHal();
+        currentChipDb = &parallelChipDb;
     else if ((chipInfo = spiChipDb.chipInfoGetByName(name)))
-        hal = spiChipDb.getHal();
+        currentChipDb = &spiChipDb;
     else
     {
         qCritical() << "Failed to find chip in DB";
@@ -511,7 +511,7 @@ void MainWindow::slotSelectChip(int selectedChipNum)
         SLOT(slotProgSelectCompleted(int)));
 
     if (chipInfo)
-        prog->confChip(chipInfo, hal);
+        prog->confChip(chipInfo, currentChipDb->getHal());
 }
 
 void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)

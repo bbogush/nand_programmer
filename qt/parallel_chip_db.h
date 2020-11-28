@@ -36,9 +36,13 @@ public:
     QString getNameByChipId(uint32_t id1, uint32_t id2,
         uint32_t id3, uint32_t id4, uint32_t id5);
     uint32_t pageSizeGetById(int id);
+    uint32_t pageSizeGetByName(const QString &name);
     uint32_t extendedPageSizeGetById(int id);
+    uint32_t extendedPageSizeGetByName(const QString &name);
     uint32_t totalSizeGetById(int id);
+    uint32_t totalSizeGetByName(const QString &name);
     uint32_t extendedTotalSizeGetById(int id);
+    uint32_t extendedTotalSizeGetByName(const QString &name);
     void addChip(ChipInfo &chipInfo);
     void delChip(int index);
     int size();

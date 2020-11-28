@@ -394,9 +394,27 @@ uint32_t SpiChipDb::pageSizeGetById(int id)
     return info ? info->params[CHIP_PARAM_PAGE_SIZE] : 0;
 }
 
+uint32_t SpiChipDb::pageSizeGetByName(const QString &name)
+{
+    ChipInfo *info = chipInfoGetByName(name);
+
+    return info ? info->params[CHIP_PARAM_PAGE_SIZE] : 0;
+}
+
 uint32_t SpiChipDb::extendedPageSizeGetById(int id)
 {
     ChipInfo *info = chipInfoGetById(id);
+
+    if (!info)
+        return 0;
+
+    return info->params[CHIP_PARAM_PAGE_SIZE] +
+        info->params[CHIP_PARAM_SPARE_SIZE];
+}
+
+uint32_t SpiChipDb::extendedPageSizeGetByName(const QString &name)
+{
+    ChipInfo *info = chipInfoGetByName(name);
 
     if (!info)
         return 0;
@@ -412,10 +430,32 @@ uint32_t SpiChipDb::totalSizeGetById(int id)
     return info ? info->params[CHIP_PARAM_TOTAL_SIZE] : 0;
 }
 
+uint32_t SpiChipDb::totalSizeGetByName(const QString &name)
+{
+    ChipInfo *info = chipInfoGetByName(name);
+
+    return info ? info->params[CHIP_PARAM_TOTAL_SIZE] : 0;
+}
+
 uint32_t SpiChipDb::extendedTotalSizeGetById(int id)
 {
     uint32_t totalSize, totalSpare;
     ChipInfo *info = chipInfoGetById(id);
+
+    if (!info)
+        return 0;
+
+    totalSize = info->params[CHIP_PARAM_TOTAL_SIZE];
+    totalSpare = info->params[CHIP_PARAM_SPARE_SIZE] * (totalSize /
+        info->params[CHIP_PARAM_PAGE_SIZE]);
+
+    return totalSize + totalSpare;
+}
+
+uint32_t SpiChipDb::extendedTotalSizeGetByName(const QString &name)
+{
+    uint32_t totalSize, totalSpare;
+    ChipInfo *info = chipInfoGetByName(name);
 
     if (!info)
         return 0;
