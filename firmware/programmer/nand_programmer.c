@@ -11,6 +11,7 @@
 #include "log.h"
 #include "version.h"
 #include "flash.h"
+#include "spi_flash.h"
 #include <stdio.h>
 #include <string.h>
 #include <stddef.h>
@@ -253,6 +254,7 @@ typedef struct
     uint32_t nand_timeout;
     chip_info_t chip_info;
     uint8_t active_image;
+    uint8_t hal;
 } np_prog_t;
 
 typedef struct
@@ -264,6 +266,8 @@ typedef struct
 
 static np_comm_cb_t *np_comm_cb;
 static np_prog_t prog;
+
+static flash_hal_t *hal[] = { &hal_fsmc, &hal_spi };
 
 uint8_t np_packet_send_buf[NP_PACKET_BUF_SIZE];
 
@@ -322,7 +326,7 @@ static int _np_cmd_nand_read_id(np_prog_t *prog)
 
     resp.header.code = NP_RESP_DATA;
     resp.header.info = resp_len - sizeof(resp.header);
-    nand_read_id(&resp.nand_id);
+    hal[prog->hal]->read_id(&resp.nand_id);
 
     if (np_comm_cb)
         np_comm_cb->send((uint8_t *)&resp, resp_len);
@@ -349,23 +353,25 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
     uint32_t page, bool *is_bad)
 {
     uint32_t status, addr = block * prog->chip_info.block_size;
+    uint8_t *bb_mark = &prog->page.buf[prog->chip_info.page_size +
+        prog->chip_info.bb_mark_off];
 
-    status = nand_read_spare_data(&prog->page.buf[prog->chip_info.page_size +
-            prog->chip_info.bb_mark_off], page, prog->chip_info.bb_mark_off, 1);
-    if (status == NAND_INVALID_CMD)
+    status = hal[prog->hal]->read_spare_data(bb_mark, page,
+        prog->chip_info.bb_mark_off, 1);
+    if (status == FLASH_STATUS_INVALID_CMD)
     {
-        status = nand_read_page(prog->page.buf, page,
+        status = hal[prog->hal]->read_page(prog->page.buf, page,
             prog->chip_info.page_size + prog->chip_info.spare_size);
     }
 
     switch (status)
     {
-    case NAND_READY:
+    case FLASH_STATUS_READY:
         break;
-    case NAND_ERROR:
+    case FLASH_STATUS_ERROR:
         ERROR_PRINT("NAND read bad block info error at 0x%lx\r\n", addr);
         return NP_ERR_NAND_RD;
-    case NAND_TIMEOUT_ERROR:
+    case FLASH_STATUS_TIMEOUT:
         ERROR_PRINT("NAND read timeout at 0x%lx\r\n", addr);
         return NP_ERR_NAND_RD;
     default:
@@ -422,16 +428,16 @@ static int np_nand_erase(np_prog_t *prog, uint32_t page)
     
     DEBUG_PRINT("NAND erase at 0x%lx\r\n", addr);
 
-    status = nand_erase_block(page);
+    status = hal[prog->hal]->erase_block(page);
     switch (status)
     {
-    case NAND_READY:
+    case FLASH_STATUS_READY:
         break;
-    case NAND_ERROR:
+    case FLASH_STATUS_ERROR:
         if (np_send_bad_block_info(addr, prog->chip_info.block_size, false))
             return -1;
         break;
-    case NAND_TIMEOUT_ERROR:
+    case FLASH_STATUS_TIMEOUT:
         ERROR_PRINT("NAND erase timeout at 0x%lx\r\n", addr);
         break;
     default:
@@ -650,17 +656,17 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
 
 static int np_nand_handle_status(np_prog_t *prog)
 {
-    switch (nand_read_status())
+    switch (hal[prog->hal]->read_status())
     {
-    case NAND_ERROR:
+    case FLASH_STATUS_ERROR:
         if (np_send_bad_block_info(prog->addr, prog->block_size, false))
             return -1;
         /* fall through */
-    case NAND_READY:
+    case FLASH_STATUS_READY:
         prog->nand_wr_in_progress = 0;
         prog->nand_timeout = 0;
         break;
-    case NAND_BUSY:
+    case FLASH_STATUS_BUSY:
         if (++prog->nand_timeout == NP_NAND_TIMEOUT)
         {
             ERROR_PRINT("NAND write timeout at 0x%lx\r\n", prog->addr);
@@ -695,7 +701,8 @@ static int np_nand_write(np_prog_t *prog)
     DEBUG_PRINT("NAND write at 0x%lx %lu bytes\r\n", prog->addr,
         prog->page_size);
 
-    nand_write_page_async(prog->page.buf, prog->page.page, prog->page_size);
+    hal[prog->hal]->write_page_async(prog->page.buf, prog->page.page,
+        prog->page_size);
 
     prog->nand_wr_in_progress = 1;
 
@@ -843,16 +850,16 @@ static int np_nand_read(uint32_t addr, np_page_t *page, uint32_t page_size,
 {
     uint32_t status;
 
-    status = nand_read_page(page->buf, page->page, page_size);
+    status = hal[prog->hal]->read_page(page->buf, page->page, page_size);
     switch (status)
     {
-    case NAND_READY:
+    case FLASH_STATUS_READY:
         break;
-    case NAND_ERROR:
+    case FLASH_STATUS_ERROR:
         if (np_send_bad_block_info(addr, block_size, false))
             return -1;
         break;
-    case NAND_TIMEOUT_ERROR:
+    case FLASH_STATUS_TIMEOUT:
         ERROR_PRINT("NAND write timeout at 0x%lx\r\n", addr);
         break;
     default:
@@ -1084,7 +1091,7 @@ static int np_cmd_nand_conf(np_prog_t *prog)
     np_fill_chip_info(conf_cmd, prog);
     np_print_chip_info(prog);
 
-    nand_init(&prog->chip_info);
+    hal[prog->hal]->init(&prog->chip_info);
 
     nand_bad_block_table_init();
     prog->bb_is_read = 0;

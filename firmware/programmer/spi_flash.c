@@ -102,7 +102,7 @@ static inline void spi_flash_deselect_chip()
     GPIO_SetBits(GPIOA, SPI_FLASH_CS_PIN);
 }
 
-void spi_flash_init()
+static void spi_flash_init(chip_info_t *chip_info)
 {
     SPI_InitTypeDef spi_init;
 
@@ -126,7 +126,7 @@ void spi_flash_init()
     SPI_Cmd(SPI1, ENABLE);
 }
 
-void spi_flash_uninit()
+static void spi_flash_uninit()
 {
     spi_flash_gpio_uninit();
 
@@ -154,7 +154,44 @@ static inline uint8_t spi_flash_read_byte()
     return spi_flash_send_byte(FLASH_DUMMY_BYTE);
 }
 
-void spi_flash_read_id(chip_id_t *chip_id)
+static uint32_t spi_flash_read_status()
+{
+    uint32_t status;
+
+    spi_flash_select_chip();
+
+    spi_flash_send_byte(CMD_READ_STATUS);
+
+    if (spi_flash_read_byte() & STATUS_READY)
+        status = FLASH_READY;
+    else
+        status = FLASH_BUSY;
+
+    spi_flash_deselect_chip();
+
+    return status;
+}
+
+static uint32_t spi_flash_get_status()
+{
+    uint32_t status, timeout = 0x1000000;
+
+    status = spi_flash_read_status();
+
+    /* Wait for an operation to complete or a TIMEOUT to occur */
+    while (status == FLASH_BUSY && timeout)
+    {
+        status = spi_flash_read_status();
+        timeout --;
+    }
+
+    if (!timeout)
+        status = FLASH_TIMEOUT;
+
+    return status;
+}
+
+static void spi_flash_read_id(chip_id_t *chip_id)
 {
     spi_flash_select_chip();
 
@@ -168,7 +205,8 @@ void spi_flash_read_id(chip_id_t *chip_id)
     spi_flash_deselect_chip();
 }
 
-void spi_flash_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size)
+static void spi_flash_write_page_async(uint8_t *buf, uint32_t page,
+    uint32_t page_size)
 {
     uint32_t i;
 
@@ -188,15 +226,8 @@ void spi_flash_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size)
     spi_flash_deselect_chip();
 }
 
-uint32_t spi_flash_write_page(uint8_t *buf, uint32_t page, uint32_t page_size)
-{
-    spi_flash_write_page_async(buf, page, page_size);
- 
-    return spi_flash_get_status();
-}
-
-uint32_t spi_flash_read_data(uint8_t *buf, uint32_t page, uint32_t page_offset,
-    uint32_t data_size)
+static uint32_t spi_flash_read_data(uint8_t *buf, uint32_t page,
+    uint32_t page_offset, uint32_t data_size)
 {
     uint32_t i, addr = (page << PAGE_ADDRESS_OFFSET) + page_offset;
 
@@ -219,12 +250,19 @@ uint32_t spi_flash_read_data(uint8_t *buf, uint32_t page, uint32_t page_offset,
     return FLASH_READY;
 }
 
-uint32_t spi_flash_read_page(uint8_t *buf, uint32_t page, uint32_t page_size)
+static uint32_t spi_flash_read_page(uint8_t *buf, uint32_t page,
+    uint32_t page_size)
 {
     return spi_flash_read_data(buf, page, 0, page_size);
 }
 
-uint32_t spi_flash_erase_block(uint32_t page)
+static uint32_t spi_flash_read_spare_data(uint8_t *buf, uint32_t page,
+    uint32_t offset, uint32_t data_size)
+{
+    return FLASH_STATUS_INVALID_CMD;
+}
+
+static uint32_t spi_flash_erase_block(uint32_t page)
 {
     uint32_t addr = page << BLOCK_ADDRESS_OFFSET;
     spi_flash_select_chip();
@@ -240,40 +278,14 @@ uint32_t spi_flash_erase_block(uint32_t page)
     return spi_flash_get_status();
 }
 
-uint32_t spi_flash_get_status()
+flash_hal_t hal_spi =
 {
-    uint32_t status, timeout = 0x1000000;
-
-    status = spi_flash_read_status();
-
-    /* Wait for an operation to complete or a TIMEOUT to occur */
-    while (status == FLASH_BUSY && timeout)
-    {
-        status = spi_flash_read_status();
-        timeout --;
-    }
-
-    if (!timeout)
-        status = FLASH_TIMEOUT;
-
-    return status;
-}
-
-
-uint32_t spi_flash_read_status()
-{
-    uint32_t status;
-
-    spi_flash_select_chip();
-
-    spi_flash_send_byte(CMD_READ_STATUS);
-
-    if (spi_flash_read_byte() & STATUS_READY)
-        status = FLASH_READY;
-    else
-        status = FLASH_BUSY;
-
-    spi_flash_deselect_chip();
-
-    return status;
-}
+    .init = spi_flash_init,
+    .uninit = spi_flash_uninit,
+    .read_id = spi_flash_read_id,
+    .erase_block = spi_flash_erase_block,
+    .read_page = spi_flash_read_page,
+    .read_spare_data = spi_flash_read_spare_data, 
+    .write_page_async = spi_flash_write_page_async,
+    .read_status = spi_flash_read_status
+};
