@@ -43,11 +43,6 @@ int main()
     np_init();
     printf("done.\r\n");
 
-    spi_flash_init();
-    chip_id_t chip_id = {};
-    spi_flash_read_id(&chip_id);
-    printf("id=%d %d %d %d", chip_id.maker_id, chip_id.device_id, chip_id.third_id, chip_id.fourth_id);
-
     while (1)
         np_handler();
 
