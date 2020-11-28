@@ -24,11 +24,13 @@ UI_DIR = ../build/ui
 unix:OBJECTS_DIR = ../build/o/unix
 
 SOURCES += main.cpp\
-    main_window.cpp \
-    programmer.cpp \
     chip_db.cpp \
+    main_window.cpp \
+    parallel_chip_db.cpp \
+    programmer.cpp \
     logger.cpp \
     buffer_table_model.cpp \
+    spi_chip_db.cpp \
     writer.cpp \
     reader.cpp \
     settings_programmer_dialog.cpp \
@@ -40,11 +42,13 @@ SOURCES += main.cpp\
     firmware_update_dialog.cpp
 
 HEADERS += main_window.h \
-    programmer.h \
     chip_db.h \
+    parallel_chip_db.h \
+    programmer.h \
     logger.h \
     buffer_table_model.h \
     cmd.h \
+    spi_chip_db.h \
     writer.h \
     reader.h \
     settings_programmer_dialog.h \
@@ -67,10 +71,12 @@ QMAKE_CXXFLAGS += -std=c++11 -Wextra -Werror
 mingw:QMAKE_CXXFLAGS += -mno-ms-bitfields
 
 DISTFILES += \
-    nando_chip_db.csv
+    nando_parallel_chip_db.csv \
+    nando_spi_chip_db.csv
 
 install_conf.path = $$DESTDIR
-install_conf.files += $$PWD/nando_chip_db.csv
+install_conf.files += $$PWD/nando_parallel_chip_db.csv \
+    $$PWD/nando_spi_chip_db.csv
 
 INSTALLS += install_conf
 

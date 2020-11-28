@@ -13,7 +13,8 @@
 #include "writer.h"
 #include "reader.h"
 #include "cmd.h"
-#include "chip_db.h"
+#include "parallel_chip_db.h"
+#include "spi_chip_db.h"
 
 using namespace std;
 
@@ -82,6 +83,7 @@ public:
         uint32_t pageSize);
     void readChipBadBlocks();
     void confChip(ChipInfo *chipInfo);
+    void confChip(SpiChipInfo *chipInfo);
     void detectChip();
     QString fwVersionToString(FwVersion fwVersion);
     void firmwareUpdate(const QString &fileName);

@@ -6,17 +6,18 @@
 #ifndef CHIP_DB_TABLE_MODEL_H
 #define CHIP_DB_TABLE_MODEL_H
 
-#include "chip_db.h"
+#include "parallel_chip_db.h"
 #include <QAbstractTableModel>
 
 class ChipDbTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 
-    ChipDb *chipDb;
+    ParallelChipDb *chipDb;
 
 public:
-    explicit ChipDbTableModel(ChipDb *chipDb, QObject *parent = nullptr);
+    explicit ChipDbTableModel(ParallelChipDb *chipDb,
+        QObject *parent = nullptr);
     int rowCount(const QModelIndex & /*parent*/) const override;
     int columnCount(const QModelIndex & /*parent*/) const override;
     QVariant data(const QModelIndex &index, int role) const override;

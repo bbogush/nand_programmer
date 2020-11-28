@@ -23,7 +23,7 @@ class ChipDbDialog : public QDialog
     QSortFilterProxyModel chipDbProxyModel;
 
 public:
-    explicit ChipDbDialog(ChipDb *chipDb, QWidget *parent = nullptr);
+    explicit ChipDbDialog(ParallelChipDb *chipDb, QWidget *parent = nullptr);
     ~ChipDbDialog();    
 
 private slots:

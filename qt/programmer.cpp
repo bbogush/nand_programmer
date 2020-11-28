@@ -304,6 +304,7 @@ void Programmer::confChip(ChipInfo *chipInfo)
     chipInfoToStmParams(chipInfo, &params);
 
     confCmd.cmd.code = CMD_NAND_CONF;
+    confCmd.hal = CHIP_HAL_PARALLEL;
     confCmd.pageSize = chipInfo->params[CHIP_PARAM_PAGE_SIZE];
     confCmd.blockSize = chipInfo->params[CHIP_PARAM_BLOCK_SIZE];
     confCmd.totalSize = chipInfo->params[CHIP_PARAM_TOTAL_SIZE];
@@ -340,6 +341,27 @@ void Programmer::confChip(ChipInfo *chipInfo)
         (chipInfo->params[CHIP_PARAM_STATUS_CMD]);
     confCmd.bbMarkOff = static_cast<uint8_t>
         (chipInfo->params[CHIP_PARAM_BB_MARK_OFF]);
+
+    QObject::connect(&reader, SIGNAL(result(int)), this,
+        SLOT(confChipCb(int)));
+
+    writeData.clear();
+    writeData.append(reinterpret_cast<const char *>(&confCmd), sizeof(confCmd));
+    reader.init(usbDevName, SERIAL_PORT_SPEED, nullptr, 0,
+        reinterpret_cast<const uint8_t *>(writeData.constData()),
+        static_cast<uint32_t>(writeData.size()), false, false);
+    reader.start();
+}
+
+void Programmer::confChip(SpiChipInfo *chipInfo)
+{
+    ConfCmd confCmd = {};
+
+    confCmd.cmd.code = CMD_NAND_CONF;
+    confCmd.hal = CHIP_HAL_SPI;
+    confCmd.pageSize = chipInfo->params[SPI_CHIP_PARAM_PAGE_SIZE];
+    confCmd.blockSize = chipInfo->params[SPI_CHIP_PARAM_BLOCK_SIZE];
+    confCmd.totalSize = chipInfo->params[SPI_CHIP_PARAM_TOTAL_SIZE];
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(confChipCb(int)));

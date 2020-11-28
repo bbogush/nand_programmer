@@ -9,7 +9,7 @@
 #define CHIP_DB_TABLE_MODEL_MIN_CYCLES 1
 #define CHIP_DB_TABLE_MODEL_MAX_CYCLES 4
 
-ChipDbTableModel::ChipDbTableModel(ChipDb *chipDb, QObject *parent) :
+ChipDbTableModel::ChipDbTableModel(ParallelChipDb *chipDb, QObject *parent) :
     QAbstractTableModel(parent)
 {
     this->chipDb = chipDb;

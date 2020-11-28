@@ -10,8 +10,8 @@
 #define HEADER_MED_WIDTH 100
 #define HEADER_SHORT_WIDTH 50
 
-ChipDbDialog::ChipDbDialog(ChipDb *chipDb, QWidget *parent) : QDialog(parent),
-    ui(new Ui::ChipDbDialog), chipDbTableModel(chipDb, parent)
+ChipDbDialog::ChipDbDialog(ParallelChipDb *chipDb, QWidget *parent) :
+    QDialog(parent), ui(new Ui::ChipDbDialog), chipDbTableModel(chipDb, parent)
 {
     ui->setupUi(this);
     chipDbProxyModel.setSourceModel(&chipDbTableModel);

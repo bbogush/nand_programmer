@@ -1,0 +1,2 @@
+# name, page size, block size, total size, spare size, tCS, tCLS, tALS, tCLR, tAR, tWP, tRP, tDS, tCH, tCLH, tALH, tWC, tRC, tREA, row cycles, col. cycles, read 1 cycle com., read 2 cycle com., read spare com., read ID com., reset com., write 1 cycle com., write 2 cycle com., erase 1 cycle com., erase 2 cycle com., status com., bad block mark off., ID1, ID2, ID3, ID4, ID5
+AT45DB021D, 264, 2112, 270336, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 31, 34, -, -, -

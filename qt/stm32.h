@@ -6,7 +6,7 @@
 #ifndef STM32_H
 #define STM32_H
 
-#include "chip_db.h"
+#include "parallel_chip_db.h"
 
 typedef struct
 {

@@ -8,6 +8,8 @@
 
 #include "programmer.h"
 #include "buffer_table_model.h"
+#include "parallel_chip_db.h"
+#include "spi_chip_db.h"
 #include <QMainWindow>
 #include <QVector>
 
@@ -29,7 +31,8 @@ private:
     QVector<uint8_t> buffer;
     BufferTableModel bufferTableModel;
     ChipId chipId;
-    ChipDb chipDb;
+    ParallelChipDb parallelChipDb;
+    SpiChipDb spiChipDb;
 
     void initBufTable();
     void resetBufTable();

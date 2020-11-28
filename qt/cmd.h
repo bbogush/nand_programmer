@@ -72,9 +72,16 @@ typedef struct __attribute__((__packed__))
     Cmd cmd;
 } WriteEndCmd;
 
+enum CHIP_HAL
+{
+    CHIP_HAL_PARALLEL = 0,
+    CHIP_HAL_SPI = 1
+};
+
 typedef struct __attribute__((__packed__))
 {
     Cmd cmd;
+    uint8_t hal;
     uint32_t pageSize;
     uint32_t blockSize;
     uint32_t totalSize;

@@ -8,7 +8,7 @@
 #include "settings_programmer_dialog.h"
 #include "chip_db_dialog.h"
 #include "firmware_update_dialog.h"
-#include "chip_db.h"
+#include "parallel_chip_db.h"
 #include "logger.h"
 #include "about_dialog.h"
 #include "settings.h"
@@ -284,8 +284,8 @@ void MainWindow::slotProgEraseProgress(unsigned int progress)
     uint32_t progressPercent;
     int index = ui->chipSelectComboBox->currentIndex();
     uint32_t eraseSize = prog->isIncSpare() ?
-        chipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
-        chipDb.totalSizeGetById(CHIP_INDEX2ID(index));
+        parallelChipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
+        parallelChipDb.totalSizeGetById(CHIP_INDEX2ID(index));
 
     progressPercent = progress * 100ULL / eraseSize;
     setProgress(progressPercent);
@@ -295,8 +295,8 @@ void MainWindow::slotProgErase()
 {
     int index = ui->chipSelectComboBox->currentIndex();
     uint32_t eraseSize = prog->isIncSpare() ?
-        chipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
-        chipDb.totalSizeGetById(CHIP_INDEX2ID(index));
+        parallelChipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
+        parallelChipDb.totalSizeGetById(CHIP_INDEX2ID(index));
 
     if (!eraseSize)
     {
@@ -341,8 +341,8 @@ void MainWindow::slotProgReadProgress(unsigned int progress)
     uint32_t progressPercent;
     int index = ui->chipSelectComboBox->currentIndex();
     uint32_t readSize = prog->isIncSpare() ?
-        chipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
-        chipDb.totalSizeGetById(CHIP_INDEX2ID(index));
+        parallelChipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
+        parallelChipDb.totalSizeGetById(CHIP_INDEX2ID(index));
 
     progressPercent = progress * 100ULL / readSize;
     setProgress(progressPercent);
@@ -352,8 +352,8 @@ void MainWindow::slotProgRead()
 {
     int index = ui->chipSelectComboBox->currentIndex();
     uint32_t readSize = prog->isIncSpare() ?
-        chipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
-        chipDb.totalSizeGetById(CHIP_INDEX2ID(index));
+        parallelChipDb.extendedTotalSizeGetById(CHIP_INDEX2ID(index)) :
+        parallelChipDb.totalSizeGetById(CHIP_INDEX2ID(index));
 
     if (!readSize)
     {
@@ -418,8 +418,8 @@ void MainWindow::slotProgWrite()
     }
 
     pageSize = prog->isIncSpare() ?
-        chipDb.extendedPageSizeGetById(CHIP_INDEX2ID(index)) :
-        chipDb.pageSizeGetById(CHIP_INDEX2ID(index));
+        parallelChipDb.extendedPageSizeGetById(CHIP_INDEX2ID(index)) :
+        parallelChipDb.pageSizeGetById(CHIP_INDEX2ID(index));
     if (!pageSize)
     {
         qInfo() << "Chip page size is unknown";
@@ -480,10 +480,25 @@ void MainWindow::slotSelectChip(int selectedChipNum)
 {
     QString name;
     ChipInfo *chipInfo;
+    SpiChipInfo *spiChipInfo;
 
     if (selectedChipNum <= CHIP_INDEX_DEFAULT)
     {
         setUiStateSelected(false);
+        return;
+    }
+
+    name = ui->chipSelectComboBox->currentText();
+    if (name.isEmpty())
+    {
+        qCritical() << "Failed to get chip name";
+        return;
+    }
+
+    if (!(chipInfo = parallelChipDb.chipInfoGetByName(name)) &&
+        !(spiChipInfo = spiChipDb.chipInfoGetByName(name)))
+    {
+        qCritical() << "Failed to find chip in DB";
         return;
     }
 
@@ -492,8 +507,10 @@ void MainWindow::slotSelectChip(int selectedChipNum)
     connect(prog, SIGNAL(confChipCompleted(int)), this,
         SLOT(slotProgSelectCompleted(int)));
 
-    chipInfo = chipDb.chipInfoGetById(CHIP_INDEX2ID(selectedChipNum));
-    prog->confChip(chipInfo);
+    if (chipInfo)
+        prog->confChip(chipInfo);
+    else
+        prog->confChip(spiChipInfo);
 }
 
 void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
@@ -518,7 +535,7 @@ void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
 
     qInfo() << QString("ID ").append(idStr).toLatin1().data();
 
-    if ((id = chipDb.getIdByChipId(chipId.makerId, chipId.deviceId,
+    if ((id = parallelChipDb.getIdByChipId(chipId.makerId, chipId.deviceId,
         chipId.thirdId, chipId.fourthId, chipId.fifthId)) < 0)
     {
         qInfo() << "Chip not found in database";
@@ -549,7 +566,7 @@ void MainWindow::slotDetectChip()
 
     // Assuming read of ID is the same for all chips thereby use settings of the
     // first one.
-    if (!(chipInfo = chipDb.chipInfoGetById(0)))
+    if (!(chipInfo = parallelChipDb.chipInfoGetById(0)))
     {
         qCritical() << "Failed to get information from chip database";
         return;
@@ -600,7 +617,7 @@ void MainWindow::updateProgSettings()
 
 void MainWindow::slotSettingsChipDb()
 {
-    ChipDbDialog chipDbDialog(&chipDb, this);
+    ChipDbDialog chipDbDialog(&parallelChipDb, this);
 
     if (chipDbDialog.exec() == QDialog::Accepted)
         updateChipList();
@@ -614,7 +631,8 @@ void MainWindow::updateChipList()
     ui->chipSelectComboBox->clear();
     ui->chipSelectComboBox->addItem(CHIP_NAME_DEFAULT);
 
-    chipNames = chipDb.getNames();
+    chipNames.append(parallelChipDb.getNames());
+    chipNames.append(spiChipDb.getNames());
     foreach (const QString &str, chipNames)
     {
         if (str.isEmpty())
