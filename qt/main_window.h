@@ -72,7 +72,8 @@ public slots:
     void slotSelectChip(int selectedChipNum);
     void slotDetectChip();
     void slotSettingsProgrammer();
-    void slotSettingsChipDb();
+    void slotSettingsParallelChipDb();
+    void slotSettingsSpiChipDb();
     void slotAboutDialog();
     void slotFirmwareUpdateDialog();
 };

@@ -3,28 +3,29 @@
  *  it under the terms of the GNU General Public License version 3.
  */
 
-#ifndef CHIP_DB_DALOG_H
-#define CHIP_DB_DALOG_H
+#ifndef PARALLEL_CHIP_DB_DALOG_H
+#define PARALLEL_CHIP_DB_DALOG_H
 
-#include "chip_db_table_model.h"
+#include "parallel_chip_db_table_model.h"
 #include <QDialog>
 #include <QSortFilterProxyModel>
 
 namespace Ui {
-class ChipDbDialog;
+class ParallelChipDbDialog;
 }
 
-class ChipDbDialog : public QDialog
+class ParallelChipDbDialog : public QDialog
 {
     Q_OBJECT
 
-    Ui::ChipDbDialog *ui;
-    ChipDbTableModel chipDbTableModel;
+    Ui::ParallelChipDbDialog *ui;
+    ParallelChipDbTableModel chipDbTableModel;
     QSortFilterProxyModel chipDbProxyModel;
 
 public:
-    explicit ChipDbDialog(ParallelChipDb *chipDb, QWidget *parent = nullptr);
-    ~ChipDbDialog();    
+    explicit ParallelChipDbDialog(ParallelChipDb *chipDb,
+        QWidget *parent = nullptr);
+    ~ParallelChipDbDialog();
 
 private slots:
     void slotAddChipDbButtonClicked();
@@ -33,4 +34,4 @@ private slots:
     void slotCancelButtonClicked();
 };
 
-#endif // CHIP_DB_DALOG_H
+#endif // PARALLEL_CHIP_DB_DALOG_H

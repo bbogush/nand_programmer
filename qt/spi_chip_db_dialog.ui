@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ChipDbDialog</class>
- <widget class="QDialog" name="ChipDbDialog">
+ <class>SpiChipDbDialog</class>
+ <widget class="QDialog" name="SpiChipDbDialog">
   <property name="windowModality">
    <enum>Qt::ApplicationModal</enum>
   </property>
@@ -26,7 +26,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Chip database</string>
+   <string>SPI chip database</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
@@ -85,17 +85,17 @@
        <property name="cornerButtonEnabled">
         <bool>true</bool>
        </property>
-       <attribute name="horizontalHeaderDefaultSectionSize">
-        <number>70</number>
-       </attribute>
        <attribute name="horizontalHeaderMinimumSectionSize">
         <number>30</number>
        </attribute>
-       <attribute name="verticalHeaderDefaultSectionSize">
-        <number>30</number>
+       <attribute name="horizontalHeaderDefaultSectionSize">
+        <number>70</number>
        </attribute>
        <attribute name="verticalHeaderMinimumSectionSize">
         <number>20</number>
+       </attribute>
+       <attribute name="verticalHeaderDefaultSectionSize">
+        <number>30</number>
        </attribute>
       </widget>
      </item>
@@ -175,7 +175,7 @@
   <connection>
    <sender>okCancelButtonBox</sender>
    <signal>accepted()</signal>
-   <receiver>ChipDbDialog</receiver>
+   <receiver>SpiChipDbDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -191,7 +191,7 @@
   <connection>
    <sender>okCancelButtonBox</sender>
    <signal>rejected()</signal>
-   <receiver>ChipDbDialog</receiver>
+   <receiver>SpiChipDbDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

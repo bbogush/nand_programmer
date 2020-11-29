@@ -3,29 +3,30 @@
  *  it under the terms of the GNU General Public License version 3.
  */
 
-#include "chip_db_table_model.h"
+#include "parallel_chip_db_table_model.h"
 #include <limits>
 
 #define CHIP_DB_TABLE_MODEL_MIN_CYCLES 1
 #define CHIP_DB_TABLE_MODEL_MAX_CYCLES 4
 
-ChipDbTableModel::ChipDbTableModel(ParallelChipDb *chipDb, QObject *parent) :
-    QAbstractTableModel(parent)
+ParallelChipDbTableModel::ParallelChipDbTableModel(ParallelChipDb *chipDb,
+    QObject *parent) : QAbstractTableModel(parent)
 {
     this->chipDb = chipDb;
 }
 
-int ChipDbTableModel::rowCount(const QModelIndex & /*parent*/) const
+int ParallelChipDbTableModel::rowCount(const QModelIndex & /*parent*/) const
 {
     return chipDb->size();
 }
 
-int ChipDbTableModel::columnCount(const QModelIndex & /*parent*/) const
+int ParallelChipDbTableModel::columnCount(const QModelIndex & /*parent*/) const
 {
     return CHIP_PARAM_NUM;
 }
 
-QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
+QVariant ParallelChipDbTableModel::data(const QModelIndex &index,
+    int role) const
 {
     int column;
     QString paramStr;
@@ -86,8 +87,8 @@ QVariant ChipDbTableModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
-    int role) const
+QVariant ParallelChipDbTableModel::headerData(int section,
+    Qt::Orientation orientation, int role) const
 {
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
     {
@@ -219,13 +220,13 @@ QVariant ChipDbTableModel::headerData(int section, Qt::Orientation orientation,
     return QVariant();
 }
 
-Qt::ItemFlags ChipDbTableModel::flags (const QModelIndex &index) const
+Qt::ItemFlags ParallelChipDbTableModel::flags (const QModelIndex &index) const
 {
     return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
 }
 
-bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
-    int role)
+bool ParallelChipDbTableModel::setData(const QModelIndex &index,
+    const QVariant &value, int role)
 {
     uint32_t paramVal;
 
@@ -307,7 +308,7 @@ bool ChipDbTableModel::setData(const QModelIndex &index, const QVariant &value,
     return false;
 }
 
-void ChipDbTableModel::addRow()
+void ParallelChipDbTableModel::addRow()
 {
     ChipInfo chipInfo = {};
 
@@ -316,19 +317,19 @@ void ChipDbTableModel::addRow()
     endResetModel();
 }
 
-void ChipDbTableModel::delRow(int index)
+void ParallelChipDbTableModel::delRow(int index)
 {
     beginResetModel();
     chipDb->delChip(index);
     endResetModel();
 }
 
-void ChipDbTableModel::commit()
+void ParallelChipDbTableModel::commit()
 {
     chipDb->commit();
 }
 
-void ChipDbTableModel::reset()
+void ParallelChipDbTableModel::reset()
 {
     beginResetModel();
     chipDb->reset();

@@ -283,7 +283,8 @@
      <string>Settings</string>
     </property>
     <addaction name="actionProgrammer"/>
-    <addaction name="actionChipDb"/>
+    <addaction name="actionParallelChipDb"/>
+    <addaction name="actionSpiChipDb"/>
     <addaction name="separator"/>
     <addaction name="actionFirmwareUpdate"/>
    </widget>
@@ -379,9 +380,9 @@
     <string>Read bad blocks</string>
    </property>
   </action>
-  <action name="actionChipDb">
+  <action name="actionParallelChipDb">
    <property name="text">
-    <string>Chip database</string>
+    <string>Parallel chip database</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -395,6 +396,11 @@
    </property>
    <property name="text">
     <string>Firmware update</string>
+   </property>
+  </action>
+  <action name="actionSpiChipDb">
+   <property name="text">
+    <string>SPI chip database</string>
    </property>
   </action>
  </widget>

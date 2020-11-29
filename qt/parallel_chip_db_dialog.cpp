@@ -3,15 +3,16 @@
  *  it under the terms of the GNU General Public License version 3.
  */
 
-#include "chip_db_dialog.h"
-#include "ui_chip_db_dialog.h"
+#include "parallel_chip_db_dialog.h"
+#include "ui_parallel_chip_db_dialog.h"
 
 #define HEADER_LONG_WIDTH 120
 #define HEADER_MED_WIDTH 100
 #define HEADER_SHORT_WIDTH 50
 
-ChipDbDialog::ChipDbDialog(ParallelChipDb *chipDb, QWidget *parent) :
-    QDialog(parent), ui(new Ui::ChipDbDialog), chipDbTableModel(chipDb, parent)
+ParallelChipDbDialog::ParallelChipDbDialog(ParallelChipDb *chipDb,
+    QWidget *parent) : QDialog(parent), ui(new Ui::ParallelChipDbDialog),
+    chipDbTableModel(chipDb, parent)
 {
     ui->setupUi(this);
     chipDbProxyModel.setSourceModel(&chipDbTableModel);
@@ -40,17 +41,17 @@ ChipDbDialog::ChipDbDialog(ParallelChipDb *chipDb, QWidget *parent) :
         SIGNAL(clicked()), this, SLOT(slotCancelButtonClicked()));
 }
 
-ChipDbDialog::~ChipDbDialog()
+ParallelChipDbDialog::~ParallelChipDbDialog()
 {
     delete ui;
 }
 
-void ChipDbDialog::slotAddChipDbButtonClicked()
+void ParallelChipDbDialog::slotAddChipDbButtonClicked()
 {
     chipDbTableModel.addRow();
 }
 
-void ChipDbDialog::slotDelChipDbButtonClicked()
+void ParallelChipDbDialog::slotDelChipDbButtonClicked()
 {
     QModelIndexList selection = ui->chipDbTableView->selectionModel()->
         selectedRows();
@@ -61,12 +62,12 @@ void ChipDbDialog::slotDelChipDbButtonClicked()
     chipDbTableModel.delRow(selection.at(0).row());
 }
 
-void ChipDbDialog::slotOkButtonClicked()
+void ParallelChipDbDialog::slotOkButtonClicked()
 {
     chipDbTableModel.commit();
 }
 
-void ChipDbDialog::slotCancelButtonClicked()
+void ParallelChipDbDialog::slotCancelButtonClicked()
 {
     chipDbTableModel.reset();
 }

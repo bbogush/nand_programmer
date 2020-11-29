@@ -6,9 +6,11 @@
 #include "main_window.h"
 #include "ui_main_window.h"
 #include "settings_programmer_dialog.h"
-#include "chip_db_dialog.h"
+#include "parallel_chip_db_dialog.h"
+#include "spi_chip_db_dialog.h"
 #include "firmware_update_dialog.h"
 #include "parallel_chip_db.h"
+#include "spi_chip_db.h"
 #include "logger.h"
 #include "about_dialog.h"
 #include "settings.h"
@@ -85,8 +87,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotProgReadBadBlocks()));
     connect(ui->actionProgrammer, SIGNAL(triggered()), this,
         SLOT(slotSettingsProgrammer()));
-    connect(ui->actionChipDb, SIGNAL(triggered()), this,
-        SLOT(slotSettingsChipDb()));
+    connect(ui->actionParallelChipDb, SIGNAL(triggered()), this,
+        SLOT(slotSettingsParallelChipDb()));
+    connect(ui->actionSpiChipDb, SIGNAL(triggered()), this,
+        SLOT(slotSettingsSpiChipDb()));
     connect(ui->actionAbout, SIGNAL(triggered()), this,
         SLOT(slotAboutDialog()));
     connect(ui->detectPushButton, SIGNAL(clicked()), this,
@@ -635,9 +639,17 @@ void MainWindow::updateProgSettings()
     }
 }
 
-void MainWindow::slotSettingsChipDb()
+void MainWindow::slotSettingsParallelChipDb()
 {
-    ChipDbDialog chipDbDialog(&parallelChipDb, this);
+    ParallelChipDbDialog chipDbDialog(&parallelChipDb, this);
+
+    if (chipDbDialog.exec() == QDialog::Accepted)
+        updateChipList();
+}
+
+void MainWindow::slotSettingsSpiChipDb()
+{
+    SpiChipDbDialog chipDbDialog(&spiChipDb, this);
 
     if (chipDbDialog.exec() == QDialog::Accepted)
         updateChipList();
