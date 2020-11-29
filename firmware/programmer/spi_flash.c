@@ -20,7 +20,6 @@
 #define CMD_READ_STATUS 0xD7
 
 #define PAGE_ADDRESS_OFFSET 9
-#define BLOCK_ADDRESS_OFFSET 12
 
 #define STATUS_READY (1<<7)
 
@@ -264,7 +263,7 @@ static uint32_t spi_flash_read_spare_data(uint8_t *buf, uint32_t page,
 
 static uint32_t spi_flash_erase_block(uint32_t page)
 {
-    uint32_t addr = page << BLOCK_ADDRESS_OFFSET;
+    uint32_t addr = page << PAGE_ADDRESS_OFFSET;
     spi_flash_select_chip();
 
     spi_flash_send_byte(CMD_FLASH_BLOCK_ERASE);
