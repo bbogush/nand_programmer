@@ -29,11 +29,11 @@
 
 /* 1st addressing cycle */
 #define ADDR_1st_CYCLE(ADDR) (uint8_t)((ADDR)& 0xFF)
-/* 2st addressing cycle */
+/* 2nd addressing cycle */
 #define ADDR_2nd_CYCLE(ADDR) (uint8_t)(((ADDR)& 0xFF00) >> 8)
-/* 3st addressing cycle */
+/* 3rd addressing cycle */
 #define ADDR_3rd_CYCLE(ADDR) (uint8_t)(((ADDR)& 0xFF0000) >> 16)
-/* 4st addressing cycle */
+/* 4th addressing cycle */
 #define ADDR_4th_CYCLE(ADDR) (uint8_t)(((ADDR)& 0xFF000000) >> 24)
 
 static void spi_flash_gpio_init()
@@ -215,9 +215,9 @@ static void spi_flash_write_page_async(uint8_t *buf, uint32_t page,
 
     page = page << PAGE_ADDRESS_OFFSET;
 
-    spi_flash_send_byte(ADDR_1st_CYCLE(page));
-    spi_flash_send_byte(ADDR_2nd_CYCLE(page));
     spi_flash_send_byte(ADDR_3rd_CYCLE(page));
+    spi_flash_send_byte(ADDR_2nd_CYCLE(page));
+    spi_flash_send_byte(ADDR_1st_CYCLE(page));
 
     for (i = 0; i < page_size; i++)
         spi_flash_send_byte(buf[i]);
@@ -234,9 +234,9 @@ static uint32_t spi_flash_read_data(uint8_t *buf, uint32_t page,
 
     spi_flash_send_byte(CMD_FLASH_PAGE_READ);
 
-    spi_flash_send_byte(ADDR_1st_CYCLE(addr));
-    spi_flash_send_byte(ADDR_2nd_CYCLE(addr));
     spi_flash_send_byte(ADDR_3rd_CYCLE(addr));
+    spi_flash_send_byte(ADDR_2nd_CYCLE(addr));
+    spi_flash_send_byte(ADDR_1st_CYCLE(addr));
 
     /* AT45DB requires write of dummy byte after address */
     spi_flash_send_byte(FLASH_DUMMY_BYTE);
@@ -268,9 +268,9 @@ static uint32_t spi_flash_erase_block(uint32_t page)
 
     spi_flash_send_byte(CMD_FLASH_BLOCK_ERASE);
 
-    spi_flash_send_byte(ADDR_1st_CYCLE(addr));
-    spi_flash_send_byte(ADDR_2nd_CYCLE(addr));
     spi_flash_send_byte(ADDR_3rd_CYCLE(addr));
+    spi_flash_send_byte(ADDR_2nd_CYCLE(addr));
+    spi_flash_send_byte(ADDR_1st_CYCLE(addr));
 
     spi_flash_deselect_chip();
 
