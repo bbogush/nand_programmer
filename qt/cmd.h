@@ -80,6 +80,7 @@ typedef struct __attribute__((__packed__))
     uint32_t blockSize;
     uint32_t totalSize;
     uint32_t spareSize;
+    uint8_t bbMarkOff;
     uint8_t setupTime;
     uint8_t waitSetupTime;
     uint8_t holdSetupTime;
@@ -98,7 +99,6 @@ typedef struct __attribute__((__packed__))
     uint8_t erase1Cmd;
     uint8_t erase2Cmd;
     uint8_t statusCmd;
-    uint8_t bbMarkOff;
 } ConfCmd;
 
 enum

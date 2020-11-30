@@ -101,7 +101,7 @@ static inline void spi_flash_deselect_chip()
     GPIO_SetBits(GPIOA, SPI_FLASH_CS_PIN);
 }
 
-static void spi_flash_init(chip_info_t *chip_info)
+static int spi_flash_init(void *conf, uint32_t conf_size)
 {
     SPI_InitTypeDef spi_init;
 
@@ -123,6 +123,8 @@ static void spi_flash_init(chip_info_t *chip_info)
 
     /* Enable SPI */
     SPI_Cmd(SPI1, ENABLE);
+
+    return 0;
 }
 
 static void spi_flash_uninit()

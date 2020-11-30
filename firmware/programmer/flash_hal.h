@@ -21,7 +21,7 @@ enum
 
 typedef struct
 {
-    void (*init)(chip_info_t *chip_info);
+    int (*init)(void *conf, uint32_t conf_size);
     void (*uninit)();
     void (*read_id)(chip_id_t *chip_id);
     uint32_t (*erase_block)(uint32_t page);
