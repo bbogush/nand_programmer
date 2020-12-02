@@ -560,8 +560,3 @@ int SpiChipDb::setChipParam(int chipIndex, int paramIndex,
 
     return 0;
 }
-
-uint8_t SpiChipDb::getHal()
-{
-    return CHIP_HAL_SPI;
-}

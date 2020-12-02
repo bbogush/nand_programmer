@@ -50,6 +50,12 @@ enum
     CHIP_PARAM_NUM,
 };
 
+enum CHIP_HAL
+{
+    CHIP_HAL_PARALLEL = 0,
+    CHIP_HAL_SPI = 1
+};
+
 class ChipInfo
 {
 protected:
@@ -64,6 +70,7 @@ public:
     uint32_t spareSize;
     uint32_t bbMarkOffset;
     uint32_t params[CHIP_PARAM_NUM];
+    uint32_t hal;
 
     virtual const QByteArray &getHalConf() = 0;
 };

@@ -61,7 +61,6 @@ public:
     bool isOptParamValid(uint32_t param, uint32_t min, uint32_t max);
     uint32_t getChipParam(int chipIndex, int paramIndex);
     int setChipParam(int chipIndex, int paramIndex, uint32_t paramValue);
-    uint8_t getHal();
 };
 
 #endif // PARALLEL_CHIP_DB_H

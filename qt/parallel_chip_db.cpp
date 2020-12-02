@@ -560,8 +560,3 @@ int ParallelChipDb::setChipParam(int chipIndex, int paramIndex,
 
     return 0;
 }
-
-uint8_t ParallelChipDb::getHal()
-{
-    return CHIP_HAL_PARALLEL;
-}

@@ -295,12 +295,12 @@ void Programmer::confChipCb(int ret)
     emit confChipCompleted(ret);
 }
 
-void Programmer::confChip(ChipInfo *chipInfo, uint8_t hal)
+void Programmer::confChip(ChipInfo *chipInfo)
 {
     ConfCmd confCmd;
 
     confCmd.cmd.code = CMD_NAND_CONF;
-    confCmd.hal = hal;
+    confCmd.hal = chipInfo->hal;
     confCmd.pageSize = chipInfo->pageSize;
     confCmd.blockSize = chipInfo->blockSize;
     confCmd.totalSize = chipInfo->totalSize;

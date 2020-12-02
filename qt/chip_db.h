@@ -9,12 +9,6 @@
 #include "chip_info.h"
 #include <QStringList>
 
-enum CHIP_HAL
-{
-    CHIP_HAL_PARALLEL = 0,
-    CHIP_HAL_SPI = 1
-};
-
 class ChipDb
 {
 public:
@@ -26,7 +20,6 @@ public:
     virtual uint32_t extendedPageSizeGetByName(const QString &name) = 0;
     virtual uint32_t totalSizeGetByName(const QString &name) = 0;
     virtual uint32_t extendedTotalSizeGetByName(const QString &name) = 0;
-    virtual uint8_t getHal() = 0;
     virtual ChipInfo *getChipInfo(int chipIndex) = 0;
     QString getChipName(int chipIndex);
     int setChipName(int chipIndex, const QString &name);

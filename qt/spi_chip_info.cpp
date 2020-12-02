@@ -12,6 +12,7 @@ typedef struct __attribute__((__packed__))
 
 SpiChipInfo::SpiChipInfo()
 {
+    hal = CHIP_HAL_SPI;
 }
 
 SpiChipInfo::~SpiChipInfo()

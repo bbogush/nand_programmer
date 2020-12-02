@@ -515,7 +515,7 @@ void MainWindow::slotSelectChip(int selectedChipNum)
         SLOT(slotProgSelectCompleted(int)));
 
     if (chipInfo)
-        prog->confChip(chipInfo, currentChipDb->getHal());
+        prog->confChip(chipInfo);
 }
 
 void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
@@ -545,7 +545,7 @@ void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
 
     if (chipName.isEmpty())
     {
-        if (currentChipDb->getHal() == spiChipDb.getHal())
+        if (currentChipDb == &spiChipDb)
             qInfo() << "Chip not found in database";
         else
         {
@@ -591,7 +591,7 @@ void MainWindow::detectChip(ChipDb *chipDb)
 
     connect(prog, SIGNAL(confChipCompleted(int)), this,
         SLOT(slotProgDetectChipConfCompleted(int)));
-    prog->confChip(chipInfo, currentChipDb->getHal());
+    prog->confChip(chipInfo);
 }
 
 void MainWindow::slotDetectChip()

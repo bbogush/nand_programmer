@@ -33,6 +33,7 @@ typedef struct __attribute__((__packed__))
 
 ParallelChipInfo::ParallelChipInfo()
 {
+    hal = CHIP_HAL_PARALLEL;
 }
 
 ParallelChipInfo::~ParallelChipInfo()
