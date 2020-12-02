@@ -29,25 +29,28 @@ SOURCES += main.cpp\
     parallel_chip_db.cpp \
     parallel_chip_db_dialog.cpp \
     parallel_chip_db_table_model.cpp \
+    parallel_chip_info.cpp \
     programmer.cpp \
     logger.cpp \
     buffer_table_model.cpp \
     spi_chip_db.cpp \
     spi_chip_db_dialog.cpp \
     spi_chip_db_table_model.cpp \
+    spi_chip_info.cpp \
     writer.cpp \
     reader.cpp \
     settings_programmer_dialog.cpp \
-    stm32.cpp \
     err.cpp \
     about_dialog.cpp \
     firmware_update_dialog.cpp
 
 HEADERS += main_window.h \
     chip_db.h \
+    chip_info.h \
     parallel_chip_db.h \
     parallel_chip_db_dialog.h \
     parallel_chip_db_table_model.h \
+    parallel_chip_info.h \
     programmer.h \
     logger.h \
     buffer_table_model.h \
@@ -55,10 +58,10 @@ HEADERS += main_window.h \
     spi_chip_db.h \
     spi_chip_db_dialog.h \
     spi_chip_db_table_model.h \
+    spi_chip_info.h \
     writer.h \
     reader.h \
     settings_programmer_dialog.h \
-    stm32.h \
     err.h \
     about_dialog.h \
     version.h \

@@ -39,9 +39,13 @@ QVariant SpiChipDbTableModel::data(const QModelIndex &index, int role) const
     case CHIP_PARAM_NAME:
         return chipDb->getChipName(index.row());
     case CHIP_PARAM_PAGE_SIZE:
+        return chipDb->getPageSize(index.row());
     case CHIP_PARAM_BLOCK_SIZE:
+        return chipDb->getBlockSize(index.row());
     case CHIP_PARAM_TOTAL_SIZE:
+        return chipDb->getTotalSize(index.row());
     case CHIP_PARAM_SPARE_SIZE:
+        return chipDb->getSpareSize(index.row());
     case CHIP_PARAM_READ1_CMD:
     case CHIP_PARAM_READ_ID_CMD:
     case CHIP_PARAM_RESET_CMD:
@@ -69,7 +73,6 @@ QVariant SpiChipDbTableModel::data(const QModelIndex &index, int role) const
     case CHIP_PARAM_T_REA:
     case CHIP_PARAM_ROW_CYCLES:
     case CHIP_PARAM_COL_CYCLES:
-    case CHIP_PARAM_BB_MARK_OFF:
         return chipDb->getChipParam(index.row(), column);
     case CHIP_PARAM_READ2_CMD:
     case CHIP_PARAM_READ_SPARE_CMD:
@@ -81,6 +84,8 @@ QVariant SpiChipDbTableModel::data(const QModelIndex &index, int role) const
         chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
             column), paramStr);
         return paramStr;
+    case CHIP_PARAM_BB_MARK_OFF:
+        return chipDb->getBBMarkOffset(index.row());
     }
 
     return QVariant();
@@ -238,12 +243,24 @@ bool SpiChipDbTableModel::setData(const QModelIndex &index,
         chipDb->setChipName(index.row(), value.toString());
         return true;
     case CHIP_PARAM_PAGE_SIZE:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        chipDb->setPageSize(index.row(), paramVal);
+        return true;
     case CHIP_PARAM_BLOCK_SIZE:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        chipDb->setBlockSize(index.row(), paramVal);
+        return true;
     case CHIP_PARAM_TOTAL_SIZE:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        chipDb->setTotalSize(index.row(), paramVal);
+        return true;
     case CHIP_PARAM_SPARE_SIZE:
         if (chipDb->getParamFromHexString(value.toString(), paramVal))
             return false;
-        chipDb->setChipParam(index.row(), index.column(), paramVal);
+        chipDb->setSpareSize(index.row(), paramVal);
         return true;
     case CHIP_PARAM_T_CS:
     case CHIP_PARAM_T_CLS:
@@ -259,7 +276,6 @@ bool SpiChipDbTableModel::setData(const QModelIndex &index,
     case CHIP_PARAM_T_WC:
     case CHIP_PARAM_T_RC:
     case CHIP_PARAM_T_REA:
-    case CHIP_PARAM_BB_MARK_OFF:
         if (chipDb->getParamFromString(value.toString(), paramVal))
             return false;
         chipDb->setChipParam(index.row(), index.column(), paramVal);
@@ -302,6 +318,11 @@ bool SpiChipDbTableModel::setData(const QModelIndex &index,
             return false;
         chipDb->setChipParam(index.row(), index.column(), paramVal);
         return true;
+    case CHIP_PARAM_BB_MARK_OFF:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setBBMarkOffset(index.row(), paramVal);
+        return true;
     }
 
     return false;
@@ -309,7 +330,7 @@ bool SpiChipDbTableModel::setData(const QModelIndex &index,
 
 void SpiChipDbTableModel::addRow()
 {
-    ChipInfo chipInfo = {};
+    SpiChipInfo chipInfo = {};
 
     beginResetModel();
     chipDb->addChip(chipInfo);

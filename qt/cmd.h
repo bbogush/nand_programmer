@@ -81,24 +81,6 @@ typedef struct __attribute__((__packed__))
     uint32_t totalSize;
     uint32_t spareSize;
     uint8_t bbMarkOff;
-    uint8_t setupTime;
-    uint8_t waitSetupTime;
-    uint8_t holdSetupTime;
-    uint8_t hiZSetupTime;
-    uint8_t clrSetupTime;
-    uint8_t arSetupTime;
-    uint8_t rowCycles;
-    uint8_t colCycles;
-    uint8_t read1Cmd;
-    uint8_t read2Cmd;
-    uint8_t readSpareCmd;
-    uint8_t readIdCmd;
-    uint8_t resetCmd;
-    uint8_t write1Cmd;
-    uint8_t write2Cmd;
-    uint8_t erase1Cmd;
-    uint8_t erase2Cmd;
-    uint8_t statusCmd;
 } ConfCmd;
 
 enum

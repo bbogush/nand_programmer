@@ -1,0 +1,140 @@
+/*  Copyright (C) 2020 NANDO authors
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License version 3.
+ */
+
+#include "parallel_chip_info.h"
+#include <stdint.h>
+#include <algorithm>
+#include <array>
+#include <math.h>
+
+typedef struct __attribute__((__packed__))
+{
+    uint8_t setupTime;
+    uint8_t waitSetupTime;
+    uint8_t holdSetupTime;
+    uint8_t hiZSetupTime;
+    uint8_t clrSetupTime;
+    uint8_t arSetupTime;
+    uint8_t rowCycles;
+    uint8_t colCycles;
+    uint8_t read1Cmd;
+    uint8_t read2Cmd;
+    uint8_t readSpareCmd;
+    uint8_t readIdCmd;
+    uint8_t resetCmd;
+    uint8_t write1Cmd;
+    uint8_t write2Cmd;
+    uint8_t erase1Cmd;
+    uint8_t erase2Cmd;
+    uint8_t statusCmd;
+} Conf;
+
+ParallelChipInfo::ParallelChipInfo()
+{
+}
+
+ParallelChipInfo::~ParallelChipInfo()
+{
+}
+
+/* Convert NAND parameters to STM32 FSMC parameters.
+ * See Application Note AN2784.
+ */
+void ParallelChipInfo::chipInfoToStmParams(StmParams *stmParams)
+{
+    double setupTime, waitSetupTime, hiZSetupTime, holdSetupTime, arSetupTime,
+        clrSetupTime;
+    const double tHCLK = 13.88; /* 1 / 72MHz */
+    const double tsuD_NOE = 25;
+    std::array<uint32_t, 5> setupArr = { params[CHIP_PARAM_T_CH],
+        params[CHIP_PARAM_T_CLS], params[CHIP_PARAM_T_ALS],
+        params[CHIP_PARAM_T_CLR], params[CHIP_PARAM_T_AR] };
+    std::array<uint32_t, 3> hiZArr = { params[CHIP_PARAM_T_CH],
+        params[CHIP_PARAM_T_ALS], params[CHIP_PARAM_T_CLS] };
+    std::array<uint32_t, 3> holdArr = { params[CHIP_PARAM_T_CH],
+        params[CHIP_PARAM_T_CLH], params[CHIP_PARAM_T_ALH] };
+
+    /* (SET + 1) * tHCLK >= max(tCH, tCLS, tALS, tCLR, tAR) - tWP */
+    setupTime = *std::max_element(setupArr.begin(), setupArr.end()) -
+        params[CHIP_PARAM_T_WP];
+    setupTime = setupTime / tHCLK - 1;
+    setupTime = setupTime <= 0 ? 0 : ceil(setupTime);
+    stmParams->setupTime = static_cast<uint8_t>(setupTime);
+
+    /* (WAIT + 1) * tHCLK >= max(tWP, tRP) */
+    waitSetupTime = std::max(params[CHIP_PARAM_T_WP], params[CHIP_PARAM_T_WP]);
+    waitSetupTime = waitSetupTime / tHCLK - 1;
+    waitSetupTime = waitSetupTime <= 0 ? 0 : ceil(waitSetupTime);
+    stmParams->waitSetupTime = static_cast<uint8_t>(waitSetupTime);
+    /* (WAIT + 1) * tHCLK >= tREA + tsuD_NOE */
+    waitSetupTime = params[CHIP_PARAM_T_REA] + tsuD_NOE;
+    waitSetupTime = waitSetupTime / tHCLK - 1;
+    waitSetupTime = waitSetupTime <= 0 ? 0 : ceil(waitSetupTime);
+    if (waitSetupTime > stmParams->waitSetupTime)
+        stmParams->waitSetupTime = static_cast<uint8_t>(waitSetupTime);
+
+    /* (HIZ + 1) * tHCLK >= max(tCH, tALS, tCLS) + (tWP - tDS) */
+    hiZSetupTime = *std::max_element(hiZArr.begin(), hiZArr.end());
+    hiZSetupTime += params[CHIP_PARAM_T_WP] - params[CHIP_PARAM_T_DS];
+    hiZSetupTime = hiZSetupTime / tHCLK - 1;
+    hiZSetupTime = hiZSetupTime <= 0 ? 0 : ceil(hiZSetupTime);
+    stmParams->hiZSetupTime = static_cast<uint8_t>(hiZSetupTime);
+
+    /* (HOLD + 1) * tHCLK >= max(tCH, tCLH, tALH) */
+    holdSetupTime =*std::max_element(holdArr.begin(), holdArr.end());
+    holdSetupTime = holdSetupTime / tHCLK - 1;
+    /* K9F2G08U0C requires at least 1 tick */
+    holdSetupTime = holdSetupTime <= 0 ? 1 : ceil(holdSetupTime);
+    stmParams->holdSetupTime = static_cast<uint8_t>(holdSetupTime);
+
+    /* ((WAIT + 1) + (HOLD + 1) + (SET + 1)) * tHCLK >= max(tWC, tRC) */
+    while (((stmParams->setupTime + 1) + (stmParams->waitSetupTime + 1) +
+        (stmParams->holdSetupTime + 1)) * tHCLK <
+        std::max(params[CHIP_PARAM_T_WC], params[CHIP_PARAM_T_RC]))
+    {
+        stmParams->setupTime++;
+    }
+
+    /* Not clear how to calculate, use the same approach as above */
+    arSetupTime = params[CHIP_PARAM_T_AR] / tHCLK - 1;
+    arSetupTime = arSetupTime <= 0 ? 0 : ceil(arSetupTime);
+    stmParams->arSetupTime = static_cast<uint8_t>(arSetupTime);
+
+    clrSetupTime = params[CHIP_PARAM_T_CLR] / tHCLK - 1;
+    clrSetupTime = clrSetupTime <= 0 ? 0 : ceil(clrSetupTime);
+    stmParams->clrSetupTime = static_cast<uint8_t>(clrSetupTime);
+}
+
+const QByteArray &ParallelChipInfo::getHalConf()
+{
+    Conf conf;
+    StmParams stmParams;
+
+    chipInfoToStmParams(&stmParams);
+
+    conf.setupTime = stmParams.setupTime;
+    conf.waitSetupTime = stmParams.waitSetupTime;
+    conf.holdSetupTime = stmParams.holdSetupTime;
+    conf.hiZSetupTime = stmParams.hiZSetupTime;
+    conf.clrSetupTime = stmParams.clrSetupTime;
+    conf.arSetupTime = stmParams.arSetupTime;
+    conf.rowCycles = static_cast<uint8_t>(params[CHIP_PARAM_ROW_CYCLES]);
+    conf.colCycles = static_cast<uint8_t>(params[CHIP_PARAM_COL_CYCLES]);
+    conf.read1Cmd = static_cast<uint8_t>(params[CHIP_PARAM_READ1_CMD]);
+    conf.read2Cmd = static_cast<uint8_t>(params[CHIP_PARAM_READ2_CMD]);
+    conf.readSpareCmd = static_cast<uint8_t>(params[CHIP_PARAM_READ_SPARE_CMD]);
+    conf.readIdCmd = static_cast<uint8_t>(params[CHIP_PARAM_READ_ID_CMD]);
+    conf.resetCmd = static_cast<uint8_t>(params[CHIP_PARAM_RESET_CMD]);
+    conf.write1Cmd = static_cast<uint8_t>(params[CHIP_PARAM_WRITE1_CMD]);
+    conf.write2Cmd = static_cast<uint8_t>(params[CHIP_PARAM_WRITE2_CMD]);
+    conf.erase1Cmd = static_cast<uint8_t>(params[CHIP_PARAM_ERASE1_CMD]);
+    conf.erase2Cmd = static_cast<uint8_t>(params[CHIP_PARAM_ERASE2_CMD]);
+    conf.statusCmd = static_cast<uint8_t>(params[CHIP_PARAM_STATUS_CMD]);
+
+    halConf.clear();
+    halConf.append(reinterpret_cast<const char *>(&conf), sizeof(conf));
+
+    return halConf;
+}

@@ -7,6 +7,7 @@
 #define SPI_CHIP_DB_H
 
 #include "chip_db.h"
+#include "spi_chip_info.h"
 
 #include <cstdint>
 #include <QString>
@@ -16,7 +17,7 @@
 
 class SpiChipDb : public ChipDb
 {
-    QVector<ChipInfo> chipInfoVector;
+    QVector<SpiChipInfo> chipInfoVector;
 
     QString findFile();
     int stringToChipInfo(const QString &s, ChipInfo &ci);
@@ -43,7 +44,7 @@ public:
     uint32_t totalSizeGetByName(const QString &name);
     uint32_t extendedTotalSizeGetById(int id);
     uint32_t extendedTotalSizeGetByName(const QString &name);
-    void addChip(ChipInfo &chipInfo);
+    void addChip(SpiChipInfo &chipInfo);
     void delChip(int index);
     int size();
     void commit();
@@ -58,8 +59,6 @@ public:
     int getHexStringFromOptParam(const uint32_t &param, QString &value);
     bool isParamValid(uint32_t param, uint32_t min, uint32_t max);
     bool isOptParamValid(uint32_t param, uint32_t min, uint32_t max);
-    QString getChipName(int chipIndex);
-    int setChipName(int chipIndex, const QString &name);
     uint32_t getChipParam(int chipIndex, int paramIndex);
     int setChipParam(int chipIndex, int paramIndex, uint32_t paramValue);
     uint8_t getHal();
