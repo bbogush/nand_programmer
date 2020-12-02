@@ -50,6 +50,7 @@ public:
     void commit();
     void reset();
     int getParamFromString(const QString &value, uint32_t &param);
+    int getParamFromString(const QString &value, uint8_t &param);
     int getParamFromHexString(const QString &value, uint32_t &param);
     int getStringFromParam(const uint32_t &param, QString &value);
     int getHexStringFromParam(const uint32_t &param, QString &value);

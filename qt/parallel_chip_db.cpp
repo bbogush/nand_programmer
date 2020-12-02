@@ -45,6 +45,21 @@ int ParallelChipDb::getParamFromString(const QString &value, uint32_t &param)
     return 0;
 }
 
+int ParallelChipDb::getParamFromString(const QString &value, uint8_t &param)
+{
+    uint32_t temp;
+
+    if (getParamFromString(value, temp))
+        return -1;
+
+    if (temp > UINT8_MAX)
+        return -1;
+
+    param = temp;
+
+    return 0;
+}
+
 int ParallelChipDb::getParamFromHexString(const QString &value, uint32_t &param)
 {
     bool ok;

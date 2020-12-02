@@ -31,8 +31,8 @@ public:
     int setTotalSize(int chipIndex, uint32_t totalSize);
     uint32_t getSpareSize(int chipIndex);
     int setSpareSize(int chipIndex, uint32_t spareSize);
-    uint32_t getBBMarkOffset(int chipIndex);
-    int setBBMarkOffset(int chipIndex, uint32_t bbMarkOffset);
+    uint8_t getBBMarkOffset(int chipIndex);
+    int setBBMarkOffset(int chipIndex, uint8_t bbMarkOffset);
 };
 
 #endif // CHIP_DB_H

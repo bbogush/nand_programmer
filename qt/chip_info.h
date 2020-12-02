@@ -68,7 +68,7 @@ public:
     uint32_t blockSize;
     uint32_t totalSize;
     uint32_t spareSize;
-    uint32_t bbMarkOffset;
+    uint8_t bbMarkOffset;
     uint32_t params[CHIP_PARAM_NUM];
     uint32_t hal;
 

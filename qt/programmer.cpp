@@ -305,7 +305,7 @@ void Programmer::confChip(ChipInfo *chipInfo)
     confCmd.blockSize = chipInfo->blockSize;
     confCmd.totalSize = chipInfo->totalSize;
     confCmd.spareSize = chipInfo->spareSize;
-    confCmd.bbMarkOff = static_cast<uint8_t>(chipInfo->bbMarkOffset);
+    confCmd.bbMarkOff = chipInfo->bbMarkOffset;
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(confChipCb(int)));

@@ -100,14 +100,14 @@ int ChipDb::setSpareSize(int chipIndex, uint32_t spareSize)
     return 0;
 }
 
-uint32_t ChipDb::getBBMarkOffset(int chipIndex)
+uint8_t ChipDb::getBBMarkOffset(int chipIndex)
 {
     ChipInfo *ci = getChipInfo(chipIndex);
 
     return ci ? ci->bbMarkOffset : 0;
 }
 
-int ChipDb::setBBMarkOffset(int chipIndex, uint32_t bbMarkOffset)
+int ChipDb::setBBMarkOffset(int chipIndex, uint8_t bbMarkOffset)
 {
     ChipInfo *ci = getChipInfo(chipIndex);
 
