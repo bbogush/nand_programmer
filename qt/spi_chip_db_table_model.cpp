@@ -39,11 +39,17 @@ QVariant SpiChipDbTableModel::data(const QModelIndex &index, int role) const
     case SpiChipDb::CHIP_PARAM_NAME:
         return chipDb->getChipName(index.row());
     case SpiChipDb::CHIP_PARAM_PAGE_SIZE:
-        return chipDb->getPageSize(index.row());
+        chipDb->getHexStringFromParam(chipDb->getPageSize(index.row()),
+            paramStr);
+        return paramStr;
     case SpiChipDb::CHIP_PARAM_BLOCK_SIZE:
-        return chipDb->getBlockSize(index.row());
+        chipDb->getHexStringFromParam(chipDb->getBlockSize(index.row()),
+            paramStr);
+        return paramStr;
     case SpiChipDb::CHIP_PARAM_TOTAL_SIZE:
-        return chipDb->getTotalSize(index.row());
+        chipDb->getHexStringFromParam(chipDb->getTotalSize(index.row()),
+            paramStr);
+        return paramStr;
     case SpiChipDb::CHIP_PARAM_ID1:
         chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
             SpiChipInfo::CHIP_PARAM_ID1),
