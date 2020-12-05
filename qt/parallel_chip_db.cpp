@@ -88,9 +88,6 @@ ChipInfo *ParallelChipDb::stringToChipInfo(const QString &s)
 
     for (int i = CHIP_PARAM_T_CS; i < CHIP_PARAM_NUM; i++)
     {
-        if (i == CHIP_PARAM_BB_MARK_OFF)
-            continue;
-
         if (getOptParamFromString(paramsList[i], paramValue))
         {
             QMessageBox::critical(nullptr, QObject::tr("Error"),
@@ -119,15 +116,10 @@ int ParallelChipDb::chipInfoToString(ChipInfo *chipInfo, QString &s)
     paramsList.append(csvValue);
     getStringFromParam(ci->getSpareSize(), csvValue);
     paramsList.append(csvValue);
+    getStringFromParam(ci->getBBMarkOffset(), csvValue);
+    paramsList.append(csvValue);
     for (int i = CHIP_PARAM_T_CS; i < CHIP_PARAM_NUM; i++)
     {
-        if (i == CHIP_PARAM_BB_MARK_OFF)
-        {
-            getStringFromParam(ci->getBBMarkOffset(), csvValue);
-            paramsList.append(csvValue);
-            continue;
-        }
-
         if (getStringFromOptParam(ci->getParam(i - CHIP_PARAM_T_CS), csvValue))
             return -1;
         paramsList.append(csvValue);

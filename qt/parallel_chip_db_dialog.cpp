@@ -27,13 +27,15 @@ ParallelChipDbDialog::ParallelChipDbDialog(ParallelChipDb *chipDb,
         HEADER_MED_WIDTH);
     ui->chipDbTableView->setColumnWidth(ParallelChipDb::CHIP_PARAM_SPARE_SIZE,
         HEADER_MED_WIDTH);
+    ui->chipDbTableView->setColumnWidth(ParallelChipDb::CHIP_PARAM_BB_MARK_OFF,
+        HEADER_MED_WIDTH);
     for (int i = ParallelChipDb::CHIP_PARAM_T_CS;
          i <= ParallelChipDb::CHIP_PARAM_T_REA; i++)
     {
         ui->chipDbTableView->setColumnWidth(i, HEADER_SHORT_WIDTH);
     }
     for (int i = ParallelChipDb::CHIP_PARAM_ROW_CYCLES;
-         i <= ParallelChipDb::CHIP_PARAM_BB_MARK_OFF; i++)
+         i <= ParallelChipDb::CHIP_PARAM_STATUS_CMD; i++)
     {
         ui->chipDbTableView->setColumnWidth(i, HEADER_MED_WIDTH);
     }

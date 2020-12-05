@@ -55,6 +55,8 @@ QVariant ParallelChipDbTableModel::data(const QModelIndex &index,
         chipDb->getHexStringFromParam(chipDb->getSpareSize(index.row()),
             paramStr);
         return paramStr;
+    case ParallelChipDb::CHIP_PARAM_BB_MARK_OFF:
+        return chipDb->getBBMarkOffset(index.row());
     case ParallelChipDb::CHIP_PARAM_T_CS:
         return chipDb->getChipParam(index.row(),
             ParallelChipInfo::CHIP_PARAM_T_CS);
@@ -143,8 +145,6 @@ QVariant ParallelChipDbTableModel::data(const QModelIndex &index,
         chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
             ParallelChipInfo::CHIP_PARAM_STATUS_CMD), paramStr);
         return paramStr;
-    case ParallelChipDb::CHIP_PARAM_BB_MARK_OFF:
-        return chipDb->getBBMarkOffset(index.row());
     case ParallelChipDb::CHIP_PARAM_ID1:
         chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
             ParallelChipInfo::CHIP_PARAM_ID1), paramStr);
@@ -187,6 +187,8 @@ QVariant ParallelChipDbTableModel::headerData(int section,
             return tr("Total size");
         case ParallelChipDb::CHIP_PARAM_SPARE_SIZE:
             return tr("Spare size");
+        case ParallelChipDb::CHIP_PARAM_BB_MARK_OFF:
+            return tr("BB mark off.");
         case ParallelChipDb::CHIP_PARAM_T_CS:
             return tr("tCS");
         case ParallelChipDb::CHIP_PARAM_T_CLS:
@@ -239,8 +241,6 @@ QVariant ParallelChipDbTableModel::headerData(int section,
             return tr("Erase 2 com.");
         case ParallelChipDb::CHIP_PARAM_STATUS_CMD:
             return tr("Status com.");
-        case ParallelChipDb::CHIP_PARAM_BB_MARK_OFF:
-            return tr("BB mark off.");
         case ParallelChipDb::CHIP_PARAM_ID1:
             return tr("ID 1");
         case ParallelChipDb::CHIP_PARAM_ID2:
@@ -268,6 +268,8 @@ QVariant ParallelChipDbTableModel::headerData(int section,
             return tr("Total size in bytes");
         case ParallelChipDb::CHIP_PARAM_SPARE_SIZE:
             return tr("Spare area size in bytes");
+        case ParallelChipDb::CHIP_PARAM_BB_MARK_OFF:
+            return tr("Bad block mark offset");
         case ParallelChipDb::CHIP_PARAM_T_CS:
             return tr("Chip enable setup time");
         case ParallelChipDb::CHIP_PARAM_T_CLS:
@@ -322,8 +324,6 @@ QVariant ParallelChipDbTableModel::headerData(int section,
             return tr("Erase 2 cycle command");
         case ParallelChipDb::CHIP_PARAM_STATUS_CMD:
             return tr("Status command");
-        case ParallelChipDb::CHIP_PARAM_BB_MARK_OFF:
-            return tr("Bad block mark offset");
         case ParallelChipDb::CHIP_PARAM_ID1:
             return tr("Chip ID 1st byte");
         case ParallelChipDb::CHIP_PARAM_ID2:
@@ -377,6 +377,11 @@ bool ParallelChipDbTableModel::setData(const QModelIndex &index,
         if (chipDb->getParamFromHexString(value.toString(), paramVal))
             return false;
         chipDb->setSpareSize(index.row(), paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_BB_MARK_OFF:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setBBMarkOffset(index.row(), paramVal);
         return true;
     case ParallelChipDb::CHIP_PARAM_T_CS:
         if (chipDb->getParamFromString(value.toString(), paramVal))
@@ -563,11 +568,6 @@ bool ParallelChipDbTableModel::setData(const QModelIndex &index,
             return false;
         chipDb->setChipParam(index.row(),
             ParallelChipInfo::CHIP_PARAM_STATUS_CMD, paramVal);
-        return true;
-    case ParallelChipDb::CHIP_PARAM_BB_MARK_OFF:
-        if (chipDb->getParamFromString(value.toString(), paramVal))
-            return false;
-        chipDb->setBBMarkOffset(index.row(), paramVal);
         return true;
     case ParallelChipDb::CHIP_PARAM_ID1:
         if (chipDb->getParamFromHexString(value.toString(), paramVal))

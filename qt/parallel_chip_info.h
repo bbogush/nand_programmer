@@ -39,7 +39,6 @@ public:
         CHIP_PARAM_ERASE1_CMD,
         CHIP_PARAM_ERASE2_CMD,
         CHIP_PARAM_STATUS_CMD,
-        CHIP_PARAM_BB_MARK_OFF,
         CHIP_PARAM_ID1,
         CHIP_PARAM_ID2,
         CHIP_PARAM_ID3,
