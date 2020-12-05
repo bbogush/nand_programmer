@@ -32,12 +32,18 @@ public:
         CHIP_PARAM_PAGE_SIZE,
         CHIP_PARAM_BLOCK_SIZE,
         CHIP_PARAM_TOTAL_SIZE,
+        CHIP_PARAM_PAGE_OFF,
+        CHIP_PARAM_READ_CMD,
+        CHIP_PARAM_READ_ID_CMD,
+        CHIP_PARAM_WRITE_CMD,
+        CHIP_PARAM_ERASE_CMD,
+        CHIP_PARAM_STATUS_CMD,
         CHIP_PARAM_ID1,
         CHIP_PARAM_ID2,
         CHIP_PARAM_ID3,
         CHIP_PARAM_ID4,
         CHIP_PARAM_ID5,
-        CHIP_PARAM_NUM,
+        CHIP_PARAM_NUM
     };
 
     explicit SpiChipDb();

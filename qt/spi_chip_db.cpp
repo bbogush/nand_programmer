@@ -66,7 +66,7 @@ ChipInfo *SpiChipDb::stringToChipInfo(const QString &s)
     }
     ci->setTotalSize(paramValue);
 
-    for (int i = CHIP_PARAM_ID1; i < CHIP_PARAM_NUM; i++)
+    for (int i = CHIP_PARAM_PAGE_OFF; i < CHIP_PARAM_NUM; i++)
     {
         if (getOptParamFromString(paramsList[i], paramValue))
         {
@@ -75,7 +75,7 @@ ChipInfo *SpiChipDb::stringToChipInfo(const QString &s)
             delete ci;
             return nullptr;
         }
-        ci->setParam(i - CHIP_PARAM_ID1, paramValue);
+        ci->setParam(i - CHIP_PARAM_PAGE_OFF, paramValue);
     }
 
     return ci;
@@ -96,10 +96,13 @@ int SpiChipDb::chipInfoToString(ChipInfo *chipInfo, QString &s)
     paramsList.append(csvValue);
     getStringFromParam(ci->getSpareSize(), csvValue);
     paramsList.append(csvValue);
-    for (int i = CHIP_PARAM_ID1; i < CHIP_PARAM_NUM; i++)
+    for (int i = CHIP_PARAM_PAGE_OFF; i < CHIP_PARAM_NUM; i++)
     {
-        if (getStringFromOptParam(ci->getParam(i - CHIP_PARAM_ID1), csvValue))
+        if (getStringFromOptParam(ci->getParam(i - CHIP_PARAM_PAGE_OFF),
+            csvValue))
+        {
             return -1;
+        }
         paramsList.append(csvValue);
     }
 

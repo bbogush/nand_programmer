@@ -26,6 +26,12 @@ SpiChipDbDialog::SpiChipDbDialog(SpiChipDb *chipDb, QWidget *parent) :
     ui->chipDbTableView->setColumnWidth(SpiChipDb::CHIP_PARAM_TOTAL_SIZE,
         HEADER_MED_WIDTH);
 
+    for (int i = SpiChipDb::CHIP_PARAM_PAGE_OFF;
+         i <= SpiChipDb::CHIP_PARAM_STATUS_CMD; i++)
+    {
+        ui->chipDbTableView->setColumnWidth(i, HEADER_MED_WIDTH);
+    }
+
     connect(ui->addChipDbButton, SIGNAL(clicked()), this,
         SLOT(slotAddChipDbButtonClicked()));
     connect(ui->delChipDbButton, SIGNAL(clicked()), this,

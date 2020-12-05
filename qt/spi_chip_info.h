@@ -13,6 +13,12 @@ class SpiChipInfo : public ChipInfo
 public:
     enum
     {
+        CHIP_PARAM_PAGE_OFF,
+        CHIP_PARAM_READ_CMD,
+        CHIP_PARAM_READ_ID_CMD,
+        CHIP_PARAM_WRITE_CMD,
+        CHIP_PARAM_ERASE_CMD,
+        CHIP_PARAM_STATUS_CMD,
         CHIP_PARAM_ID1,
         CHIP_PARAM_ID2,
         CHIP_PARAM_ID3,

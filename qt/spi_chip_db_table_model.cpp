@@ -50,15 +50,36 @@ QVariant SpiChipDbTableModel::data(const QModelIndex &index, int role) const
         chipDb->getHexStringFromParam(chipDb->getTotalSize(index.row()),
             paramStr);
         return paramStr;
+    case SpiChipDb::CHIP_PARAM_PAGE_OFF:
+        return chipDb->getChipParam(index.row(),
+            SpiChipInfo::CHIP_PARAM_PAGE_OFF);
+    case SpiChipDb::CHIP_PARAM_READ_CMD:
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
+            SpiChipInfo::CHIP_PARAM_READ_CMD), paramStr);
+        return paramStr;
+    case SpiChipDb::CHIP_PARAM_READ_ID_CMD:
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
+            SpiChipInfo::CHIP_PARAM_READ_ID_CMD), paramStr);
+        return paramStr;
+    case SpiChipDb::CHIP_PARAM_WRITE_CMD:
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
+            SpiChipInfo::CHIP_PARAM_WRITE_CMD), paramStr);
+        return paramStr;
+    case SpiChipDb::CHIP_PARAM_ERASE_CMD:
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
+            SpiChipInfo::CHIP_PARAM_ERASE_CMD), paramStr);
+        return paramStr;
+    case SpiChipDb::CHIP_PARAM_STATUS_CMD:
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
+            SpiChipInfo::CHIP_PARAM_STATUS_CMD), paramStr);
+        return paramStr;
     case SpiChipDb::CHIP_PARAM_ID1:
         chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
-            SpiChipInfo::CHIP_PARAM_ID1),
-            paramStr);
+            SpiChipInfo::CHIP_PARAM_ID1), paramStr);
         return paramStr;
     case SpiChipDb::CHIP_PARAM_ID2:
         chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
-            SpiChipInfo::CHIP_PARAM_ID2),
-            paramStr);
+            SpiChipInfo::CHIP_PARAM_ID2), paramStr);
         return paramStr;
     case SpiChipDb::CHIP_PARAM_ID3:
         chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
@@ -88,6 +109,12 @@ QVariant SpiChipDbTableModel::headerData(int section,
         case SpiChipDb::CHIP_PARAM_PAGE_SIZE: return tr("Page size");
         case SpiChipDb::CHIP_PARAM_BLOCK_SIZE: return tr("Block size");
         case SpiChipDb::CHIP_PARAM_TOTAL_SIZE: return tr("Total size");
+        case SpiChipDb::CHIP_PARAM_PAGE_OFF: return tr("Page off.");
+        case SpiChipDb::CHIP_PARAM_READ_CMD: return tr("Read com.");
+        case SpiChipDb::CHIP_PARAM_READ_ID_CMD: return tr("Read ID com.");
+        case SpiChipDb::CHIP_PARAM_WRITE_CMD: return tr("Write com.");
+        case SpiChipDb::CHIP_PARAM_ERASE_CMD: return tr("Erase com.");
+        case SpiChipDb::CHIP_PARAM_STATUS_CMD: return tr("Status com.");
         case SpiChipDb::CHIP_PARAM_ID1: return tr("ID 1");
         case SpiChipDb::CHIP_PARAM_ID2: return tr("ID 2");
         case SpiChipDb::CHIP_PARAM_ID3: return tr("ID 3");
@@ -108,6 +135,18 @@ QVariant SpiChipDbTableModel::headerData(int section,
             return tr("Block size in bytes");
         case SpiChipDb::CHIP_PARAM_TOTAL_SIZE:
             return tr("Total size in bytes");
+        case SpiChipDb::CHIP_PARAM_PAGE_OFF:
+            return tr("Page offset in address");
+        case SpiChipDb::CHIP_PARAM_READ_CMD:
+            return tr("Page read command");
+        case SpiChipDb::CHIP_PARAM_READ_ID_CMD:
+            return tr("Read ID command");
+        case SpiChipDb::CHIP_PARAM_WRITE_CMD:
+            return tr("Page write command");
+        case SpiChipDb::CHIP_PARAM_ERASE_CMD:
+            return tr("Block erase command");
+        case SpiChipDb::CHIP_PARAM_STATUS_CMD:
+            return tr("Read status command");
         case SpiChipDb::CHIP_PARAM_ID1:
             return tr("Chip ID 1st byte");
         case SpiChipDb::CHIP_PARAM_ID2:
@@ -156,6 +195,54 @@ bool SpiChipDbTableModel::setData(const QModelIndex &index,
         if (chipDb->getParamFromHexString(value.toString(), paramVal))
             return false;
         chipDb->setTotalSize(index.row(), paramVal);
+        return true;
+    case SpiChipDb::CHIP_PARAM_PAGE_OFF:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        if (chipDb->isParamValid(paramVal, 0, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(), SpiChipInfo::CHIP_PARAM_PAGE_OFF,
+            paramVal);
+        return true;
+    case SpiChipDb::CHIP_PARAM_READ_CMD:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(), SpiChipInfo::CHIP_PARAM_READ_CMD,
+            paramVal);
+        return true;
+    case SpiChipDb::CHIP_PARAM_READ_ID_CMD:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(), SpiChipInfo::CHIP_PARAM_READ_ID_CMD,
+            paramVal);
+        return true;
+    case SpiChipDb::CHIP_PARAM_WRITE_CMD:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(), SpiChipInfo::CHIP_PARAM_WRITE_CMD,
+            paramVal);
+        return true;
+    case SpiChipDb::CHIP_PARAM_ERASE_CMD:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(), SpiChipInfo::CHIP_PARAM_ERASE_CMD,
+            paramVal);
+        return true;
+    case SpiChipDb::CHIP_PARAM_STATUS_CMD:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(), SpiChipInfo::CHIP_PARAM_STATUS_CMD,
+            paramVal);
         return true;
     case SpiChipDb::CHIP_PARAM_ID1:
         if (chipDb->getParamFromHexString(value.toString(), paramVal))

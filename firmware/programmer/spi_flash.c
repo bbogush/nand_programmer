@@ -13,14 +13,6 @@
 
 #define FLASH_DUMMY_BYTE 0xA5
 
-#define CMD_READ_ID 0x9F
-#define CMD_FLASH_PAGE_WRITE 0x82
-#define CMD_FLASH_PAGE_READ 0x0B
-#define CMD_FLASH_BLOCK_ERASE 0x50
-#define CMD_READ_STATUS 0xD7
-
-#define PAGE_ADDRESS_OFFSET 9
-
 #define STATUS_READY (1<<7)
 
 #define FLASH_READY 0
@@ -35,6 +27,18 @@
 #define ADDR_3rd_CYCLE(ADDR) (uint8_t)(((ADDR)& 0xFF0000) >> 16)
 /* 4th addressing cycle */
 #define ADDR_4th_CYCLE(ADDR) (uint8_t)(((ADDR)& 0xFF000000) >> 24)
+
+typedef struct __attribute__((__packed__))
+{
+    uint8_t page_offset;
+    uint8_t read_cmd;
+    uint8_t read_id_cmd;
+    uint8_t write_cmd;
+    uint8_t erase_cmd;
+    uint8_t status_cmd;
+} spi_conf_t;
+
+static spi_conf_t spi_conf;
 
 static void spi_flash_gpio_init()
 {
@@ -105,6 +109,10 @@ static int spi_flash_init(void *conf, uint32_t conf_size)
 {
     SPI_InitTypeDef spi_init;
 
+    if (conf_size < sizeof(spi_conf_t))
+        return -1; 
+    spi_conf = *(spi_conf_t *)conf;
+
     spi_flash_gpio_init();
 
     spi_flash_deselect_chip();
@@ -161,7 +169,7 @@ static uint32_t spi_flash_read_status()
 
     spi_flash_select_chip();
 
-    spi_flash_send_byte(CMD_READ_STATUS);
+    spi_flash_send_byte(spi_conf.status_cmd);
 
     if (spi_flash_read_byte() & STATUS_READY)
         status = FLASH_READY;
@@ -196,7 +204,7 @@ static void spi_flash_read_id(chip_id_t *chip_id)
 {
     spi_flash_select_chip();
 
-    spi_flash_send_byte(CMD_READ_ID);
+    spi_flash_send_byte(spi_conf.read_id_cmd);
 
     chip_id->maker_id = spi_flash_read_byte();
     chip_id->device_id = spi_flash_read_byte();
@@ -213,9 +221,9 @@ static void spi_flash_write_page_async(uint8_t *buf, uint32_t page,
 
     spi_flash_select_chip();
 
-    spi_flash_send_byte(CMD_FLASH_PAGE_WRITE);
+    spi_flash_send_byte(spi_conf.write_cmd);
 
-    page = page << PAGE_ADDRESS_OFFSET;
+    page = page << spi_conf.page_offset;
 
     spi_flash_send_byte(ADDR_3rd_CYCLE(page));
     spi_flash_send_byte(ADDR_2nd_CYCLE(page));
@@ -230,11 +238,11 @@ static void spi_flash_write_page_async(uint8_t *buf, uint32_t page,
 static uint32_t spi_flash_read_data(uint8_t *buf, uint32_t page,
     uint32_t page_offset, uint32_t data_size)
 {
-    uint32_t i, addr = (page << PAGE_ADDRESS_OFFSET) + page_offset;
+    uint32_t i, addr = (page << spi_conf.page_offset) + page_offset;
 
     spi_flash_select_chip();
 
-    spi_flash_send_byte(CMD_FLASH_PAGE_READ);
+    spi_flash_send_byte(spi_conf.read_cmd);
 
     spi_flash_send_byte(ADDR_3rd_CYCLE(addr));
     spi_flash_send_byte(ADDR_2nd_CYCLE(addr));
@@ -265,10 +273,11 @@ static uint32_t spi_flash_read_spare_data(uint8_t *buf, uint32_t page,
 
 static uint32_t spi_flash_erase_block(uint32_t page)
 {
-    uint32_t addr = page << PAGE_ADDRESS_OFFSET;
+    uint32_t addr = page << spi_conf.page_offset;
+
     spi_flash_select_chip();
 
-    spi_flash_send_byte(CMD_FLASH_BLOCK_ERASE);
+    spi_flash_send_byte(spi_conf.erase_cmd);
 
     spi_flash_send_byte(ADDR_3rd_CYCLE(addr));
     spi_flash_send_byte(ADDR_2nd_CYCLE(addr));
