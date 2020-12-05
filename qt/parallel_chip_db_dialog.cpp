@@ -17,19 +17,26 @@ ParallelChipDbDialog::ParallelChipDbDialog(ParallelChipDb *chipDb,
     ui->setupUi(this);
     chipDbProxyModel.setSourceModel(&chipDbTableModel);
     ui->chipDbTableView->setModel(&chipDbProxyModel);
-    ui->chipDbTableView->setColumnWidth(CHIP_PARAM_NAME, HEADER_LONG_WIDTH);
-    ui->chipDbTableView->setColumnWidth(CHIP_PARAM_PAGE_SIZE,
+    ui->chipDbTableView->setColumnWidth(ParallelChipDb::CHIP_PARAM_NAME,
+        HEADER_LONG_WIDTH);
+    ui->chipDbTableView->setColumnWidth(ParallelChipDb::CHIP_PARAM_PAGE_SIZE,
         HEADER_MED_WIDTH);
-    ui->chipDbTableView->setColumnWidth(CHIP_PARAM_BLOCK_SIZE,
+    ui->chipDbTableView->setColumnWidth(ParallelChipDb::CHIP_PARAM_BLOCK_SIZE,
         HEADER_MED_WIDTH);
-    ui->chipDbTableView->setColumnWidth(CHIP_PARAM_TOTAL_SIZE,
+    ui->chipDbTableView->setColumnWidth(ParallelChipDb::CHIP_PARAM_TOTAL_SIZE,
         HEADER_MED_WIDTH);
-    ui->chipDbTableView->setColumnWidth(CHIP_PARAM_SPARE_SIZE,
+    ui->chipDbTableView->setColumnWidth(ParallelChipDb::CHIP_PARAM_SPARE_SIZE,
         HEADER_MED_WIDTH);
-    for (int i = CHIP_PARAM_T_CS; i <= CHIP_PARAM_T_REA; i++)
+    for (int i = ParallelChipDb::CHIP_PARAM_T_CS;
+         i <= ParallelChipDb::CHIP_PARAM_T_REA; i++)
+    {
         ui->chipDbTableView->setColumnWidth(i, HEADER_SHORT_WIDTH);
-    for (int i = CHIP_PARAM_ROW_CYCLES; i <= CHIP_PARAM_BB_MARK_OFF; i++)
+    }
+    for (int i = ParallelChipDb::CHIP_PARAM_ROW_CYCLES;
+         i <= ParallelChipDb::CHIP_PARAM_BB_MARK_OFF; i++)
+    {
         ui->chipDbTableView->setColumnWidth(i, HEADER_MED_WIDTH);
+    }
 
     connect(ui->addChipDbButton, SIGNAL(clicked()), this,
         SLOT(slotAddChipDbButtonClicked()));

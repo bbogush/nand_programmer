@@ -139,3 +139,21 @@ const QByteArray &ParallelChipInfo::getHalConf()
 
     return halConf;
 }
+
+uint32_t ParallelChipInfo::getParam(uint32_t num)
+{
+    if (num >= CHIP_PARAM_NUM)
+        return 0;
+
+    return params[num];
+}
+
+int ParallelChipInfo::setParam(uint32_t num, uint32_t value)
+{
+    if (num >= CHIP_PARAM_NUM)
+        return -1;
+
+    params[num] = value;
+
+    return 0;
+}

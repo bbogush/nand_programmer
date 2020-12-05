@@ -300,12 +300,12 @@ void Programmer::confChip(ChipInfo *chipInfo)
     ConfCmd confCmd;
 
     confCmd.cmd.code = CMD_NAND_CONF;
-    confCmd.hal = chipInfo->hal;
-    confCmd.pageSize = chipInfo->pageSize;
-    confCmd.blockSize = chipInfo->blockSize;
-    confCmd.totalSize = chipInfo->totalSize;
-    confCmd.spareSize = chipInfo->spareSize;
-    confCmd.bbMarkOff = chipInfo->bbMarkOffset;
+    confCmd.hal = chipInfo->getHal();
+    confCmd.pageSize = chipInfo->getPageSize();
+    confCmd.blockSize = chipInfo->getBlockSize();
+    confCmd.totalSize = chipInfo->getTotalSize();
+    confCmd.spareSize = chipInfo->getSpareSize();
+    confCmd.bbMarkOff = chipInfo->getBBMarkOffset();
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(confChipCb(int)));

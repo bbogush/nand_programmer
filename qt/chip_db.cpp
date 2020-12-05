@@ -9,7 +9,7 @@ QString ChipDb::getChipName(int chipIndex)
 {
     ChipInfo *ci = getChipInfo(chipIndex);
 
-    return ci ? ci->name : QString();
+    return ci ? ci->getName() : QString();
 }
 
 int ChipDb::setChipName(int chipIndex, const QString &name)
@@ -19,7 +19,7 @@ int ChipDb::setChipName(int chipIndex, const QString &name)
     if (!ci)
         return -1;
 
-    ci->name = name;
+    ci->setName(name);
 
     return 0;
 }
@@ -28,7 +28,7 @@ uint32_t ChipDb::getPageSize(int chipIndex)
 {
     ChipInfo *ci = getChipInfo(chipIndex);
 
-    return ci ? ci->pageSize : 0;
+    return ci ? ci->getPageSize() : 0;
 }
 
 int ChipDb::setPageSize(int chipIndex, uint32_t pageSize)
@@ -38,7 +38,7 @@ int ChipDb::setPageSize(int chipIndex, uint32_t pageSize)
     if (!ci)
         return -1;
 
-    ci->pageSize = pageSize;
+    ci->setPageSize(pageSize);
 
     return 0;
 }
@@ -47,7 +47,7 @@ uint32_t ChipDb::getBlockSize(int chipIndex)
 {
     ChipInfo *ci = getChipInfo(chipIndex);
 
-    return ci ? ci->blockSize : 0;
+    return ci ? ci->getBlockSize() : 0;
 }
 
 int ChipDb::setBlockSize(int chipIndex, uint32_t blockSize)
@@ -57,7 +57,7 @@ int ChipDb::setBlockSize(int chipIndex, uint32_t blockSize)
     if (!ci)
         return -1;
 
-    ci->blockSize = blockSize;
+    ci->setBlockSize(blockSize);
 
     return 0;
 }
@@ -66,7 +66,7 @@ uint32_t ChipDb::getTotalSize(int chipIndex)
 {
     ChipInfo *ci = getChipInfo(chipIndex);
 
-    return ci ? ci->totalSize : 0;
+    return ci ? ci->getTotalSize() : 0;
 }
 
 int ChipDb::setTotalSize(int chipIndex, uint32_t totalSize)
@@ -76,7 +76,7 @@ int ChipDb::setTotalSize(int chipIndex, uint32_t totalSize)
     if (!ci)
         return -1;
 
-    ci->totalSize = totalSize;
+    ci->setTotalSize(totalSize);
 
     return 0;
 }
@@ -85,7 +85,7 @@ uint32_t ChipDb::getSpareSize(int chipIndex)
 {
     ChipInfo *ci = getChipInfo(chipIndex);
 
-    return ci ? ci->spareSize : 0;
+    return ci ? ci->getSpareSize() : 0;
 }
 
 int ChipDb::setSpareSize(int chipIndex, uint32_t spareSize)
@@ -95,7 +95,7 @@ int ChipDb::setSpareSize(int chipIndex, uint32_t spareSize)
     if (!ci)
         return -1;
 
-    ci->spareSize = spareSize;
+    ci->setSpareSize(spareSize);
 
     return 0;
 }
@@ -104,7 +104,7 @@ uint8_t ChipDb::getBBMarkOffset(int chipIndex)
 {
     ChipInfo *ci = getChipInfo(chipIndex);
 
-    return ci ? ci->bbMarkOffset : 0;
+    return ci ? ci->getBBMarkOffset() : 0;
 }
 
 int ChipDb::setBBMarkOffset(int chipIndex, uint8_t bbMarkOffset)
@@ -114,7 +114,7 @@ int ChipDb::setBBMarkOffset(int chipIndex, uint8_t bbMarkOffset)
     if (!ci)
         return -1;
 
-    ci->bbMarkOffset = bbMarkOffset;
+    ci->setBBMarkOffset(bbMarkOffset);
 
     return 0;
 }

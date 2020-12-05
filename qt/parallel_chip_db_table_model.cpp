@@ -22,7 +22,7 @@ int ParallelChipDbTableModel::rowCount(const QModelIndex & /*parent*/) const
 
 int ParallelChipDbTableModel::columnCount(const QModelIndex & /*parent*/) const
 {
-    return CHIP_PARAM_NUM;
+    return ParallelChipDb::CHIP_PARAM_NUM;
 }
 
 QVariant ParallelChipDbTableModel::data(const QModelIndex &index,
@@ -37,64 +37,134 @@ QVariant ParallelChipDbTableModel::data(const QModelIndex &index,
     column = index.column();
     switch (column)
     {
-    case CHIP_PARAM_NAME:
+    case ParallelChipDb::CHIP_PARAM_NAME:
         return chipDb->getChipName(index.row());
-    case CHIP_PARAM_PAGE_SIZE:
+    case ParallelChipDb::CHIP_PARAM_PAGE_SIZE:
         chipDb->getHexStringFromParam(chipDb->getPageSize(index.row()),
             paramStr);
         return paramStr;
-    case CHIP_PARAM_BLOCK_SIZE:
+    case ParallelChipDb::CHIP_PARAM_BLOCK_SIZE:
         chipDb->getHexStringFromParam(chipDb->getBlockSize(index.row()),
             paramStr);
         return paramStr;
-    case CHIP_PARAM_TOTAL_SIZE:
+    case ParallelChipDb::CHIP_PARAM_TOTAL_SIZE:
         chipDb->getHexStringFromParam(chipDb->getTotalSize(index.row()),
             paramStr);
         return paramStr;
-    case CHIP_PARAM_SPARE_SIZE:
+    case ParallelChipDb::CHIP_PARAM_SPARE_SIZE:
         chipDb->getHexStringFromParam(chipDb->getSpareSize(index.row()),
             paramStr);
         return paramStr;
-    case CHIP_PARAM_READ1_CMD:
-    case CHIP_PARAM_READ_ID_CMD:
-    case CHIP_PARAM_RESET_CMD:
-    case CHIP_PARAM_WRITE1_CMD:
-    case CHIP_PARAM_ERASE1_CMD:
-    case CHIP_PARAM_STATUS_CMD:
-    case CHIP_PARAM_ID1:
-    case CHIP_PARAM_ID2:
-        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(), column),
-            paramStr);
+    case ParallelChipDb::CHIP_PARAM_T_CS:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_CS);
+    case ParallelChipDb::CHIP_PARAM_T_CLS:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_CLS);
+    case ParallelChipDb::CHIP_PARAM_T_ALS:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_ALS);
+    case ParallelChipDb::CHIP_PARAM_T_CLR:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_CLR);
+    case ParallelChipDb::CHIP_PARAM_T_AR:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_AR);
+    case ParallelChipDb::CHIP_PARAM_T_WP:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_WP);
+    case ParallelChipDb::CHIP_PARAM_T_RP:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_RP);
+    case ParallelChipDb::CHIP_PARAM_T_DS:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_DS);
+    case ParallelChipDb::CHIP_PARAM_T_CH:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_CH);
+    case ParallelChipDb::CHIP_PARAM_T_CLH:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_CLH);
+    case ParallelChipDb::CHIP_PARAM_T_ALH:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_ALH);
+    case ParallelChipDb::CHIP_PARAM_T_WC:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_WC);
+    case ParallelChipDb::CHIP_PARAM_T_RC:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_RC);
+    case ParallelChipDb::CHIP_PARAM_T_REA:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_T_REA);
+    case ParallelChipDb::CHIP_PARAM_ROW_CYCLES:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ROW_CYCLES);
+    case ParallelChipDb::CHIP_PARAM_COL_CYCLES:
+        return chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_COL_CYCLES);
+    case ParallelChipDb::CHIP_PARAM_READ1_CMD:
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_READ1_CMD), paramStr);
         return paramStr;
-    case CHIP_PARAM_T_CS:
-    case CHIP_PARAM_T_CLS:
-    case CHIP_PARAM_T_ALS:
-    case CHIP_PARAM_T_CLR:
-    case CHIP_PARAM_T_AR:
-    case CHIP_PARAM_T_WP:
-    case CHIP_PARAM_T_RP:
-    case CHIP_PARAM_T_DS:
-    case CHIP_PARAM_T_CH:
-    case CHIP_PARAM_T_CLH:
-    case CHIP_PARAM_T_ALH:
-    case CHIP_PARAM_T_WC:
-    case CHIP_PARAM_T_RC:
-    case CHIP_PARAM_T_REA:
-    case CHIP_PARAM_ROW_CYCLES:
-    case CHIP_PARAM_COL_CYCLES:
-        return chipDb->getChipParam(index.row(), column);
-    case CHIP_PARAM_READ2_CMD:
-    case CHIP_PARAM_READ_SPARE_CMD:
-    case CHIP_PARAM_WRITE2_CMD:
-    case CHIP_PARAM_ERASE2_CMD:
-    case CHIP_PARAM_ID3:
-    case CHIP_PARAM_ID4:
-    case CHIP_PARAM_ID5:
+    case ParallelChipDb::CHIP_PARAM_READ2_CMD:
         chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
-            column), paramStr);
+            ParallelChipInfo::CHIP_PARAM_READ2_CMD), paramStr);
         return paramStr;
-    case CHIP_PARAM_BB_MARK_OFF:
+    case ParallelChipDb::CHIP_PARAM_READ_SPARE_CMD:
+        chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_READ_SPARE_CMD), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_READ_ID_CMD:
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_READ_ID_CMD), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_RESET_CMD:
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_RESET_CMD), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_WRITE1_CMD:
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_WRITE1_CMD), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_WRITE2_CMD:
+        chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_WRITE2_CMD), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_ERASE1_CMD:
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ERASE1_CMD), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_ERASE2_CMD:
+        chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ERASE2_CMD), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_STATUS_CMD:
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_STATUS_CMD), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_BB_MARK_OFF:
         return chipDb->getBBMarkOffset(index.row());
+    case ParallelChipDb::CHIP_PARAM_ID1:
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ID1), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_ID2:
+        chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ID2), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_ID3:
+        chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ID3), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_ID4:
+        chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ID4), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_ID5:
+        chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ID5), paramStr);
+        return paramStr;
     }
 
     return QVariant();
@@ -107,43 +177,80 @@ QVariant ParallelChipDbTableModel::headerData(int section,
     {
         switch (section)
         {
-        case CHIP_PARAM_NAME: return tr("Name");
-        case CHIP_PARAM_PAGE_SIZE: return tr("Page size");
-        case CHIP_PARAM_BLOCK_SIZE: return tr("Block size");
-        case CHIP_PARAM_TOTAL_SIZE: return tr("Total size");
-        case CHIP_PARAM_SPARE_SIZE: return tr("Spare size");
-        case CHIP_PARAM_T_CS: return tr("tCS");
-        case CHIP_PARAM_T_CLS: return tr("tCLS");
-        case CHIP_PARAM_T_ALS: return tr("tALS");
-        case CHIP_PARAM_T_CLR: return tr("tCLR");
-        case CHIP_PARAM_T_AR: return tr("tAR");
-        case CHIP_PARAM_T_WP: return tr("tWP");
-        case CHIP_PARAM_T_RP: return tr("tRP");
-        case CHIP_PARAM_T_DS: return tr("tDS");
-        case CHIP_PARAM_T_CH: return tr("tCH");
-        case CHIP_PARAM_T_CLH: return tr("tCLH");
-        case CHIP_PARAM_T_ALH: return tr("tALH");
-        case CHIP_PARAM_T_WC: return tr("tWC");
-        case CHIP_PARAM_T_RC: return tr("tRC");
-        case CHIP_PARAM_T_REA: return tr("tREA");
-        case CHIP_PARAM_ROW_CYCLES: return tr("Row cycles");
-        case CHIP_PARAM_COL_CYCLES: return tr("Col. cycles");
-        case CHIP_PARAM_READ1_CMD: return  tr("Read 1 com.");
-        case CHIP_PARAM_READ2_CMD: return tr("Read 2 com.");
-        case CHIP_PARAM_READ_SPARE_CMD: return tr("Read spr. com.");
-        case CHIP_PARAM_READ_ID_CMD: return tr("Read ID com.");
-        case CHIP_PARAM_RESET_CMD: return tr("Reset com.");
-        case CHIP_PARAM_WRITE1_CMD: return tr("Write 1 com.");
-        case CHIP_PARAM_WRITE2_CMD: return tr("Write 2 com.");
-        case CHIP_PARAM_ERASE1_CMD: return tr("Erase 1 com.");
-        case CHIP_PARAM_ERASE2_CMD: return tr("Erase 2 com.");
-        case CHIP_PARAM_STATUS_CMD: return tr("Status com.");
-        case CHIP_PARAM_BB_MARK_OFF: return tr("BB mark off.");
-        case CHIP_PARAM_ID1: return tr("ID 1");
-        case CHIP_PARAM_ID2: return tr("ID 2");
-        case CHIP_PARAM_ID3: return tr("ID 3");
-        case CHIP_PARAM_ID4: return tr("ID 4");
-        case CHIP_PARAM_ID5: return tr("ID 5");
+        case ParallelChipDb::CHIP_PARAM_NAME:
+            return tr("Name");
+        case ParallelChipDb::CHIP_PARAM_PAGE_SIZE:
+            return tr("Page size");
+        case ParallelChipDb::CHIP_PARAM_BLOCK_SIZE:
+            return tr("Block size");
+        case ParallelChipDb::CHIP_PARAM_TOTAL_SIZE:
+            return tr("Total size");
+        case ParallelChipDb::CHIP_PARAM_SPARE_SIZE:
+            return tr("Spare size");
+        case ParallelChipDb::CHIP_PARAM_T_CS:
+            return tr("tCS");
+        case ParallelChipDb::CHIP_PARAM_T_CLS:
+            return tr("tCLS");
+        case ParallelChipDb::CHIP_PARAM_T_ALS:
+            return tr("tALS");
+        case ParallelChipDb::CHIP_PARAM_T_CLR:
+            return tr("tCLR");
+        case ParallelChipDb::CHIP_PARAM_T_AR:
+            return tr("tAR");
+        case ParallelChipDb::CHIP_PARAM_T_WP:
+            return tr("tWP");
+        case ParallelChipDb::CHIP_PARAM_T_RP:
+            return tr("tRP");
+        case ParallelChipDb::CHIP_PARAM_T_DS:
+            return tr("tDS");
+        case ParallelChipDb::CHIP_PARAM_T_CH:
+            return tr("tCH");
+        case ParallelChipDb::CHIP_PARAM_T_CLH:
+            return tr("tCLH");
+        case ParallelChipDb::CHIP_PARAM_T_ALH:
+            return tr("tALH");
+        case ParallelChipDb::CHIP_PARAM_T_WC:
+            return tr("tWC");
+        case ParallelChipDb::CHIP_PARAM_T_RC:
+            return tr("tRC");
+        case ParallelChipDb::CHIP_PARAM_T_REA:
+            return tr("tREA");
+        case ParallelChipDb::CHIP_PARAM_ROW_CYCLES:
+            return tr("Row cycles");
+        case ParallelChipDb::CHIP_PARAM_COL_CYCLES:
+            return tr("Col. cycles");
+        case ParallelChipDb::CHIP_PARAM_READ1_CMD:
+            return  tr("Read 1 com.");
+        case ParallelChipDb::CHIP_PARAM_READ2_CMD:
+            return tr("Read 2 com.");
+        case ParallelChipDb::CHIP_PARAM_READ_SPARE_CMD:
+            return tr("Read spr. com.");
+        case ParallelChipDb::CHIP_PARAM_READ_ID_CMD:
+            return tr("Read ID com.");
+        case ParallelChipDb::CHIP_PARAM_RESET_CMD:
+            return tr("Reset com.");
+        case ParallelChipDb::CHIP_PARAM_WRITE1_CMD:
+            return tr("Write 1 com.");
+        case ParallelChipDb::CHIP_PARAM_WRITE2_CMD:
+            return tr("Write 2 com.");
+        case ParallelChipDb::CHIP_PARAM_ERASE1_CMD:
+            return tr("Erase 1 com.");
+        case ParallelChipDb::CHIP_PARAM_ERASE2_CMD:
+            return tr("Erase 2 com.");
+        case ParallelChipDb::CHIP_PARAM_STATUS_CMD:
+            return tr("Status com.");
+        case ParallelChipDb::CHIP_PARAM_BB_MARK_OFF:
+            return tr("BB mark off.");
+        case ParallelChipDb::CHIP_PARAM_ID1:
+            return tr("ID 1");
+        case ParallelChipDb::CHIP_PARAM_ID2:
+            return tr("ID 2");
+        case ParallelChipDb::CHIP_PARAM_ID3:
+            return tr("ID 3");
+        case ParallelChipDb::CHIP_PARAM_ID4:
+            return tr("ID 4");
+        case ParallelChipDb::CHIP_PARAM_ID5:
+            return tr("ID 5");
         }
     }
 
@@ -151,81 +258,81 @@ QVariant ParallelChipDbTableModel::headerData(int section,
     {
         switch (section)
         {
-        case CHIP_PARAM_NAME:
+        case ParallelChipDb::CHIP_PARAM_NAME:
             return tr("Chip name");
-        case CHIP_PARAM_PAGE_SIZE:
+        case ParallelChipDb::CHIP_PARAM_PAGE_SIZE:
             return tr("Page size in bytes");
-        case CHIP_PARAM_BLOCK_SIZE:
+        case ParallelChipDb::CHIP_PARAM_BLOCK_SIZE:
             return tr("Block size in bytes");
-        case CHIP_PARAM_TOTAL_SIZE:
+        case ParallelChipDb::CHIP_PARAM_TOTAL_SIZE:
             return tr("Total size in bytes");
-        case CHIP_PARAM_SPARE_SIZE:
+        case ParallelChipDb::CHIP_PARAM_SPARE_SIZE:
             return tr("Spare area size in bytes");
-        case CHIP_PARAM_T_CS:
+        case ParallelChipDb::CHIP_PARAM_T_CS:
             return tr("Chip enable setup time");
-        case CHIP_PARAM_T_CLS:
+        case ParallelChipDb::CHIP_PARAM_T_CLS:
             return tr("Command latch enable setup time");
-        case CHIP_PARAM_T_ALS:
+        case ParallelChipDb::CHIP_PARAM_T_ALS:
             return tr("Address latch enable setup time");
-        case CHIP_PARAM_T_CLR:
+        case ParallelChipDb::CHIP_PARAM_T_CLR:
             return tr("Command latch enable to read enable delay");
-        case CHIP_PARAM_T_AR:
+        case ParallelChipDb::CHIP_PARAM_T_AR:
             return tr("Address latch enable to read enable delay");
-        case CHIP_PARAM_T_WP:
+        case ParallelChipDb::CHIP_PARAM_T_WP:
             return tr("Write enable pulse width");
-        case CHIP_PARAM_T_RP:
+        case ParallelChipDb::CHIP_PARAM_T_RP:
             return tr("Read enable pulse width");
-        case CHIP_PARAM_T_DS:
+        case ParallelChipDb::CHIP_PARAM_T_DS:
             return tr("Data setup time");
-        case CHIP_PARAM_T_CH:
+        case ParallelChipDb::CHIP_PARAM_T_CH:
             return tr("Chip enable hold time");
-        case CHIP_PARAM_T_CLH:
+        case ParallelChipDb::CHIP_PARAM_T_CLH:
             return tr("Command latch enable hold time");
-        case CHIP_PARAM_T_ALH:
+        case ParallelChipDb::CHIP_PARAM_T_ALH:
             return tr("Address latch enable hold time");
-        case CHIP_PARAM_T_WC:
+        case ParallelChipDb::CHIP_PARAM_T_WC:
             return tr("Write cycle time");
-        case CHIP_PARAM_T_RC:
+        case ParallelChipDb::CHIP_PARAM_T_RC:
             return tr("Read cylce time");
-        case CHIP_PARAM_T_REA:
+        case ParallelChipDb::CHIP_PARAM_T_REA:
             return tr("Read enable access time");
-        case CHIP_PARAM_ROW_CYCLES:
+        case ParallelChipDb::CHIP_PARAM_ROW_CYCLES:
             return tr("Number of cycles required for addresing row (page) "
                 "during read/write/erase operation");
-        case CHIP_PARAM_COL_CYCLES:
+        case ParallelChipDb::CHIP_PARAM_COL_CYCLES:
             return tr("Number of cycles required for addresing column "
                 "(page offset) during read/write operation");
-        case CHIP_PARAM_READ1_CMD:
+        case ParallelChipDb::CHIP_PARAM_READ1_CMD:
             return  tr("Read 1 cycle command");
-        case CHIP_PARAM_READ2_CMD:
+        case ParallelChipDb::CHIP_PARAM_READ2_CMD:
             return tr("Read 2 cycle command");
-        case CHIP_PARAM_READ_SPARE_CMD:
+        case ParallelChipDb::CHIP_PARAM_READ_SPARE_CMD:
             return tr("Read spare area command");
-        case CHIP_PARAM_READ_ID_CMD:
+        case ParallelChipDb::CHIP_PARAM_READ_ID_CMD:
             return tr("Read ID command");
-        case CHIP_PARAM_RESET_CMD:
+        case ParallelChipDb::CHIP_PARAM_RESET_CMD:
             return tr("Reset command");
-        case CHIP_PARAM_WRITE1_CMD:
+        case ParallelChipDb::CHIP_PARAM_WRITE1_CMD:
             return tr("Write 1 cycle command");
-        case CHIP_PARAM_WRITE2_CMD:
+        case ParallelChipDb::CHIP_PARAM_WRITE2_CMD:
             return tr("Write 2 cycle command");
-        case CHIP_PARAM_ERASE1_CMD:
+        case ParallelChipDb::CHIP_PARAM_ERASE1_CMD:
             return tr("Erase 1 cycle command");
-        case CHIP_PARAM_ERASE2_CMD:
+        case ParallelChipDb::CHIP_PARAM_ERASE2_CMD:
             return tr("Erase 2 cycle command");
-        case CHIP_PARAM_STATUS_CMD:
+        case ParallelChipDb::CHIP_PARAM_STATUS_CMD:
             return tr("Status command");
-        case CHIP_PARAM_BB_MARK_OFF:
+        case ParallelChipDb::CHIP_PARAM_BB_MARK_OFF:
             return tr("Bad block mark offset");
-        case CHIP_PARAM_ID1:
+        case ParallelChipDb::CHIP_PARAM_ID1:
             return tr("Chip ID 1st byte");
-        case CHIP_PARAM_ID2:
+        case ParallelChipDb::CHIP_PARAM_ID2:
             return tr("Chip ID 2nd byte");
-        case CHIP_PARAM_ID3:
+        case ParallelChipDb::CHIP_PARAM_ID3:
             return tr("Chip ID 3rd byte");
-        case CHIP_PARAM_ID4:
+        case ParallelChipDb::CHIP_PARAM_ID4:
             return tr("Chip ID 4th byte");
-        case CHIP_PARAM_ID5:
+        case ParallelChipDb::CHIP_PARAM_ID5:
             return tr("Chip ID 5th byte");
         }
     }
@@ -248,49 +355,114 @@ bool ParallelChipDbTableModel::setData(const QModelIndex &index,
 
     switch (index.column())
     {
-    case CHIP_PARAM_NAME:
+    case ParallelChipDb::CHIP_PARAM_NAME:
         chipDb->setChipName(index.row(), value.toString());
         return true;
-    case CHIP_PARAM_PAGE_SIZE:
+    case ParallelChipDb::CHIP_PARAM_PAGE_SIZE:
         if (chipDb->getParamFromHexString(value.toString(), paramVal))
             return false;
         chipDb->setPageSize(index.row(), paramVal);
         return true;
-    case CHIP_PARAM_BLOCK_SIZE:
+    case ParallelChipDb::CHIP_PARAM_BLOCK_SIZE:
         if (chipDb->getParamFromHexString(value.toString(), paramVal))
             return false;
         chipDb->setBlockSize(index.row(), paramVal);
         return true;
-    case CHIP_PARAM_TOTAL_SIZE:
+    case ParallelChipDb::CHIP_PARAM_TOTAL_SIZE:
         if (chipDb->getParamFromHexString(value.toString(), paramVal))
             return false;
         chipDb->setTotalSize(index.row(), paramVal);
         return true;
-    case CHIP_PARAM_SPARE_SIZE:
+    case ParallelChipDb::CHIP_PARAM_SPARE_SIZE:
         if (chipDb->getParamFromHexString(value.toString(), paramVal))
             return false;
         chipDb->setSpareSize(index.row(), paramVal);
         return true;
-    case CHIP_PARAM_T_CS:
-    case CHIP_PARAM_T_CLS:
-    case CHIP_PARAM_T_ALS:
-    case CHIP_PARAM_T_CLR:
-    case CHIP_PARAM_T_AR:
-    case CHIP_PARAM_T_WP:
-    case CHIP_PARAM_T_RP:
-    case CHIP_PARAM_T_DS:
-    case CHIP_PARAM_T_CH:
-    case CHIP_PARAM_T_CLH:
-    case CHIP_PARAM_T_ALH:
-    case CHIP_PARAM_T_WC:
-    case CHIP_PARAM_T_RC:
-    case CHIP_PARAM_T_REA:
+    case ParallelChipDb::CHIP_PARAM_T_CS:
         if (chipDb->getParamFromString(value.toString(), paramVal))
             return false;
-        chipDb->setChipParam(index.row(), index.column(), paramVal);
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_CS,
+            paramVal);
         return true;
-    case CHIP_PARAM_ROW_CYCLES:
-    case CHIP_PARAM_COL_CYCLES:
+    case ParallelChipDb::CHIP_PARAM_T_CLS:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_CLS,
+            paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_T_ALS:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_ALS,
+            paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_T_CLR:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_CLR,
+            paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_T_AR:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_AR,
+            paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_T_WP:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_WP,
+            paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_T_RP:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_RP,
+            paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_T_DS:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_DS,
+            paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_T_CH:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_CH,
+            paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_T_CLH:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_CLH,
+            paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_T_ALH:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_ALH,
+            paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_T_WC:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_WC,
+            paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_T_RC:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_RC,
+            paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_T_REA:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        chipDb->setChipParam(index.row(), ParallelChipInfo::CHIP_PARAM_T_REA,
+            paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_ROW_CYCLES:
         if (chipDb->getParamFromString(value.toString(), paramVal))
             return false;
         if (!chipDb->isParamValid(paramVal, CHIP_DB_TABLE_MODEL_MIN_CYCLES,
@@ -298,39 +470,144 @@ bool ParallelChipDbTableModel::setData(const QModelIndex &index,
         {
             return false;
         }
-        chipDb->setChipParam(index.row(), index.column(), paramVal);
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ROW_CYCLES, paramVal);
         return true;
-    case CHIP_PARAM_READ1_CMD:
-    case CHIP_PARAM_READ_ID_CMD:
-    case CHIP_PARAM_RESET_CMD:
-    case CHIP_PARAM_WRITE1_CMD:
-    case CHIP_PARAM_ERASE1_CMD:
-    case CHIP_PARAM_STATUS_CMD:
-    case CHIP_PARAM_ID1:
-    case CHIP_PARAM_ID2:
+    case ParallelChipDb::CHIP_PARAM_COL_CYCLES:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, CHIP_DB_TABLE_MODEL_MIN_CYCLES,
+            CHIP_DB_TABLE_MODEL_MAX_CYCLES))
+        {
+            return false;
+        }
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_COL_CYCLES, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_READ1_CMD:
         if (chipDb->getParamFromHexString(value.toString(), paramVal))
             return false;
         if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
             return false;
-        chipDb->setChipParam(index.row(), index.column(), paramVal);
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_READ1_CMD, paramVal);
         return true;
-    case CHIP_PARAM_READ2_CMD:
-    case CHIP_PARAM_READ_SPARE_CMD:
-    case CHIP_PARAM_WRITE2_CMD:
-    case CHIP_PARAM_ERASE2_CMD:
-    case CHIP_PARAM_ID3:
-    case CHIP_PARAM_ID4:
-    case CHIP_PARAM_ID5:
+    case ParallelChipDb::CHIP_PARAM_READ2_CMD:
         if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
             return false;
         if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
             return false;
-        chipDb->setChipParam(index.row(), index.column(), paramVal);
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_READ2_CMD, paramVal);
         return true;
-    case CHIP_PARAM_BB_MARK_OFF:
+    case ParallelChipDb::CHIP_PARAM_READ_SPARE_CMD:
+        if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_READ_SPARE_CMD, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_READ_ID_CMD:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_READ_ID_CMD, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_RESET_CMD:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_RESET_CMD, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_WRITE1_CMD:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_WRITE1_CMD, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_WRITE2_CMD:
+        if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_WRITE2_CMD, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_ERASE1_CMD:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ERASE1_CMD, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_ERASE2_CMD:
+        if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ERASE2_CMD, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_STATUS_CMD:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_STATUS_CMD, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_BB_MARK_OFF:
         if (chipDb->getParamFromString(value.toString(), paramVal))
             return false;
         chipDb->setBBMarkOffset(index.row(), paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_ID1:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ID1, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_ID2:
+        if (chipDb->getParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ID2, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_ID3:
+        if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ID3, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_ID4:
+        if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ID4, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_ID5:
+        if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ID5, paramVal);
         return true;
     }
 

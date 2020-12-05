@@ -25,6 +25,7 @@ unix:OBJECTS_DIR = ../build/o/unix
 
 SOURCES += main.cpp\
     chip_db.cpp \
+    chip_info.cpp \
     main_window.cpp \
     parallel_chip_db.cpp \
     parallel_chip_db_dialog.cpp \

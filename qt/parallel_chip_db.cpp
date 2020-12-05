@@ -142,9 +142,10 @@ bool ParallelChipDb::isOptParamValid(uint32_t param, uint32_t min, uint32_t max)
         (param >= min && param <= max);
 }
 
-int ParallelChipDb::stringToChipInfo(const QString &s, ChipInfo &ci)
+int ParallelChipDb::stringToChipInfo(const QString &s, ParallelChipInfo &ci)
 {
     int paramNum;
+    uint32_t paramValue;
     QStringList paramsList;
 
     paramsList = s.split(',');
@@ -157,72 +158,93 @@ int ParallelChipDb::stringToChipInfo(const QString &s, ChipInfo &ci)
         return -1;
     }
 
-    ci.name = paramsList[CHIP_PARAM_NAME];
-    if (getParamFromString(paramsList[CHIP_PARAM_PAGE_SIZE], ci.pageSize))
+    ci.setName(paramsList[CHIP_PARAM_NAME]);
+    if (getParamFromString(paramsList[CHIP_PARAM_PAGE_SIZE], paramValue))
     {
         QMessageBox::critical(nullptr, QObject::tr("Error"),
             QObject::tr("Failed to parse parameter %1")
             .arg(paramsList[CHIP_PARAM_PAGE_SIZE]));
         return -1;
     }
+    ci.setPageSize(paramValue);
 
-    if (getParamFromString(paramsList[CHIP_PARAM_BLOCK_SIZE], ci.blockSize))
+    if (getParamFromString(paramsList[CHIP_PARAM_BLOCK_SIZE], paramValue))
     {
         QMessageBox::critical(nullptr, QObject::tr("Error"),
             QObject::tr("Failed to parse parameter %1")
             .arg(paramsList[CHIP_PARAM_BLOCK_SIZE]));
         return -1;
     }
+    ci.setBlockSize(paramValue);
 
-    if (getParamFromString(paramsList[CHIP_PARAM_TOTAL_SIZE], ci.totalSize))
+    if (getParamFromString(paramsList[CHIP_PARAM_TOTAL_SIZE], paramValue))
     {
         QMessageBox::critical(nullptr, QObject::tr("Error"),
             QObject::tr("Failed to parse parameter %1")
             .arg(paramsList[CHIP_PARAM_TOTAL_SIZE]));
         return -1;
     }
+    ci.setTotalSize(paramValue);
 
-    if (getParamFromString(paramsList[CHIP_PARAM_SPARE_SIZE], ci.spareSize))
+    if (getParamFromString(paramsList[CHIP_PARAM_SPARE_SIZE], paramValue))
     {
         QMessageBox::critical(nullptr, QObject::tr("Error"),
             QObject::tr("Failed to parse parameter %1")
             .arg(paramsList[CHIP_PARAM_SPARE_SIZE]));
         return -1;
     }
+    ci.setSpareSize(paramValue);
 
-    if (getParamFromString(paramsList[CHIP_PARAM_BB_MARK_OFF], ci.bbMarkOffset))
+    if (getParamFromString(paramsList[CHIP_PARAM_BB_MARK_OFF], paramValue))
     {
         QMessageBox::critical(nullptr, QObject::tr("Error"),
             QObject::tr("Failed to parse parameter %1")
             .arg(paramsList[CHIP_PARAM_BB_MARK_OFF]));
         return -1;
     }
+    ci.setBBMarkOffset(paramValue);
 
-    for (int i = CHIP_PARAM_SPARE_SIZE + 1; i < CHIP_PARAM_NUM; i++)
+    for (int i = CHIP_PARAM_T_CS; i < CHIP_PARAM_NUM; i++)
     {
         if (i == CHIP_PARAM_BB_MARK_OFF)
             continue;
 
-        if (getOptParamFromString(paramsList[i], ci.params[i]))
+        if (getOptParamFromString(paramsList[i], paramValue))
         {
             QMessageBox::critical(nullptr, QObject::tr("Error"),
                 QObject::tr("Failed to parse parameter %1").arg(paramsList[i]));
             return -1;
         }
+        ci.setParam(i - CHIP_PARAM_T_CS, paramValue);
     }
 
     return 0;
 }
 
-int ParallelChipDb::chipInfoToString(const ParallelChipInfo &ci, QString &s)
+int ParallelChipDb::chipInfoToString(ParallelChipInfo &ci, QString &s)
 {
     QString csvValue;
     QStringList paramsList;
 
-    paramsList.append(ci.name);
-    for (int i = CHIP_PARAM_NAME + 1; i < CHIP_PARAM_NUM; i++)
+    paramsList.append(ci.getName());
+    getStringFromParam(ci.getPageSize(), csvValue);
+    paramsList.append(csvValue);
+    getStringFromParam(ci.getBlockSize(), csvValue);
+    paramsList.append(csvValue);
+    getStringFromParam(ci.getTotalSize(), csvValue);
+    paramsList.append(csvValue);
+    getStringFromParam(ci.getSpareSize(), csvValue);
+    paramsList.append(csvValue);
+    for (int i = CHIP_PARAM_T_CS; i < CHIP_PARAM_NUM; i++)
     {
-        if (getStringFromOptParam(ci.params[i], csvValue))
+        if (i == CHIP_PARAM_BB_MARK_OFF)
+        {
+            getStringFromParam(ci.getBBMarkOffset(), csvValue);
+            paramsList.append(csvValue);
+            continue;
+        }
+
+        if (getStringFromOptParam(ci.getParam(i - CHIP_PARAM_T_CS), csvValue))
             return -1;
         paramsList.append(csvValue);
     }
@@ -335,7 +357,7 @@ QStringList ParallelChipDb::getNames()
     QStringList namesList;
 
     for (int i = 0; i < chipInfoVector.size(); i++)
-        namesList.append(chipInfoVector[i].name);
+        namesList.append(chipInfoVector[i].getName());
 
     return namesList;
 }
@@ -352,7 +374,7 @@ ChipInfo *ParallelChipDb::chipInfoGetByName(QString name)
 {
     for(int i = 0; i < chipInfoVector.size(); i++)
     {
-        if (!chipInfoVector[i].name.compare(name))
+        if (!chipInfoVector[i].getName().compare(name))
             return &chipInfoVector[i];
     }
 
@@ -365,35 +387,36 @@ int ParallelChipDb::getIdByChipId(uint32_t id1, uint32_t id2, uint32_t id3,
     for(int i = 0; i < chipInfoVector.size(); i++)
     {
         // Mandatory IDs
-        if (id1 != chipInfoVector[i].params[CHIP_PARAM_ID1] ||
-            id2 != chipInfoVector[i].params[CHIP_PARAM_ID2])
+        if (id1 != chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID1)
+            || id2 != chipInfoVector[i]
+            .getParam(ParallelChipInfo::CHIP_PARAM_ID2))
         {
             continue;
         }
 
         // Optinal IDs
-        if (chipInfoVector[i].params[CHIP_PARAM_ID3] ==
+        if (chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID3) ==
             CHIP_PARAM_NOT_DEFINED_VALUE)
         {
             return i;
         }
-        if (id3 != chipInfoVector[i].params[CHIP_PARAM_ID3])
+        if (id3 != chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID3))
             continue;
 
-        if (chipInfoVector[i].params[CHIP_PARAM_ID4] ==
+        if (chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID4) ==
             CHIP_PARAM_NOT_DEFINED_VALUE)
         {
             return i;
         }
-        if (id4 != chipInfoVector[i].params[CHIP_PARAM_ID4])
+        if (id4 != chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID4))
             continue;
 
-        if (chipInfoVector[i].params[CHIP_PARAM_ID5] ==
+        if (chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID5) ==
             CHIP_PARAM_NOT_DEFINED_VALUE)
         {
             return i;
         }
-        if (id5 != chipInfoVector[i].params[CHIP_PARAM_ID5])
+        if (id5 != chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID5))
             continue;
 
         return i;
@@ -408,38 +431,39 @@ QString ParallelChipDb::getNameByChipId(uint32_t id1, uint32_t id2,
     for(int i = 0; i < chipInfoVector.size(); i++)
     {
         // Mandatory IDs
-        if (id1 != chipInfoVector[i].params[CHIP_PARAM_ID1] ||
-            id2 != chipInfoVector[i].params[CHIP_PARAM_ID2])
+        if (id1 != chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID1)
+            || id2 != chipInfoVector[i]
+            .getParam(ParallelChipInfo::CHIP_PARAM_ID2))
         {
             continue;
         }
 
         // Optinal IDs
-        if (chipInfoVector[i].params[CHIP_PARAM_ID3] ==
+        if (chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID3) ==
             CHIP_PARAM_NOT_DEFINED_VALUE)
         {
-            return chipInfoVector[i].name;
+            return chipInfoVector[i].getName();
         }
-        if (id3 != chipInfoVector[i].params[CHIP_PARAM_ID3])
+        if (id3 != chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID3))
             continue;
 
-        if (chipInfoVector[i].params[CHIP_PARAM_ID4] ==
+        if (chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID4) ==
             CHIP_PARAM_NOT_DEFINED_VALUE)
         {
-            return chipInfoVector[i].name;
+            return chipInfoVector[i].getName();
         }
-        if (id4 != chipInfoVector[i].params[CHIP_PARAM_ID4])
+        if (id4 != chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID4))
             continue;
 
-        if (chipInfoVector[i].params[CHIP_PARAM_ID5] ==
+        if (chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID5) ==
             CHIP_PARAM_NOT_DEFINED_VALUE)
         {
-            return chipInfoVector[i].name;
+            return chipInfoVector[i].getName();
         }
-        if (id5 != chipInfoVector[i].params[CHIP_PARAM_ID5])
+        if (id5 != chipInfoVector[i].getParam(ParallelChipInfo::CHIP_PARAM_ID5))
             continue;
 
-        return chipInfoVector[i].name;
+        return chipInfoVector[i].getName();
     }
 
     return QString();
@@ -449,14 +473,14 @@ uint32_t ParallelChipDb::pageSizeGetById(int id)
 {
     ChipInfo *info = chipInfoGetById(id);
 
-    return info ? info->pageSize : 0;
+    return info ? info->getPageSize() : 0;
 }
 
 uint32_t ParallelChipDb::pageSizeGetByName(const QString &name)
 {
     ChipInfo *info = chipInfoGetByName(name);
 
-    return info ? info->pageSize : 0;
+    return info ? info->getPageSize() : 0;
 }
 
 uint32_t ParallelChipDb::extendedPageSizeGetById(int id)
@@ -466,7 +490,7 @@ uint32_t ParallelChipDb::extendedPageSizeGetById(int id)
     if (!info)
         return 0;
 
-    return info->pageSize + info->spareSize;
+    return info->getPageSize() + info->getSpareSize();
 }
 
 uint32_t ParallelChipDb::extendedPageSizeGetByName(const QString &name)
@@ -476,21 +500,21 @@ uint32_t ParallelChipDb::extendedPageSizeGetByName(const QString &name)
     if (!info)
         return 0;
 
-    return info->pageSize + info->spareSize;
+    return info->getPageSize() + info->getSpareSize();
 }
 
 uint32_t ParallelChipDb::totalSizeGetById(int id)
 {
     ChipInfo *info = chipInfoGetById(id);
 
-    return info ? info->totalSize : 0;
+    return info ? info->getTotalSize() : 0;
 }
 
 uint32_t ParallelChipDb::totalSizeGetByName(const QString &name)
 {
     ChipInfo *info = chipInfoGetByName(name);
 
-    return info ? info->totalSize : 0;
+    return info ? info->getTotalSize() : 0;
 }
 
 uint32_t ParallelChipDb::extendedTotalSizeGetById(int id)
@@ -501,8 +525,8 @@ uint32_t ParallelChipDb::extendedTotalSizeGetById(int id)
     if (!info)
         return 0;
 
-    totalSize = info->totalSize;
-    totalSpare = info->spareSize * (totalSize / info->pageSize);
+    totalSize = info->getTotalSize();
+    totalSpare = info->getSpareSize() * (totalSize / info->getPageSize());
 
     return totalSize + totalSpare;
 }
@@ -515,8 +539,8 @@ uint32_t ParallelChipDb::extendedTotalSizeGetByName(const QString &name)
     if (!info)
         return 0;
 
-    totalSize = info->totalSize;
-    totalSpare = info->spareSize * (totalSize / info->pageSize);
+    totalSize = info->getTotalSize();
+    totalSpare = info->getSpareSize() * (totalSize / info->getPageSize());
 
     return totalSize + totalSpare;
 }
@@ -555,23 +579,25 @@ ChipInfo *ParallelChipDb::getChipInfo(int chipIndex)
 
 uint32_t ParallelChipDb::getChipParam(int chipIndex, int paramIndex)
 {
-    ChipInfo *ci = getChipInfo(chipIndex);
+    ParallelChipInfo *ci = dynamic_cast<ParallelChipInfo *>
+        (getChipInfo(chipIndex));
 
-    if (!ci || paramIndex < 0 || paramIndex > CHIP_PARAM_NUM)
+    if (!ci || paramIndex < 0 || paramIndex > ParallelChipInfo::CHIP_PARAM_NUM)
         return 0;
 
-    return ci->params[paramIndex];
+    return ci->getParam(paramIndex);
 }
 
 int ParallelChipDb::setChipParam(int chipIndex, int paramIndex,
     uint32_t paramValue)
 {
-    ChipInfo *ci = getChipInfo(chipIndex);
+    ParallelChipInfo *ci = dynamic_cast<ParallelChipInfo *>
+        (getChipInfo(chipIndex));
 
-    if (!ci || paramIndex < 0 || paramIndex > CHIP_PARAM_NUM)
+    if (!ci || paramIndex < 0 || paramIndex > ParallelChipInfo::CHIP_PARAM_NUM)
         return -1;
 
-    ci->params[paramIndex] = paramValue;
+    ci->setParam(paramIndex, paramValue);
 
     return 0;
 }
