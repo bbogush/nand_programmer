@@ -198,7 +198,7 @@ bool SpiChipDbTableModel::setData(const QModelIndex &index,
 
 void SpiChipDbTableModel::addRow()
 {
-    SpiChipInfo chipInfo = {};
+    SpiChipInfo *chipInfo = new SpiChipInfo();
 
     beginResetModel();
     chipDb->addChip(chipInfo);

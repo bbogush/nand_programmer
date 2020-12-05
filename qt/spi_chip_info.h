@@ -23,14 +23,14 @@ public:
 
 private:
     QByteArray halConf;
-    uint32_t params[CHIP_PARAM_NUM];
+    uint32_t params[CHIP_PARAM_NUM] = {};
 
 public:
     SpiChipInfo();
     virtual ~SpiChipInfo();
     const QByteArray &getHalConf() override;
-    uint32_t getParam(uint32_t num);
-    int setParam(uint32_t num, uint32_t value);
+    uint32_t getParam(uint32_t num) override;
+    int setParam(uint32_t num, uint32_t value) override;
 };
 
 #endif // SPI_CHIP_INFO_H

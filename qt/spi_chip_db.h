@@ -17,15 +17,13 @@
 
 class SpiChipDb : public ChipDb
 {
-    QVector<SpiChipInfo> chipInfoVector;
+private:
+    QString dbFileName = "nando_spi_chip_db.csv";
 
-    QString findFile();
-    int stringToChipInfo(const QString &s, SpiChipInfo &ci);
-    int chipInfoToString(SpiChipInfo &ci, QString &s);
-    void readFromCvs();
-    int readCommentsFromCsv(QFile &dbFile, QString &comments);
-    void writeToCvs();
-    ChipInfo *getChipInfo(int chipIndex) override;
+protected:
+    QString getDbFileName() override;
+    ChipInfo *stringToChipInfo(const QString &s) override;
+    int chipInfoToString(ChipInfo *chipInfo, QString &s) override;
 
 public:
     enum
@@ -43,37 +41,13 @@ public:
     };
 
     explicit SpiChipDb();
-    QStringList getNames() override;
-    ChipInfo *chipInfoGetById(int id) override;
+    virtual ~SpiChipDb();
+
     ChipInfo *chipInfoGetByName(QString name);
     int getIdByChipId(uint32_t id1, uint32_t id2, uint32_t id3, uint32_t id4,
         uint32_t id5);
     QString getNameByChipId(uint32_t id1, uint32_t id2,
         uint32_t id3, uint32_t id4, uint32_t id5) override;
-    uint32_t pageSizeGetById(int id);
-    uint32_t pageSizeGetByName(const QString &name) override;
-    uint32_t extendedPageSizeGetById(int id);
-    uint32_t extendedPageSizeGetByName(const QString &name) override;
-    uint32_t totalSizeGetById(int id);
-    uint32_t totalSizeGetByName(const QString &name) override;
-    uint32_t extendedTotalSizeGetById(int id);
-    uint32_t extendedTotalSizeGetByName(const QString &name) override;
-    void addChip(SpiChipInfo &chipInfo);
-    void delChip(int index);
-    int size();
-    void commit();
-    void reset();
-    int getParamFromString(const QString &value, uint32_t &param);
-    int getParamFromString(const QString &value, uint8_t &param);
-    int getParamFromHexString(const QString &value, uint32_t &param);
-    int getStringFromParam(const uint32_t &param, QString &value);
-    int getHexStringFromParam(const uint32_t &param, QString &value);
-    int getOptParamFromString(const QString &value, uint32_t &param);
-    int getOptParamFromHexString(const QString &value, uint32_t &param);
-    int getStringFromOptParam(const uint32_t &param, QString &value);
-    int getHexStringFromOptParam(const uint32_t &param, QString &value);
-    bool isParamValid(uint32_t param, uint32_t min, uint32_t max);
-    bool isOptParamValid(uint32_t param, uint32_t min, uint32_t max);
     uint32_t getChipParam(int chipIndex, int paramIndex);
     int setChipParam(int chipIndex, int paramIndex, uint32_t paramValue);
 };

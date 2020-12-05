@@ -43,6 +43,8 @@ public:
     void setBBMarkOffset(uint8_t offset);
     uint8_t getHal();
     virtual const QByteArray &getHalConf() = 0;
+    virtual uint32_t getParam(uint32_t num) = 0;
+    virtual int setParam(uint32_t num, uint32_t value) = 0;
 };
 
 #endif // CHIP_INFO_H

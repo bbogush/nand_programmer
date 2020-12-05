@@ -616,7 +616,7 @@ bool ParallelChipDbTableModel::setData(const QModelIndex &index,
 
 void ParallelChipDbTableModel::addRow()
 {
-    ParallelChipInfo chipInfo = {};
+    ParallelChipInfo *chipInfo = new ParallelChipInfo();
 
     beginResetModel();
     chipDb->addChip(chipInfo);
