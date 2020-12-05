@@ -13,8 +13,6 @@ typedef struct __attribute__((__packed__))
 SpiChipInfo::SpiChipInfo()
 {
     hal = CHIP_HAL_SPI;
-    spareSize = 0;
-    bbMarkOffset = 0;
 }
 
 SpiChipInfo::~SpiChipInfo()

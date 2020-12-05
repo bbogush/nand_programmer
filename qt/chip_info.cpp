@@ -7,6 +7,12 @@
 
 ChipInfo::ChipInfo()
 {
+    name = "Unknown";
+    pageSize = 0;
+    blockSize = 0;
+    totalSize = 0;
+    spareSize = 0;
+    bbMarkOffset = 0;
     hal = CHIP_HAL_LAST;
 }
 
