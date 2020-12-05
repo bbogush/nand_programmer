@@ -7,7 +7,7 @@
 
 ChipInfo::ChipInfo()
 {
-    name = "Unknown";
+    name = "";
     pageSize = 0;
     blockSize = 0;
     totalSize = 0;
