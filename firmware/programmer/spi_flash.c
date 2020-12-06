@@ -13,8 +13,6 @@
 
 #define FLASH_DUMMY_BYTE 0xA5
 
-#define STATUS_READY (1<<7)
-
 #define FLASH_READY 0
 #define FLASH_BUSY  1
 #define FLASH_TIMEOUT 2
@@ -36,6 +34,8 @@ typedef struct __attribute__((__packed__))
     uint8_t write_cmd;
     uint8_t erase_cmd;
     uint8_t status_cmd;
+    uint8_t busy_bit;
+    uint8_t busy_state;
 } spi_conf_t;
 
 static spi_conf_t spi_conf;
@@ -165,20 +165,23 @@ static inline uint8_t spi_flash_read_byte()
 
 static uint32_t spi_flash_read_status()
 {
-    uint32_t status;
+    uint8_t status;
+    uint32_t flash_status = FLASH_READY;
 
     spi_flash_select_chip();
 
     spi_flash_send_byte(spi_conf.status_cmd);
 
-    if (spi_flash_read_byte() & STATUS_READY)
-        status = FLASH_READY;
-    else
-        status = FLASH_BUSY;
+    status = spi_flash_read_byte();
+
+    if (spi_conf.busy_state == 1 && (status & (1 << spi_conf.busy_bit)))
+        flash_status = FLASH_BUSY;
+    else if (spi_conf.busy_state == 0 && !(status & (1 << spi_conf.busy_bit)))
+        flash_status = FLASH_BUSY;
 
     spi_flash_deselect_chip();
 
-    return status;
+    return flash_status;
 }
 
 static uint32_t spi_flash_get_status()
