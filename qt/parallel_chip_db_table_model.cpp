@@ -381,7 +381,7 @@ bool ParallelChipDbTableModel::setData(const QModelIndex &index,
     case ParallelChipDb::CHIP_PARAM_BB_MARK_OFF:
         if (chipDb->getParamFromString(value.toString(), paramVal))
             return false;
-        if (chipDb->isParamValid(paramVal, 0, 0xFF))
+        if (!chipDb->isParamValid(paramVal, 0, 0xFF))
             return false;
         chipDb->setBBMarkOffset(index.row(), paramVal);
         return true;

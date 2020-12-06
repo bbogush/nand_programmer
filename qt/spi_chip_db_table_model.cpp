@@ -211,7 +211,7 @@ bool SpiChipDbTableModel::setData(const QModelIndex &index,
     case SpiChipDb::CHIP_PARAM_PAGE_OFF:
         if (chipDb->getParamFromString(value.toString(), paramVal))
             return false;
-        if (chipDb->isParamValid(paramVal, 0, 0xFF))
+        if (!chipDb->isParamValid(paramVal, 0, 0xFF))
             return false;
         chipDb->setChipParam(index.row(), SpiChipInfo::CHIP_PARAM_PAGE_OFF,
             paramVal);
