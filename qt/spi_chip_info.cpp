@@ -11,6 +11,7 @@ typedef struct __attribute__((__packed__))
     uint8_t read_cmd;
     uint8_t read_id_cmd;
     uint8_t write_cmd;
+    uint8_t write_en_cmd;
     uint8_t erase_cmd;
     uint8_t status_cmd;
     uint8_t busy_bit;
@@ -35,6 +36,7 @@ const QByteArray &SpiChipInfo::getHalConf()
     conf.read_cmd = static_cast<uint8_t>(params[CHIP_PARAM_READ_CMD]);
     conf.read_id_cmd = static_cast<uint8_t>(params[CHIP_PARAM_READ_ID_CMD]);
     conf.write_cmd = static_cast<uint8_t>(params[CHIP_PARAM_WRITE_CMD]);
+    conf.write_en_cmd = static_cast<uint8_t>(params[CHIP_PARAM_WRITE_EN_CMD]);
     conf.erase_cmd = static_cast<uint8_t>(params[CHIP_PARAM_ERASE_CMD]);
     conf.status_cmd = static_cast<uint8_t>(params[CHIP_PARAM_STATUS_CMD]);
     conf.busy_bit = static_cast<uint8_t>(params[CHIP_PARAM_BUSY_BIT]);

@@ -26,12 +26,15 @@
 /* 4th addressing cycle */
 #define ADDR_4th_CYCLE(ADDR) (uint8_t)(((ADDR)& 0xFF000000) >> 24)
 
+#define UNDEFINED_CMD 0xFF
+
 typedef struct __attribute__((__packed__))
 {
     uint8_t page_offset;
     uint8_t read_cmd;
     uint8_t read_id_cmd;
     uint8_t write_cmd;
+    uint8_t write_en_cmd;
     uint8_t erase_cmd;
     uint8_t status_cmd;
     uint8_t busy_bit;
@@ -241,10 +244,22 @@ static void spi_flash_read_id(chip_id_t *chip_id)
     spi_flash_deselect_chip();
 }
 
+static void spi_flash_write_enable()
+{
+    if (spi_conf.write_en_cmd == UNDEFINED_CMD)
+        return;
+
+    spi_flash_select_chip();
+    spi_flash_send_byte(spi_conf.write_en_cmd);
+    spi_flash_deselect_chip();
+}
+
 static void spi_flash_write_page_async(uint8_t *buf, uint32_t page,
     uint32_t page_size)
 {
     uint32_t i;
+
+    spi_flash_write_enable();
 
     spi_flash_select_chip();
 
@@ -301,6 +316,8 @@ static uint32_t spi_flash_read_spare_data(uint8_t *buf, uint32_t page,
 static uint32_t spi_flash_erase_block(uint32_t page)
 {
     uint32_t addr = page << spi_conf.page_offset;
+
+    spi_flash_write_enable();
 
     spi_flash_select_chip();
 

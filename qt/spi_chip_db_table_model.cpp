@@ -65,6 +65,10 @@ QVariant SpiChipDbTableModel::data(const QModelIndex &index, int role) const
         chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
             SpiChipInfo::CHIP_PARAM_WRITE_CMD), paramStr);
         return paramStr;
+    case SpiChipDb::CHIP_PARAM_WRITE_EN_CMD:
+        chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
+            SpiChipInfo::CHIP_PARAM_WRITE_EN_CMD), paramStr);
+        return paramStr;
     case SpiChipDb::CHIP_PARAM_ERASE_CMD:
         chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
             SpiChipInfo::CHIP_PARAM_ERASE_CMD), paramStr);
@@ -122,6 +126,7 @@ QVariant SpiChipDbTableModel::headerData(int section,
         case SpiChipDb::CHIP_PARAM_READ_CMD: return tr("Read com.");
         case SpiChipDb::CHIP_PARAM_READ_ID_CMD: return tr("Read ID com.");
         case SpiChipDb::CHIP_PARAM_WRITE_CMD: return tr("Write com.");
+        case SpiChipDb::CHIP_PARAM_WRITE_EN_CMD: return tr("Write en. com.");
         case SpiChipDb::CHIP_PARAM_ERASE_CMD: return tr("Erase com.");
         case SpiChipDb::CHIP_PARAM_STATUS_CMD: return tr("Status com.");
         case SpiChipDb::CHIP_PARAM_BUSY_BIT: return tr("Busy bit");
@@ -155,6 +160,8 @@ QVariant SpiChipDbTableModel::headerData(int section,
             return tr("Read ID command");
         case SpiChipDb::CHIP_PARAM_WRITE_CMD:
             return tr("Page write command");
+        case SpiChipDb::CHIP_PARAM_WRITE_EN_CMD:
+            return tr("Write enable command");
         case SpiChipDb::CHIP_PARAM_ERASE_CMD:
             return tr("Block erase command");
         case SpiChipDb::CHIP_PARAM_STATUS_CMD:
@@ -244,6 +251,14 @@ bool SpiChipDbTableModel::setData(const QModelIndex &index,
         if (!chipDb->isParamValid(paramVal, 0x00, 0xFF))
             return false;
         chipDb->setChipParam(index.row(), SpiChipInfo::CHIP_PARAM_WRITE_CMD,
+            paramVal);
+        return true;
+    case SpiChipDb::CHIP_PARAM_WRITE_EN_CMD:
+        if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(), SpiChipInfo::CHIP_PARAM_WRITE_EN_CMD,
             paramVal);
         return true;
     case SpiChipDb::CHIP_PARAM_ERASE_CMD:
