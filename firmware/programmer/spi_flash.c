@@ -36,6 +36,7 @@ typedef struct __attribute__((__packed__))
     uint8_t status_cmd;
     uint8_t busy_bit;
     uint8_t busy_state;
+    uint32_t freq;
 } spi_conf_t;
 
 static spi_conf_t spi_conf;
@@ -105,6 +106,28 @@ static inline void spi_flash_deselect_chip()
     GPIO_SetBits(GPIOA, SPI_FLASH_CS_PIN);
 }
 
+static uint16_t spi_flash_get_baud_rate_prescaler(uint32_t spi_freq_khz)
+{
+    uint32_t system_clock_khz = SystemCoreClock / 1000;
+
+    if (spi_freq_khz >= system_clock_khz / 2)
+        return SPI_BaudRatePrescaler_2;
+    else if (spi_freq_khz >= system_clock_khz / 4)
+        return SPI_BaudRatePrescaler_4;
+    else if (spi_freq_khz >= system_clock_khz / 8)
+        return SPI_BaudRatePrescaler_8;
+    else if (spi_freq_khz >= system_clock_khz / 16)
+        return SPI_BaudRatePrescaler_16;
+    else if (spi_freq_khz >= system_clock_khz / 32)
+        return SPI_BaudRatePrescaler_32;
+    else if (spi_freq_khz >= system_clock_khz / 64)
+        return SPI_BaudRatePrescaler_64;
+    else if (spi_freq_khz >= system_clock_khz / 128)
+        return SPI_BaudRatePrescaler_128;
+    else
+        return SPI_BaudRatePrescaler_256;
+}
+
 static int spi_flash_init(void *conf, uint32_t conf_size)
 {
     SPI_InitTypeDef spi_init;
@@ -124,7 +147,8 @@ static int spi_flash_init(void *conf, uint32_t conf_size)
     spi_init.SPI_CPOL = SPI_CPOL_High;
     spi_init.SPI_CPHA = SPI_CPHA_2Edge;
     spi_init.SPI_NSS = SPI_NSS_Soft;
-    spi_init.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4;
+    spi_init.SPI_BaudRatePrescaler =
+        spi_flash_get_baud_rate_prescaler(spi_conf.freq);
     spi_init.SPI_FirstBit = SPI_FirstBit_MSB;
     spi_init.SPI_CRCPolynomial = 7;
     SPI_Init(SPI1, &spi_init);

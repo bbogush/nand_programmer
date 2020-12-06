@@ -15,6 +15,7 @@ typedef struct __attribute__((__packed__))
     uint8_t status_cmd;
     uint8_t busy_bit;
     uint8_t busy_state;
+    uint32_t freq;
 } Conf;
 
 SpiChipInfo::SpiChipInfo()
@@ -38,6 +39,7 @@ const QByteArray &SpiChipInfo::getHalConf()
     conf.status_cmd = static_cast<uint8_t>(params[CHIP_PARAM_STATUS_CMD]);
     conf.busy_bit = static_cast<uint8_t>(params[CHIP_PARAM_BUSY_BIT]);
     conf.busy_state = static_cast<uint8_t>(params[CHIP_PARAM_BUSY_STATE]);
+    conf.freq = params[CHIP_PARAM_FREQ];
 
     halConf.clear();
     halConf.append(reinterpret_cast<const char *>(&conf), sizeof(conf));

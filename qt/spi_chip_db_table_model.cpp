@@ -79,6 +79,9 @@ QVariant SpiChipDbTableModel::data(const QModelIndex &index, int role) const
     case SpiChipDb::CHIP_PARAM_BUSY_STATE:
         return chipDb->getChipParam(index.row(),
             SpiChipInfo::CHIP_PARAM_BUSY_STATE);
+    case SpiChipDb::CHIP_PARAM_FREQ:
+        return chipDb->getChipParam(index.row(),
+            SpiChipInfo::CHIP_PARAM_FREQ);
     case SpiChipDb::CHIP_PARAM_ID1:
         chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
             SpiChipInfo::CHIP_PARAM_ID1), paramStr);
@@ -123,6 +126,7 @@ QVariant SpiChipDbTableModel::headerData(int section,
         case SpiChipDb::CHIP_PARAM_STATUS_CMD: return tr("Status com.");
         case SpiChipDb::CHIP_PARAM_BUSY_BIT: return tr("Busy bit");
         case SpiChipDb::CHIP_PARAM_BUSY_STATE: return tr("Busy bit state");
+        case SpiChipDb::CHIP_PARAM_FREQ: return tr("Freq. (kHz)");
         case SpiChipDb::CHIP_PARAM_ID1: return tr("ID 1");
         case SpiChipDb::CHIP_PARAM_ID2: return tr("ID 2");
         case SpiChipDb::CHIP_PARAM_ID3: return tr("ID 3");
@@ -159,6 +163,8 @@ QVariant SpiChipDbTableModel::headerData(int section,
             return tr("Busy bit number (0-7) in status register");
         case SpiChipDb::CHIP_PARAM_BUSY_STATE:
             return tr("Busy bit active state (0/1)");
+        case SpiChipDb::CHIP_PARAM_FREQ:
+            return tr("Maximum supported SPI frequency in kHz");
         case SpiChipDb::CHIP_PARAM_ID1:
             return tr("Chip ID 1st byte");
         case SpiChipDb::CHIP_PARAM_ID2:
@@ -270,6 +276,14 @@ bool SpiChipDbTableModel::setData(const QModelIndex &index,
         if (!chipDb->isParamValid(paramVal, 0, 1))
             return false;
         chipDb->setChipParam(index.row(), SpiChipInfo::CHIP_PARAM_BUSY_STATE,
+            paramVal);
+        return true;
+    case SpiChipDb::CHIP_PARAM_FREQ:
+        if (chipDb->getParamFromString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isParamValid(paramVal, 0x00, 0xFFFFFFFF))
+            return false;
+        chipDb->setChipParam(index.row(), SpiChipInfo::CHIP_PARAM_FREQ,
             paramVal);
         return true;
     case SpiChipDb::CHIP_PARAM_ID1:

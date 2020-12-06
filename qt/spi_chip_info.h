@@ -21,6 +21,7 @@ public:
         CHIP_PARAM_STATUS_CMD,
         CHIP_PARAM_BUSY_BIT,
         CHIP_PARAM_BUSY_STATE,
+        CHIP_PARAM_FREQ,
         CHIP_PARAM_ID1,
         CHIP_PARAM_ID2,
         CHIP_PARAM_ID3,
