@@ -192,7 +192,7 @@ Qt::ItemFlags SpiChipDbTableModel::flags (const QModelIndex &index) const
 {
     return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
 }
-#include <QDebug>
+
 bool SpiChipDbTableModel::setData(const QModelIndex &index,
     const QVariant &value, int role)
 {
