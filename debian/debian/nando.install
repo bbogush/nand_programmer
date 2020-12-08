@@ -2,3 +2,4 @@ bin/nando usr/bin
 nando.desktop usr/share/applications
 qt/nando_parallel_chip_db.csv /etc/xdg
 qt/nando_spi_chip_db.csv /etc/xdg
+qt/img/nando.svg /usr/share/pixmaps/

@@ -9,3 +9,4 @@ StartupNotify=false
 Categories=Development;GTK;GNOME;
 Keywords=nand;programmer;
 GenericName=NAND Programmer
+Icon=nando
