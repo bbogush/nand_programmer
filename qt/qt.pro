@@ -91,3 +91,5 @@ INSTALLS += install_conf
 
 RESOURCES += \
     icons.qrc
+
+RC_ICONS = img/app_icon.ico
