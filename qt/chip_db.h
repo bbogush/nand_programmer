@@ -10,6 +10,7 @@
 #include <QStringList>
 #include <QFile>
 #include <QTextStream>
+#include <QVector>
 
 class ChipDb
 {
