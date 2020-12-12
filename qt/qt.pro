@@ -9,7 +9,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui serialport
+QT += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -34,6 +34,7 @@ SOURCES += main.cpp\
     programmer.cpp \
     logger.cpp \
     buffer_table_model.cpp \
+    serial_port.cpp \
     spi_chip_db.cpp \
     spi_chip_db_dialog.cpp \
     spi_chip_db_table_model.cpp \
@@ -56,6 +57,7 @@ HEADERS += main_window.h \
     logger.h \
     buffer_table_model.h \
     cmd.h \
+    serial_port.h \
     spi_chip_db.h \
     spi_chip_db_dialog.h \
     spi_chip_db_table_model.h \
@@ -78,6 +80,8 @@ FORMS += main_window.ui \
 
 QMAKE_CXXFLAGS += -std=c++11 -Wextra -Werror
 mingw:QMAKE_CXXFLAGS += -mno-ms-bitfields
+
+LIBS += -lboost_system
 
 DISTFILES += \
     nando_parallel_chip_db.csv \

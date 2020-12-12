@@ -39,13 +39,10 @@ Programmer::~Programmer()
 
 int Programmer::serialPortConnect()
 {
-    serialPort.setPortName(usbDevName);
-    serialPort.setBaudRate(SERIAL_PORT_SPEED);
-
-    if (!serialPort.open(QIODevice::ReadWrite))
+    if (!serialPort.start(usbDevName.toLatin1(), SERIAL_PORT_SPEED))
     {
         qCritical() << "Failed to open serial port " << usbDevName << ": " <<
-            serialPort.errorString();
+            serialPort.errorString().c_str();
         return -1;
     }
 
@@ -54,7 +51,7 @@ int Programmer::serialPortConnect()
 
 void Programmer::serialPortDisconnect()
 {
-    serialPort.close();
+    serialPort.stop();
 }
 
 void Programmer::connectCb(int ret)

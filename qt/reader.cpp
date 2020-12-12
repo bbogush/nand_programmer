@@ -38,9 +38,10 @@ int Reader::write(const uint8_t *data, uint32_t len)
     qint64 ret;
 
     ret = serialPort->write(reinterpret_cast<const char *>(data), len);
-    if (ret < 0)
+    if (!ret)
     {
-        logErr(QString("Failed to write: %1").arg(serialPort->errorString()));
+        logErr(QString("Failed to write: %1").arg(serialPort->errorString()
+            .c_str()));
         return -1;
     }
     else if (ret < len)
@@ -58,17 +59,18 @@ int Reader::readStart()
     return write(wbuf, wlen);
 }
 
-int Reader::read(uint8_t *pbuf, uint32_t len)
+int Reader::read(char *pbuf, uint32_t len)
 {
     qint64 ret;
 
-    if (!serialPort->waitForReadyRead(READ_TIMEOUT))
-    {
-        logErr("Read data timeout");
-        return -1;
-    }
+//TODO: handle timeout
+//    if (!serialPort->waitForReadyRead(READ_TIMEOUT))
+//    {
+//        logErr("Read data timeout");
+//        return -1;
+//    }
 
-    ret = serialPort->read(reinterpret_cast<char *>(pbuf), len);
+    ret = serialPort->read(pbuf, len);
     if (ret < 0)
     {
         logErr("Failed to read data");
@@ -78,7 +80,7 @@ int Reader::read(uint8_t *pbuf, uint32_t len)
     return static_cast<int>(ret);
 }
 
-int Reader::handleBadBlock(uint8_t *pbuf, uint32_t len, bool isSkipped)
+int Reader::handleBadBlock(char *pbuf, uint32_t len, bool isSkipped)
 {
     RespBadBlock *badBlock = reinterpret_cast<RespBadBlock *>(pbuf);
     size_t size = sizeof(RespBadBlock);
@@ -102,7 +104,7 @@ int Reader::handleBadBlock(uint8_t *pbuf, uint32_t len, bool isSkipped)
     return static_cast<int>(size);
 }
 
-int Reader::handleError(uint8_t *pbuf, uint32_t len)
+int Reader::handleError(char *pbuf, uint32_t len)
 {
     RespError *err = reinterpret_cast<RespError *>(pbuf);
     size_t size = sizeof(RespError);
@@ -116,7 +118,7 @@ int Reader::handleError(uint8_t *pbuf, uint32_t len)
     return -1;
 }
 
-int Reader::handleProgress(uint8_t *pbuf, uint32_t len)
+int Reader::handleProgress(char *pbuf, uint32_t len)
 {
     RespProgress *resp = reinterpret_cast<RespProgress *>(pbuf);
     size_t size = sizeof(RespProgress);
@@ -129,7 +131,7 @@ int Reader::handleProgress(uint8_t *pbuf, uint32_t len)
     return static_cast<int>(size);
 }
 
-int Reader::handleStatus(uint8_t *pbuf, uint32_t len)
+int Reader::handleStatus(char *pbuf, uint32_t len)
 {
     RespHeader *header = reinterpret_cast<RespHeader *>(pbuf);
 
@@ -156,7 +158,7 @@ int Reader::handleStatus(uint8_t *pbuf, uint32_t len)
     return 0;
 }
 
-int Reader::handleData(uint8_t *pbuf, uint32_t len)
+int Reader::handleData(char *pbuf, uint32_t len)
 {
     RespHeader *header = reinterpret_cast<RespHeader *>(pbuf);
     uint8_t dataSize = header->info;
@@ -185,7 +187,7 @@ int Reader::handleData(uint8_t *pbuf, uint32_t len)
     return static_cast<int>(packetSize);
 }
 
-int Reader::handlePacket(uint8_t *pbuf, uint32_t len)
+int Reader::handlePacket(char *pbuf, uint32_t len)
 {
     RespHeader *header = reinterpret_cast<RespHeader *>(pbuf);
 
@@ -205,7 +207,7 @@ int Reader::handlePacket(uint8_t *pbuf, uint32_t len)
     }
 }
 
-int Reader::handlePackets(uint8_t *pbuf, uint32_t len)
+int Reader::handlePackets(char *pbuf, uint32_t len)
 {
     int ret;
     uint32_t offset = 0;
@@ -229,7 +231,7 @@ int Reader::handlePackets(uint8_t *pbuf, uint32_t len)
 
 int Reader::readData()
 {
-    uint8_t pbuf[BUF_SIZE];
+    char pbuf[BUF_SIZE];
     int len, offset = 0;
 
     do
@@ -257,24 +259,24 @@ int Reader::readData()
 
 int Reader::serialPortCreate()
 {
-    serialPort = new QSerialPort();
+    serialPort = new SerialPort();
 
-    serialPort->setPortName(portName);
-    serialPort->setBaudRate(baudRate);
+//TODO: error handling
+//    if (!serialPort->open(QIODevice::ReadWrite))
+//    {
+//        logErr(QString("Failed to open serial port: %1")
+//            .arg(serialPort->errorString()));
+//        return -1;
+//    }
 
-    if (!serialPort->open(QIODevice::ReadWrite))
-    {
-        logErr(QString("Failed to open serial port: %1")
-            .arg(serialPort->errorString()));
-        return -1;
-    }
+    serialPort->start(portName.toLatin1(), baudRate);
 
     return 0;
 }
 
 void Reader::serialPortDestroy()
 {
-    serialPort->close();
+    serialPort->stop();
     delete serialPort;
 }
 

@@ -7,7 +7,6 @@
 #define PROGRAMMER_H
 
 #include <QObject>
-#include <QtSerialPort/QSerialPort>
 #include <QByteArray>
 #include <cstdint>
 #include "writer.h"
@@ -15,6 +14,7 @@
 #include "cmd.h"
 #include "parallel_chip_db.h"
 #include "spi_chip_db.h"
+#include "serial_port.h"
 
 using namespace std;
 
@@ -44,7 +44,7 @@ class Programmer : public QObject
     };
     const uint32_t flashPageSize = 0x800;
 
-    QSerialPort serialPort;
+    SerialPort serialPort;
     QString usbDevName;
     Writer writer;
     Reader reader;

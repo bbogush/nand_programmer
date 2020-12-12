@@ -40,7 +40,8 @@ int Writer::write(uint8_t *data, uint32_t dataLen)
     ret = serialPort->write(reinterpret_cast<const char *>(data), dataLen);
     if (ret < 0)
     {
-        logErr(QString("Failed to write: %1").arg(serialPort->errorString()));
+        logErr(QString("Failed to write: %1").arg(serialPort->errorString()
+            .c_str()));
         return -1;
     }
     else if (static_cast<uint32_t>(ret) < dataLen)
@@ -57,11 +58,12 @@ int Writer::read(uint8_t *data, uint32_t dataLen)
 {
     qint64 ret;
 
-    if (!serialPort->waitForReadyRead(READ_ACK_TIMEOUT))
-    {
-        logErr("Write ACK was not received");
-        return -1;
-    }
+//TODO: handle timeout
+//    if (!serialPort->waitForReadyRead(READ_ACK_TIMEOUT))
+//    {
+//        logErr("Write ACK was not received");
+//        return -1;
+//    }
 
     ret = serialPort->read(reinterpret_cast<char *>(data), dataLen);
     if (ret < 0)
@@ -287,24 +289,25 @@ int Writer::writeEnd()
 
 int Writer::serialPortCreate()
 {
-    serialPort = new QSerialPort();
+    serialPort = new SerialPort();
 
-    serialPort->setPortName(portName);
-    serialPort->setBaudRate(baudRate);
 
-    if (!serialPort->open(QIODevice::ReadWrite))
-    {
-        logErr(QString("Failed to open serial port: %1")
-            .arg(serialPort->errorString()));
-        return -1;
-    }
+//TODO: Handle error
+//    if (!serialPort->open(QIODevice::ReadWrite))
+//    {
+//        logErr(QString("Failed to open serial port: %1")
+//            .arg(serialPort->errorString()));
+//        return -1;
+//    }
+
+    serialPort->start(portName.toLatin1(), baudRate);
 
     return 0;
 }
 
 void Writer::serialPortDestroy()
 {
-    serialPort->close();
+    serialPort->stop();
     free(serialPort);
 }
 

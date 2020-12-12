@@ -7,13 +7,13 @@
 #define WRITER_H
 
 #include "cmd.h"
+#include "serial_port.h"
 #include <QThread>
-#include <QSerialPort>
 
 class Writer : public QThread
 {
     Q_OBJECT
-    QSerialPort *serialPort;
+    SerialPort *serialPort;
     QString portName;
     qint32 baudRate;
     uint8_t *buf;

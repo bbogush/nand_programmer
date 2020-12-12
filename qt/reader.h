@@ -7,13 +7,13 @@
 #define READER_H
 
 #include <QThread>
-#include <QSerialPort>
+#include "serial_port.h"
 
 class Reader : public QThread
 {
     Q_OBJECT
 
-    QSerialPort *serialPort;
+    SerialPort *serialPort;
     QString portName;
     qint32 baudRate;
     uint8_t *rbuf;
@@ -30,14 +30,14 @@ class Reader : public QThread
     void serialPortDestroy();
     int write(const uint8_t *data, uint32_t len);
     int readStart();
-    int read(uint8_t *pbuf, uint32_t len);
-    int handleError(uint8_t *pbuf, uint32_t len);
-    int handleProgress(uint8_t *pbuf, uint32_t len);
-    int handleBadBlock(uint8_t *pbuf, uint32_t len, bool isSkipped);
-    int handleStatus(uint8_t *pbuf, uint32_t len);
-    int handleData(uint8_t *pbuf, uint32_t len);
-    int handlePacket(uint8_t *pbuf, uint32_t len);
-    int handlePackets(uint8_t *pbuf, uint32_t len);
+    int read(char *pbuf, uint32_t len);
+    int handleError(char *pbuf, uint32_t len);
+    int handleProgress(char *pbuf, uint32_t len);
+    int handleBadBlock(char *pbuf, uint32_t len, bool isSkipped);
+    int handleStatus(char *pbuf, uint32_t len);
+    int handleData(char *pbuf, uint32_t len);
+    int handlePacket(char *pbuf, uint32_t len);
+    int handlePackets(char *pbuf, uint32_t len);
     int readData();
     void run() override;
     void logErr(const QString& msg);
