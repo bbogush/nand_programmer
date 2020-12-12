@@ -81,7 +81,14 @@ FORMS += main_window.ui \
 QMAKE_CXXFLAGS += -std=c++11 -Wextra -Werror
 mingw:QMAKE_CXXFLAGS += -mno-ms-bitfields
 
-LIBS += -lboost_system
+unix: {
+    LIBS += -lboost_system
+}
+
+win32: {
+    INCLUDEPATH += C:/boost/include/boost-1_75
+    LIBS += -LC:/boost/lib -lws2_32 -lboost_system-mgw8-mt-x64-1_75
+}
 
 DISTFILES += \
     nando_parallel_chip_db.csv \
