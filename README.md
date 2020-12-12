@@ -100,7 +100,17 @@ Linux based OS
 - cd ~/dev/nand_programmer/nand_programmer/firmware
 - st-flash write ./obj/prog.bin 0x8000000
 ## Build host application
-- Install Qt5.5.1
+### Linux
+- sudo apt-get install libboost-all-dev
+- Install Qt5.x
+- Open ~/dev/nand_programmer/nand_programmer/qt/qt.pro with QtCreator.
+- Go to Projects->Build->Build Steps->Add Build Step->Make. Add "install" to "Make arguments".
+- Build->Run qmake
+- Build->Build All
+- Build->Run
+### Windows
+- Install boost library from GoogleDriver archive under C:/boost/ or compile.
+- Install Qt5.x
 - Open ~/dev/nand_programmer/nand_programmer/qt/qt.pro with QtCreator.
 - Go to Projects->Build->Build Steps->Add Build Step->Make. Add "install" to "Make arguments".
 - Build->Run qmake
