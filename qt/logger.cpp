@@ -60,10 +60,13 @@ void Logger::logHandler(QtMsgType type, const QMessageLogContext &context ,
 Logger::Logger()
 {
     qInstallMessageHandler(logHandler);
+    oldBuf = std::cerr.rdbuf();
+    std::cerr.rdbuf(this);
 }
 
 Logger::~Logger()
 {
+    std::cerr.rdbuf(oldBuf);
     qInstallMessageHandler(nullptr);
 }
 
@@ -95,5 +98,17 @@ void Logger::putInstance()
 void Logger::setTextEdit(QTextEdit *textEdit)
 {
     logTextEdit = textEdit;
+}
+
+std::basic_streambuf<char>::int_type Logger::overflow(int_type v)
+{
+    return v;
+}
+
+std::streamsize Logger::xsputn(const char *p, std::streamsize n)
+{
+    qCritical() << p;
+
+    return n;
 }
 
