@@ -78,6 +78,65 @@ void SerialPort::onRead(const boost::system::error_code &ec, size_t bytesRead)
     readCb(bytesRead);
 }
 
+int SerialPort::asyncReadWithTimeout(char *buf, int size,
+    std::function<void (int)> cb, int timeout)
+{
+    if (!port || !port.get() || !port->is_open())
+        return -1;
+
+    readCb = cb;
+
+    port->async_read_some(boost::asio::buffer(buf, size),
+        boost::bind(&SerialPort::onReadWithTimeout, this,
+        boost::asio::placeholders::error,
+        boost::asio::placeholders::bytes_transferred));
+
+    timer = timer_ptr(new boost::asio::deadline_timer(ioService));
+    timer->expires_from_now(boost::posix_time::seconds(timeout));
+    timer->async_wait(boost::bind(&SerialPort::onTimeout, this,
+        boost::asio::placeholders::error));
+
+    if (!isStarted)
+    {
+        thread = thread_ptr(new boost::thread(boost::bind(&boost::asio::
+            io_service::run, &ioService)));
+        isStarted = true;
+    }
+
+    return 0;
+}
+
+void SerialPort::onReadWithTimeout(const boost::system::error_code &ec,
+    size_t bytesRead)
+{
+    boost::mutex::scoped_lock look(mutex);
+
+    timer->cancel();
+    timer = nullptr;
+
+    if (ec)
+    {
+        readCb(-1);
+        isStarted = false;
+        return;
+    }
+
+    readCb(bytesRead);
+}
+
+void SerialPort::onTimeout(const boost::system::error_code &e)
+{
+    if (!e)
+    {
+        std::cout << "timeout: " << e.message() << std::endl;
+        port->cancel();
+        readCb(-1);
+        isStarted = false;
+    }
+    else if (e != boost::asio::error::operation_aborted)
+        std::cout << "Timer error: " << e.message() << std::endl;
+}
+
 std::string SerialPort::errorString()
 {
     return ec.message();
@@ -119,6 +178,12 @@ void SerialPort::stop()
 {
     boost::mutex::scoped_lock look(mutex);
 
+    if (timer)
+    {
+        timer->cancel();
+        timer = nullptr;
+    }
+
     if (port)
     {
         port->cancel();
@@ -130,4 +195,7 @@ void SerialPort::stop()
     ioService.stop();
     ioService.reset();
     isStarted = false;
+
+    if (thread)
+        thread = nullptr;
 }

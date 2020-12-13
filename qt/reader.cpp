@@ -10,7 +10,7 @@
 #include <QTextBlock>
 #include <QTextCursor>
 
-#define READ_TIMEOUT 10000
+#define READ_TIMEOUT 10
 #define NOTIFY_LIMIT 131072 // 128KB
 
 Q_DECLARE_METATYPE(QtMsgType)
@@ -257,20 +257,13 @@ int Reader::read(char *pbuf, uint32_t len)
     std::function<void(int)> cb = std::bind(&Reader::readCb, this,
         std::placeholders::_1);
 
-    if (serialPort->asyncRead(pbuf, len, cb) < 0)
+    if (serialPort->asyncReadWithTimeout(pbuf, len, cb, READ_TIMEOUT) < 0)
     {
         logErr("Failed to read data");
         return -1;
     }
 
     return 0;
-
-//TODO: handle timeout
-//    if (!serialPort->waitForReadyRead(READ_TIMEOUT))
-//    {
-//        logErr("Read data timeout");
-//        return -1;
-//    }
 }
 
 int Reader::serialPortCreate()

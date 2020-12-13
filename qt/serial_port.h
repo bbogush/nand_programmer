@@ -14,15 +14,19 @@
 
 #include <iostream>
 
-typedef boost::shared_ptr<boost::asio::serial_port> serial_port_ptr; 
+typedef boost::shared_ptr<boost::thread> thread_ptr;
+typedef boost::shared_ptr<boost::asio::serial_port> serial_port_ptr;
+typedef boost::shared_ptr<boost::asio::deadline_timer> timer_ptr;
 
 class SerialPort
 {
 private:
     boost::asio::io_service ioService;
+    thread_ptr thread;
     serial_port_ptr port;
     boost::system::error_code ec;
     boost::mutex mutex;
+    timer_ptr timer;
     std::function<void(int)> readCb;
     bool isStarted = false;
 
@@ -30,6 +34,9 @@ private:
     SerialPort &operator=(const SerialPort &p);
 
     void onRead(const boost::system::error_code &ec, size_t bytesRead);
+    void onReadWithTimeout(const boost::system::error_code &ec,
+        size_t bytesRead);
+    void onTimeout(const boost::system::error_code &e);
 
 public:
     SerialPort();
@@ -41,6 +48,8 @@ public:
     int write(const char *buf, int size);
     int read(char *buf, int size);
     int asyncRead(char *buf, int size, std::function<void(int)> cb);
+    int asyncReadWithTimeout(char *buf, int size, std::function<void (int)> cb,
+        int timeout);
     std::string errorString();
 };
 
