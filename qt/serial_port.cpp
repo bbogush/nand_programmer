@@ -4,6 +4,7 @@
  */
 
 #include "serial_port.h"
+#include <boost/bind.hpp>
 
 SerialPort::SerialPort()
 {
@@ -43,6 +44,40 @@ int SerialPort::read(char *buf, int size)
     return ret;
 }
 
+int SerialPort::asyncRead(char *buf, int size, std::function<void(int)> cb)
+{
+    if (!port || !port.get() || !port->is_open())
+        return -1;
+
+    readCb = cb;
+
+    port->async_read_some(boost::asio::buffer(buf, size),
+        boost::bind(&SerialPort::onRead, this, boost::asio::placeholders::error,
+        boost::asio::placeholders::bytes_transferred));
+
+    if (!isStarted)
+    {
+        boost::thread t(boost::bind(&boost::asio::io_service::run, &ioService));
+        isStarted = true;
+    }
+
+    return 0;
+}
+
+void SerialPort::onRead(const boost::system::error_code &ec, size_t bytesRead)
+{
+    boost::mutex::scoped_lock look(mutex);
+
+    if (ec)
+    {
+        readCb(-1);
+        isStarted = false;
+        return;
+    }
+
+    readCb(bytesRead);
+}
+
 std::string SerialPort::errorString()
 {
     return ec.message();
@@ -64,6 +99,7 @@ bool SerialPort::start(const char *portName, int baudRate)
     {
         std::cout << "error : port_->open() failed...com_port_name="
             << portName << ", e=" << ec.message().c_str() << std::endl;
+        port = nullptr;
         return false;
     }
 
@@ -81,6 +117,8 @@ bool SerialPort::start(const char *portName, int baudRate)
 
 void SerialPort::stop()
 {
+    boost::mutex::scoped_lock look(mutex);
+
     if (port)
     {
         port->cancel();
@@ -91,4 +129,5 @@ void SerialPort::stop()
 
     ioService.stop();
     ioService.reset();
+    isStarted = false;
 }

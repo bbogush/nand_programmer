@@ -41,8 +41,10 @@ int Programmer::serialPortConnect()
 {
     if (!serialPort.start(usbDevName.toLatin1(), SERIAL_PORT_SPEED))
     {
+        std::string err = serialPort.errorString();
+        QString errStr = QString(err.c_str());
         qCritical() << "Failed to open serial port " << usbDevName << ": " <<
-            serialPort.errorString().c_str();
+            errStr;
         return -1;
     }
 

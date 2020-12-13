@@ -82,12 +82,13 @@ QMAKE_CXXFLAGS += -std=c++11 -Wextra -Werror
 mingw:QMAKE_CXXFLAGS += -mno-ms-bitfields
 
 unix: {
-    LIBS += -lboost_system
+    LIBS += -lboost_system -lboost_thread
 }
 
 win32: {
     INCLUDEPATH += C:/boost/include/boost-1_75
-    LIBS += -LC:/boost/lib -lws2_32 -lboost_system-mgw8-mt-x64-1_75
+    LIBS += -LC:/boost/lib -lws2_32 -lboost_system-mgw8-mt-x64-1_75 \
+      -lboost_thread-mgw8-mt-x64-1_75
 }
 
 DISTFILES += \

@@ -11,7 +11,6 @@
 #include <QTextCursor>
 
 #define READ_TIMEOUT 10000
-#define BUF_SIZE 4096
 #define NOTIFY_LIMIT 131072 // 128KB
 
 Q_DECLARE_METATYPE(QtMsgType)
@@ -31,6 +30,7 @@ void Reader::init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
     readOffset = 0;
     bytesRead = 0;
     bytesReadNotified = 0;
+    offset = 0;
 }
 
 int Reader::write(const uint8_t *data, uint32_t len)
@@ -57,27 +57,6 @@ int Reader::write(const uint8_t *data, uint32_t len)
 int Reader::readStart()
 {
     return write(wbuf, wlen);
-}
-
-int Reader::read(char *pbuf, uint32_t len)
-{
-    qint64 ret;
-
-//TODO: handle timeout
-//    if (!serialPort->waitForReadyRead(READ_TIMEOUT))
-//    {
-//        logErr("Read data timeout");
-//        return -1;
-//    }
-
-    ret = serialPort->read(pbuf, len);
-    if (ret < 0)
-    {
-        logErr("Failed to read data");
-        return -1;
-    }
-
-    return static_cast<int>(ret);
 }
 
 int Reader::handleBadBlock(char *pbuf, uint32_t len, bool isSkipped)
@@ -164,7 +143,7 @@ int Reader::handleData(char *pbuf, uint32_t len)
     uint8_t dataSize = header->info;
     size_t headerSize = sizeof(RespHeader), packetSize = headerSize + dataSize;
 
-    if (!dataSize || packetSize > BUF_SIZE)
+    if (!dataSize || packetSize > bufSize)
     {
         logErr(QString("Wrong data length in response header: %1")
             .arg(dataSize));
@@ -229,47 +208,82 @@ int Reader::handlePackets(char *pbuf, uint32_t len)
     return static_cast<int>(len - offset);
 }
 
-int Reader::readData()
+void Reader::readCb(int size)
 {
-    char pbuf[BUF_SIZE];
-    int len, offset = 0;
 
-    do
+    if (size < 0)
     {
-        if ((len = read(pbuf + offset,
-            BUF_SIZE - static_cast<uint32_t>(offset))) < 0)
-        {
-            return -1;
-        }
-        len += offset;
+        std::string err = serialPort->errorString();
+        QString errStr = QString(err.c_str());
+        logErr("Failed to read data: " + errStr);
+        emit result(-1);
+        serialPortDestroy();
+        return;
+    }
 
-        if ((offset = handlePackets(pbuf, static_cast<uint32_t>(len))) < 0)
-            return -1;
+    size += offset;
 
-        if (bytesRead >= bytesReadNotified + NOTIFY_LIMIT)
+    if ((offset = handlePackets(pbuf, static_cast<uint32_t>(size))) < 0)
+    {
+        emit result(-1);
+        serialPortDestroy();
+        return;
+    }
+
+    if (bytesRead >= bytesReadNotified + NOTIFY_LIMIT)
+    {
+        emit progress(bytesRead);
+        bytesReadNotified = bytesRead;
+    }
+
+    if (!bytesRead || (rlen && rlen != bytesRead))
+    {
+        if (read(pbuf + offset, bufSize - offset) < 0)
         {
-            emit progress(bytesRead);
-            bytesReadNotified = bytesRead;
+            emit result(-1);
+            serialPortDestroy();
+            return;
         }
     }
-    while (!bytesRead || (rlen && rlen != bytesRead));
+    else
+    {
+        emit result(0);
+        serialPortDestroy();
+    }
+}
+
+int Reader::read(char *pbuf, uint32_t len)
+{
+    std::function<void(int)> cb = std::bind(&Reader::readCb, this,
+        std::placeholders::_1);
+
+    if (serialPort->asyncRead(pbuf, len, cb) < 0)
+    {
+        logErr("Failed to read data");
+        return -1;
+    }
 
     return 0;
+
+//TODO: handle timeout
+//    if (!serialPort->waitForReadyRead(READ_TIMEOUT))
+//    {
+//        logErr("Read data timeout");
+//        return -1;
+//    }
 }
 
 int Reader::serialPortCreate()
 {
     serialPort = new SerialPort();
 
-//TODO: error handling
-//    if (!serialPort->open(QIODevice::ReadWrite))
-//    {
-//        logErr(QString("Failed to open serial port: %1")
-//            .arg(serialPort->errorString()));
-//        return -1;
-//    }
-
-    serialPort->start(portName.toLatin1(), baudRate);
+    if (!serialPort->start(portName.toLatin1(), baudRate))
+    {
+        std::string err = serialPort->errorString();
+        QString errStr = QString(err.c_str());
+        logErr(QString("Failed to open serial port: %1").arg(errStr));
+        return -1;
+    }
 
     return 0;
 }
@@ -280,26 +294,33 @@ void Reader::serialPortDestroy()
     delete serialPort;
 }
 
-void Reader::run()
+void Reader::start()
 {
-    int ret = -1;
-
     /* Required for logger */
     qRegisterMetaType<QtMsgType>();
 
     if (serialPortCreate())
-        goto Exit;
+    {
+        emit result(-1);
+        goto Error;
+    }
+
+    if (read(pbuf, bufSize) < 0)
+    {
+        emit result(-1);
+        goto Error;
+    }
 
     if (readStart())
-        goto Exit;
+    {
+        emit result(-1);
+        goto Error;
+    }
 
-    if (readData())
-        goto Exit;
+    return;
 
-    ret = 0;
-Exit:
+Error:
     serialPortDestroy();
-    emit result(ret);
 }
 
 void Reader::logErr(const QString& msg)
