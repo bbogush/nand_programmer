@@ -24,11 +24,9 @@ private:
     boost::asio::io_service ioService;
     thread_ptr thread;
     serial_port_ptr port;
-    boost::system::error_code ec;
     boost::mutex mutex;
     timer_ptr timer;
     std::function<void(int)> readCb;
-    bool isStarted = false;
 
     SerialPort(const SerialPort &p);
     SerialPort &operator=(const SerialPort &p);
@@ -50,7 +48,6 @@ public:
     int asyncRead(char *buf, int size, std::function<void(int)> cb);
     int asyncReadWithTimeout(char *buf, int size, std::function<void (int)> cb,
         int timeout);
-    std::string errorString();
 };
 
 #endif // SERIAL_PORT_H

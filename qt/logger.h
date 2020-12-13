@@ -16,6 +16,7 @@ class Logger: public std::basic_streambuf<char>
     static Logger *logger;
     static int refCount;
     std::streambuf *oldBuf;
+    QString tempBuf;
 
     explicit Logger();
     ~Logger();

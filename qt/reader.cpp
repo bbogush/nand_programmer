@@ -39,11 +39,7 @@ int Reader::write(const uint8_t *data, uint32_t len)
 
     ret = serialPort->write(reinterpret_cast<const char *>(data), len);
     if (!ret)
-    {
-        logErr(QString("Failed to write: %1").arg(serialPort->errorString()
-            .c_str()));
         return -1;
-    }
     else if (ret < len)
     {
         logErr(QString("Data was partialy written, returned %1, expected %2")
@@ -210,12 +206,8 @@ int Reader::handlePackets(char *pbuf, uint32_t len)
 
 void Reader::readCb(int size)
 {
-
     if (size < 0)
     {
-        std::string err = serialPort->errorString();
-        QString errStr = QString(err.c_str());
-        logErr("Failed to read data: " + errStr);
         emit result(-1);
         serialPortDestroy();
         return;
@@ -271,12 +263,7 @@ int Reader::serialPortCreate()
     serialPort = new SerialPort();
 
     if (!serialPort->start(portName.toLatin1(), baudRate))
-    {
-        std::string err = serialPort->errorString();
-        QString errStr = QString(err.c_str());
-        logErr(QString("Failed to open serial port: %1").arg(errStr));
         return -1;
-    }
 
     return 0;
 }
@@ -289,9 +276,6 @@ void Reader::serialPortDestroy()
 
 void Reader::start()
 {
-    /* Required for logger */
-    qRegisterMetaType<QtMsgType>();
-
     if (serialPortCreate())
     {
         emit result(-1);

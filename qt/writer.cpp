@@ -39,11 +39,7 @@ int Writer::write(uint8_t *data, uint32_t dataLen)
 
     ret = serialPort->write(reinterpret_cast<const char *>(data), dataLen);
     if (ret < 0)
-    {
-        logErr(QString("Failed to write: %1").arg(serialPort->errorString()
-            .c_str()));
         return -1;
-    }
     else if (static_cast<uint32_t>(ret) < dataLen)
     {
         logErr(QString("Data was partialy written, returned %1, expected %2")

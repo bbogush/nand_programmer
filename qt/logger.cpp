@@ -102,12 +102,15 @@ void Logger::setTextEdit(QTextEdit *textEdit)
 
 std::basic_streambuf<char>::int_type Logger::overflow(int_type v)
 {
+    qCritical() << tempBuf;
+    tempBuf.clear();
+
     return v;
 }
 
 std::streamsize Logger::xsputn(const char *p, std::streamsize n)
 {
-    qCritical() << p;
+    tempBuf.append(p);
 
     return n;
 }

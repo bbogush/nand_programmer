@@ -18,15 +18,22 @@ SerialPort::~SerialPort()
 int SerialPort::write(const char *buf, int size)
 {
     int ret;
+    boost::system::error_code ec;
 
     if (!port)
+    {
+        std::cerr << "Port is not opened" << std::endl;
         return -1;
+    }
 
     if (!size)
         return 0;
 
     if (!(ret = port->write_some(boost::asio::buffer(buf, size), ec)))
+    {
+        std::cerr << "Write error: " << ec.message() << std::endl;
         return -1;
+    }
 
     return ret;
 }
@@ -34,20 +41,30 @@ int SerialPort::write(const char *buf, int size)
 int SerialPort::read(char *buf, int size)
 {
     int ret;
+    boost::system::error_code ec;
 
-    if (!port || !port.get() || !port->is_open())
+    if (!port || !port->is_open())
+    {
+        std::cerr << "Port is not opened" << std::endl;
         return -1;
+    }
 
     if (!(ret = port->read_some(boost::asio::buffer(buf, size), ec)))
+    {
+        std::cerr << "Read error: " << ec.message() << std::endl;
         return -1;
+    }
 
     return ret;
 }
 
 int SerialPort::asyncRead(char *buf, int size, std::function<void(int)> cb)
 {
-    if (!port || !port.get() || !port->is_open())
+    if (!port || !port->is_open())
+    {
+        std::cerr << "Port is not opened" << std::endl;
         return -1;
+    }
 
     readCb = cb;
 
@@ -55,11 +72,8 @@ int SerialPort::asyncRead(char *buf, int size, std::function<void(int)> cb)
         boost::bind(&SerialPort::onRead, this, boost::asio::placeholders::error,
         boost::asio::placeholders::bytes_transferred));
 
-    if (!isStarted)
-    {
-        boost::thread t(boost::bind(&boost::asio::io_service::run, &ioService));
-        isStarted = true;
-    }
+    thread = thread_ptr(new boost::thread(boost::bind(&boost::asio::
+        io_service::run, &ioService)));
 
     return 0;
 }
@@ -70,8 +84,8 @@ void SerialPort::onRead(const boost::system::error_code &ec, size_t bytesRead)
 
     if (ec)
     {
+        std::cerr << "Read error: " << ec.message() << std::endl;
         readCb(-1);
-        isStarted = false;
         return;
     }
 
@@ -81,8 +95,11 @@ void SerialPort::onRead(const boost::system::error_code &ec, size_t bytesRead)
 int SerialPort::asyncReadWithTimeout(char *buf, int size,
     std::function<void (int)> cb, int timeout)
 {
-    if (!port || !port.get() || !port->is_open())
+    if (!port || !port->is_open())
+    {
+        std::cerr << "Port is not opened" << std::endl;
         return -1;
+    }
 
     readCb = cb;
 
@@ -96,12 +113,8 @@ int SerialPort::asyncReadWithTimeout(char *buf, int size,
     timer->async_wait(boost::bind(&SerialPort::onTimeout, this,
         boost::asio::placeholders::error));
 
-    if (!isStarted)
-    {
-        thread = thread_ptr(new boost::thread(boost::bind(&boost::asio::
-            io_service::run, &ioService)));
-        isStarted = true;
-    }
+    thread = thread_ptr(new boost::thread(boost::bind(&boost::asio::
+        io_service::run, &ioService)));
 
     return 0;
 }
@@ -116,8 +129,8 @@ void SerialPort::onReadWithTimeout(const boost::system::error_code &ec,
 
     if (ec)
     {
+        std::cerr << "Read error: " << ec.message() << std::endl;
         readCb(-1);
-        isStarted = false;
         return;
     }
 
@@ -128,18 +141,12 @@ void SerialPort::onTimeout(const boost::system::error_code &e)
 {
     if (!e)
     {
-        std::cout << "timeout: " << e.message() << std::endl;
+        std::cerr << "Read timeout: " << e.message() << std::endl;
         port->cancel();
         readCb(-1);
-        isStarted = false;
     }
     else if (e != boost::asio::error::operation_aborted)
-        std::cout << "Timer error: " << e.message() << std::endl;
-}
-
-std::string SerialPort::errorString()
-{
-    return ec.message();
+        std::cerr << "Timer setup error: " << e.message() << std::endl;
 }
 
 bool SerialPort::start(const char *portName, int baudRate)
@@ -148,7 +155,7 @@ bool SerialPort::start(const char *portName, int baudRate)
 
     if (port)
     {
-        std::cout << "error : port is already opened..." << std::endl;
+        std::cerr << "Port is already opened" << std::endl;
         return false;
     }
 
@@ -156,8 +163,8 @@ bool SerialPort::start(const char *portName, int baudRate)
     port->open(portName, ec);
     if (ec)
     {
-        std::cout << "error : port_->open() failed...com_port_name="
-            << portName << ", e=" << ec.message().c_str() << std::endl;
+        std::cerr << "Failed to open " << portName << ": " << ec.message() <<
+            std::endl;
         port = nullptr;
         return false;
     }
@@ -194,7 +201,6 @@ void SerialPort::stop()
 
     ioService.stop();
     ioService.reset();
-    isStarted = false;
 
     if (thread)
         thread = nullptr;
