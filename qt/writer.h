@@ -8,11 +8,14 @@
 
 #include "cmd.h"
 #include "serial_port.h"
-#include <QThread>
+#include <QObject>
 
-class Writer : public QThread
+class Writer : public QObject
 {
     Q_OBJECT
+
+    static const uint32_t bufSize = 64;
+
     SerialPort *serialPort;
     QString portName;
     qint32 baudRate;
@@ -27,22 +30,24 @@ class Writer : public QThread
     uint8_t startCmd;
     uint8_t dataCmd;
     uint8_t endCmd;
+    char pbuf[bufSize];
+    int offset;
+    uint8_t cmd;
 
-    int write(uint8_t *data, uint32_t dataLen);
-    int read(uint8_t *data, uint32_t dataLen);
+    int write(char *data, uint32_t dataLen);
+    int read(char *data, uint32_t dataLen);
+    void readCb(int size);
     int handleWriteAck(RespHeader *header, uint32_t len);
     int handleBadBlock(RespHeader *header, uint32_t len, bool isSkipped);
     int handleError(RespHeader *header, uint32_t len);
-    int handleStatus(uint8_t *pbuf, uint32_t len);
-    int handlePacket(uint8_t *pbuf, uint32_t len);
-    int handlePackets(uint8_t *pbuf, uint32_t len);
-    int readData();
+    int handleStatus(char *pbuf, uint32_t len);
+    int handlePacket(char *pbuf, uint32_t len);
+    int handlePackets(char *pbuf, uint32_t len);
     int writeStart();
     int writeData();
     int writeEnd();
     int serialPortCreate();
     void serialPortDestroy();
-    void run() override;
     void logErr(const QString& msg);
     void logInfo(const QString& msg);
 
@@ -51,6 +56,8 @@ public:
         uint32_t addr, uint32_t len, uint32_t pageSize,
         bool skipBB, bool incSpare, uint8_t startCmd, uint8_t dataCmd,
         uint8_t endCmd);
+    void start();
+
 signals:
     void result(int ret);
     void progress(unsigned int progress);
