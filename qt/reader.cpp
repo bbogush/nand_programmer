@@ -15,6 +15,15 @@
 
 Q_DECLARE_METATYPE(QtMsgType)
 
+Reader::Reader()
+{
+}
+
+Reader::~Reader()
+{
+    stop();
+}
+
 void Reader::init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
     uint32_t rlen, const uint8_t *wbuf, uint32_t wlen, bool isSkipBB,
     bool isReadLess)
@@ -209,7 +218,6 @@ void Reader::readCb(int size)
     if (size < 0)
     {
         emit result(-1);
-        serialPortDestroy();
         return;
     }
 
@@ -218,7 +226,6 @@ void Reader::readCb(int size)
     if ((offset = handlePackets(pbuf, static_cast<uint32_t>(size))) < 0)
     {
         emit result(-1);
-        serialPortDestroy();
         return;
     }
 
@@ -233,15 +240,11 @@ void Reader::readCb(int size)
         if (read(pbuf + offset, bufSize - offset) < 0)
         {
             emit result(-1);
-            serialPortDestroy();
             return;
         }
     }
     else
-    {
         emit result(0);
-        serialPortDestroy();
-    }
 }
 
 int Reader::read(char *pbuf, uint32_t len)
@@ -270,8 +273,11 @@ int Reader::serialPortCreate()
 
 void Reader::serialPortDestroy()
 {
+    if (!serialPort)
+        return;
     serialPort->stop();
     delete serialPort;
+    serialPort = nullptr;
 }
 
 void Reader::start()
@@ -297,6 +303,11 @@ void Reader::start()
     return;
 
 Error:
+    serialPortDestroy();
+}
+
+void Reader::stop()
+{
     serialPortDestroy();
 }
 

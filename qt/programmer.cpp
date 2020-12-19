@@ -5,6 +5,7 @@
 
 #include "programmer.h"
 #include <QDebug>
+#include <QTimer>
 
 #ifdef Q_OS_LINUX
   #define USB_DEV_NAME "/dev/ttyACM0"
@@ -52,6 +53,7 @@ void Programmer::serialPortDisconnect()
 
 void Programmer::connectCb(int ret)
 {
+    QTimer::singleShot(0, &reader, &Reader::stop);
     QObject::disconnect(&reader, SIGNAL(result(int)), this,
         SLOT(connectCb(int)));
 
@@ -134,9 +136,10 @@ void Programmer::setIncSpare(bool isIncSpare)
 
 void Programmer::readChipIdCb(int ret)
 {
-    emit readChipIdCompleted(ret);
+    QTimer::singleShot(0, &reader, &Reader::stop);
     QObject::disconnect(&reader, SIGNAL(result(int)), this,
         SLOT(readChipIdCb(int)));
+    emit readChipIdCompleted(ret);
 }
 
 void Programmer::readChipId(ChipId *chipId)
@@ -159,6 +162,7 @@ void Programmer::readChipId(ChipId *chipId)
 
 void Programmer::eraseChipCb(int ret)
 {
+    QTimer::singleShot(0, &reader, &Reader::stop);
     QObject::disconnect(&reader, SIGNAL(progress(unsigned int)), this,
         SLOT(eraseProgressChipCb(unsigned int)));
     QObject::disconnect(&reader, SIGNAL(result(int)), this,
@@ -197,6 +201,7 @@ void Programmer::eraseChip(uint32_t addr, uint32_t len)
 
 void Programmer::readCb(int ret)
 {
+    QTimer::singleShot(0, &reader, &Reader::stop);
     QObject::disconnect(&reader, SIGNAL(progress(unsigned int)), this,
         SLOT(readProgressCb(unsigned int)));
     QObject::disconnect(&reader, SIGNAL(result(int)), this, SLOT(readCb(int)));
@@ -234,6 +239,7 @@ void Programmer::readChip(uint8_t *buf, uint32_t addr, uint32_t len,
 
 void Programmer::writeCb(int ret)
 {
+    QTimer::singleShot(0, &writer, &Writer::stop);
     QObject::disconnect(&writer, SIGNAL(progress(unsigned int)), this,
         SLOT(writeProgressCb(unsigned int)));
     QObject::disconnect(&writer, SIGNAL(result(int)), this, SLOT(writeCb(int)));
@@ -259,6 +265,7 @@ void Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
 
 void Programmer::readChipBadBlocksCb(int ret)
 {
+    QTimer::singleShot(0, &reader, &Reader::stop);
     QObject::disconnect(&reader, SIGNAL(result(int)), this,
         SLOT(readChipBadBlocksCb(int)));
     emit readChipBadBlocksCompleted(ret);
@@ -283,6 +290,7 @@ void Programmer::readChipBadBlocks()
 
 void Programmer::confChipCb(int ret)
 {
+    QTimer::singleShot(0, &reader, &Reader::stop);
     QObject::disconnect(&reader, SIGNAL(result(int)), this,
         SLOT(confChipCb(int)));
     emit confChipCompleted(ret);
@@ -412,6 +420,7 @@ void Programmer::firmwareUpdateProgressCb(unsigned int progress)
 
 void Programmer::firmwareUpdateCb(int ret)
 {
+    QTimer::singleShot(0, &writer, &Writer::stop);
     QObject::disconnect(&writer, SIGNAL(progress(unsigned int)), this,
         SLOT(firmwareUpdateProgressCb(unsigned int)));
     QObject::disconnect(&writer, SIGNAL(result(int)), this,
@@ -445,6 +454,7 @@ void Programmer::firmwareUpdateStart()
 
 void Programmer::getActiveImageCb(int ret)
 {
+    QTimer::singleShot(0, &reader, &Reader::stop);
     QObject::disconnect(&reader, SIGNAL(result(int)), this,
         SLOT(getActiveImageCb(int)));
 

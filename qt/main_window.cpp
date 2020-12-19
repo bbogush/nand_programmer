@@ -21,6 +21,7 @@
 #include <QStringList>
 #include <QMessageBox>
 #include <memory>
+#include <QTimer>
 
 #define HEADER_ADDRESS_WIDTH 80
 #define HEADER_HEX_WIDTH 340
@@ -518,6 +519,30 @@ void MainWindow::slotSelectChip(int selectedChipNum)
         prog->confChip(chipInfo);
 }
 
+void MainWindow::detectChipDelayed()
+{
+
+    if (currentChipDb == &spiChipDb)
+        qInfo() << "Chip not found in database";
+    else
+    {
+        // Search in next DB
+        detectChip(&spiChipDb);
+    }
+}
+
+void MainWindow::setChipNameDelayed()
+{
+    QString chipName = currentChipDb->getNameByChipId(chipId.makerId,
+        chipId.deviceId, chipId.thirdId, chipId.fourthId, chipId.fifthId);
+
+    for (int i = 0; i < ui->chipSelectComboBox->count(); i++)
+    {
+        if (!ui->chipSelectComboBox->itemText(i).compare(chipName))
+            ui->chipSelectComboBox->setCurrentIndex(i);
+    }
+}
+
 void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
 {
     QString idStr;
@@ -545,21 +570,18 @@ void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
 
     if (chipName.isEmpty())
     {
-        if (currentChipDb == &spiChipDb)
-            qInfo() << "Chip not found in database";
-        else
-        {
-            // Search in next DB
-            detectChip(&spiChipDb);
-        }
+        QTimer::singleShot(50, this, &MainWindow::detectChipDelayed);
         return;
     }
 
-    for (int i = 0; i < ui->chipSelectComboBox->count(); i++)
-    {
-        if (!ui->chipSelectComboBox->itemText(i).compare(chipName))
-            ui->chipSelectComboBox->setCurrentIndex(i);
-    }
+    QTimer::singleShot(50, this, &MainWindow::setChipNameDelayed);
+}
+
+void MainWindow::detectChipReadChipIdDelayed()
+{
+    connect(prog, SIGNAL(readChipIdCompleted(int)), this,
+        SLOT(slotProgDetectChipReadChipIdCompleted(int)));
+    prog->readChipId(&chipId);
 }
 
 void MainWindow::slotProgDetectChipConfCompleted(int status)
@@ -570,14 +592,13 @@ void MainWindow::slotProgDetectChipConfCompleted(int status)
     if (status)
         return;
 
-    connect(prog, SIGNAL(readChipIdCompleted(int)), this,
-        SLOT(slotProgDetectChipReadChipIdCompleted(int)));
-    prog->readChipId(&chipId);
+    QTimer::singleShot(50, this, &MainWindow::detectChipReadChipIdDelayed);
 }
 
 void MainWindow::detectChip(ChipDb *chipDb)
 {
     ChipInfo *chipInfo;
+
 
     currentChipDb = chipDb;
 

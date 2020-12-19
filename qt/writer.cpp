@@ -11,6 +11,15 @@
 
 #define READ_ACK_TIMEOUT 5000
 
+Writer::Writer()
+{
+}
+
+Writer::~Writer()
+{
+    stop();
+}
+
 void Writer::init(const QString &portName, qint32 baudRate, uint8_t *buf,
     uint32_t addr, uint32_t len, uint32_t pageSize, bool skipBB, bool incSpare,
     uint8_t startCmd, uint8_t dataCmd, uint8_t endCmd)
@@ -212,17 +221,12 @@ void Writer::readCb(int size)
             goto Error;
     }
     else if (cmd == endCmd)
-    {
         emit result(0);
-        goto Exit;
-    }
 
     return;
 
 Error:
     emit result(-1);
-Exit:
-    serialPortDestroy();
 }
 
 int Writer::writeStart()
@@ -312,8 +316,11 @@ int Writer::serialPortCreate()
 
 void Writer::serialPortDestroy()
 {
+    if (!serialPort)
+        return;
     serialPort->stop();
     free(serialPort);
+    serialPort = nullptr;
 }
 
 void Writer::start()
@@ -329,6 +336,11 @@ void Writer::start()
  Exit:
     serialPortDestroy();
     emit result(-1);
+}
+
+void Writer::stop()
+{
+    serialPortDestroy();
 }
 
 void Writer::logErr(const QString& msg)

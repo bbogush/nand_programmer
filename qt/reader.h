@@ -46,10 +46,14 @@ class Reader : public QObject
     void logErr(const QString& msg);
     void logInfo(const QString& msg);
 public:
+    explicit Reader();
+    ~Reader();
+
     void init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
         uint32_t rlen, const uint8_t *wbuf, uint32_t wlen, bool isSkipBB,
         bool isReadLess);
     void start();
+    void stop();
 signals:
     void result(int ret);
     void progress(unsigned int progress);

@@ -43,7 +43,9 @@ private:
     void setProgress(unsigned int progress);
     void updateProgSettings();
     void detectChip(ChipDb *chipDb);
-
+    void detectChipReadChipIdDelayed();
+    void detectChipDelayed();
+    void setChipNameDelayed();
 private slots:
     void slotProgConnectCompleted(int status);
     void slotProgReadDeviceIdCompleted(int status);
@@ -59,7 +61,6 @@ private slots:
     void slotProgDetectChipReadChipIdCompleted(int status);
     void slotProgFirmwareUpdateCompleted(int status);
     void slotProgFirmwareUpdateProgress(unsigned int progress);
-
 public slots:
     void slotFileOpen();
     void slotFileSave();
