@@ -8,6 +8,9 @@
 #include <QScrollBar>
 #include <QObject>
 
+Q_DECLARE_METATYPE(QTextCursor)
+Q_DECLARE_METATYPE(QtMsgType)
+
 Logger *Logger::logger;
 QTextEdit *Logger::logTextEdit;
 int Logger::refCount;
@@ -59,6 +62,9 @@ void Logger::logHandler(QtMsgType type, const QMessageLogContext &context ,
 
 Logger::Logger()
 {
+    qRegisterMetaType<QTextCursor>();
+    qRegisterMetaType<QtMsgType>();
+
     QObject::connect(this, SIGNAL(log(QString)), this, SLOT(slotLog(QString)));
     qInstallMessageHandler(logHandler);
     oldBuf = std::cerr.rdbuf();
