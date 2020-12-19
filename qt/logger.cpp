@@ -6,6 +6,7 @@
 #include "logger.h"
 #include <QDebug>
 #include <QScrollBar>
+#include <QObject>
 
 Logger *Logger::logger;
 QTextEdit *Logger::logTextEdit;
@@ -53,12 +54,12 @@ void Logger::logHandler(QtMsgType type, const QMessageLogContext &context ,
 
         logTextEdit->verticalScrollBar()->
             setValue(logTextEdit->verticalScrollBar()->maximum());
-
     }
 }
 
 Logger::Logger()
 {
+    QObject::connect(this, SIGNAL(log(QString)), this, SLOT(slotLog(QString)));
     qInstallMessageHandler(logHandler);
     oldBuf = std::cerr.rdbuf();
     std::cerr.rdbuf(this);
@@ -102,7 +103,7 @@ void Logger::setTextEdit(QTextEdit *textEdit)
 
 std::basic_streambuf<char>::int_type Logger::overflow(int_type v)
 {
-    qCritical() << tempBuf;
+    emit log(tempBuf);
     tempBuf.clear();
 
     return v;
@@ -110,8 +111,13 @@ std::basic_streambuf<char>::int_type Logger::overflow(int_type v)
 
 std::streamsize Logger::xsputn(const char *p, std::streamsize n)
 {
-    tempBuf.append(p);
+    tempBuf.append(QString::fromLatin1(p, n));
 
     return n;
+}
+
+void Logger::slotLog(QString msg)
+{
+    qCritical() << msg;
 }
 
