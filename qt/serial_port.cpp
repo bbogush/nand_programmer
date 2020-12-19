@@ -8,6 +8,7 @@
 
 SerialPort::SerialPort()
 {
+    timer = timer_ptr(new boost::asio::deadline_timer(ioService));
 }
 
 SerialPort::~SerialPort()
@@ -101,18 +102,20 @@ int SerialPort::asyncReadWithTimeout(char *buf, int size,
 
     readCb = cb;
 
+    timer->expires_from_now(boost::posix_time::seconds(timeout));
+    timer->async_wait(boost::bind(&SerialPort::onTimeout, this,
+        boost::asio::placeholders::error));
+
     port->async_read_some(boost::asio::buffer(buf, size),
         boost::bind(&SerialPort::onReadWithTimeout, this,
         boost::asio::placeholders::error,
         boost::asio::placeholders::bytes_transferred));
 
-    timer = timer_ptr(new boost::asio::deadline_timer(ioService));
-    timer->expires_from_now(boost::posix_time::seconds(timeout));
-    timer->async_wait(boost::bind(&SerialPort::onTimeout, this,
-        boost::asio::placeholders::error));
-
-    thread = thread_ptr(new boost::thread(boost::bind(&boost::asio::
-        io_service::run, &ioService)));
+    if (!thread)
+    {
+        thread = thread_ptr(new boost::thread(boost::bind(&boost::asio::
+            io_service::run, &ioService)));
+    }
 
     return 0;
 }
@@ -121,7 +124,6 @@ void SerialPort::onReadWithTimeout(const boost::system::error_code &ec,
     size_t bytesRead)
 {
     timer->cancel();
-    timer = nullptr;
 
     if (ec)
     {
