@@ -80,8 +80,6 @@ int SerialPort::asyncRead(char *buf, int size, std::function<void(int)> cb)
 
 void SerialPort::onRead(const boost::system::error_code &ec, size_t bytesRead)
 {
-    boost::mutex::scoped_lock look(mutex);
-
     if (ec)
     {
         std::cerr << "Read error: " << ec.message() << std::endl;
@@ -122,8 +120,6 @@ int SerialPort::asyncReadWithTimeout(char *buf, int size,
 void SerialPort::onReadWithTimeout(const boost::system::error_code &ec,
     size_t bytesRead)
 {
-    boost::mutex::scoped_lock look(mutex);
-
     timer->cancel();
     timer = nullptr;
 
@@ -183,8 +179,6 @@ bool SerialPort::start(const char *portName, int baudRate)
 
 void SerialPort::stop()
 {
-    boost::mutex::scoped_lock look(mutex);
-
     if (timer)
     {
         timer->cancel();

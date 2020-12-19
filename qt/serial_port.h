@@ -24,7 +24,6 @@ private:
     boost::asio::io_service ioService;
     thread_ptr thread;
     serial_port_ptr port;
-    boost::mutex mutex;
     timer_ptr timer;
     std::function<void(int)> readCb;
 
