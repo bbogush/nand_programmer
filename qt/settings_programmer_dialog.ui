@@ -63,7 +63,7 @@
     <rect>
      <x>12</x>
      <y>65</y>
-     <width>127</width>
+     <width>201</width>
      <height>23</height>
     </rect>
    </property>
@@ -79,7 +79,7 @@
     <rect>
      <x>12</x>
      <y>94</y>
-     <width>147</width>
+     <width>201</width>
      <height>23</height>
     </rect>
    </property>
@@ -90,11 +90,10 @@
     <bool>false</bool>
    </property>
   </widget>
-  <zorder>layoutWidget</zorder>
   <zorder>buttonBox</zorder>
   <zorder>skipBBCheckBox</zorder>
   <zorder>incSpareCheckBox</zorder>
-  <zorder></zorder>
+  <zorder>layoutWidget</zorder>
  </widget>
  <resources/>
  <connections>
