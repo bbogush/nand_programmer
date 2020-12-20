@@ -16,7 +16,7 @@ class Writer : public QObject
 
     static const uint32_t bufSize = 64;
 
-    SerialPort *serialPort;
+    SerialPort *serialPort = nullptr;
     QString portName;
     qint32 baudRate;
     uint8_t *buf;

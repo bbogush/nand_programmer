@@ -15,7 +15,7 @@ class Reader : public QObject
 
     static const uint32_t bufSize = 4096;
 
-    SerialPort *serialPort;
+    SerialPort *serialPort = nullptr;
     QString portName;
     qint32 baudRate;
     uint8_t *rbuf;
