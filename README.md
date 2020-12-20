@@ -1,7 +1,7 @@
 # NANDO (NANDopen) programmer
 
 ## General
-NANDO is open source NAND programmer based on STM32 processor.
+NANDO is open source NAND programmer based on STM32 processor. It supports parallel NAND and SPI flash programming.
 
 PCB boards:
 
@@ -16,7 +16,8 @@ Application:
 - PC client software for Linux & Windows.
 - TSOP-48 socket adapter for NAND chip (compatible with TL866 adapter)
 - TSOP-48 solder adapter for NAND chip
-- 8 bit NAND interface
+- 8 bit parallel NAND interface
+- SPI interface
 - 3.3V NAND power supply
 - NAND read,write and erase support
 - NAND read of chip ID support
@@ -33,24 +34,16 @@ Application:
 - Chip autodetection
 - Firmware update
 
-### Tested chips
-#### Samsung
-- K9F2G08U0C
-- K9F1G08U0E
-- K9F1208U0B
-- K9G8G08U0A
-#### Hynix
-- HY27US08121B 
-- HY27US08561A 
-#### TOSHIBA
-- TC58NVG2S3E
-- TC58NVG1S3E
-#### ESMT
-- F59L2G81A
-#### Micron
-- MT29F4G08ABAD
-#### Macronix
-- MX30LF2G18AC
+### Supported chips
+#### Parallel NAND:
+K9F2G08U0C, HY27US08121B, TC58NVG2S3E, F59L2G81A, MX30LF2G18AC and others.
+
+See full list of supported chips [qt/nando_parallel_chip_db.csv](qt/nando_parallel_chip_db.csv)
+
+#### SPI flash
+AT45DB021D, MX25L8006E, W25Q16JV and others.
+
+See full list of supported chips [qt/nando_spi_chip_db.csv](qt/nando_spi_chip_db.csv)
 
 ## Release binaries
 You can download host application deb package for Ubuntu/Windows installer, firmware binary for
