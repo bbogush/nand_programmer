@@ -7,7 +7,7 @@
 #include "ui_spi_chip_db_dialog.h"
 
 #define HEADER_LONG_WIDTH 120
-#define HEADER_MED_WIDTH 100
+#define HEADER_MED_WIDTH 110
 #define HEADER_SHORT_WIDTH 50
 
 SpiChipDbDialog::SpiChipDbDialog(SpiChipDb *chipDb, QWidget *parent) :
@@ -15,6 +15,12 @@ SpiChipDbDialog::SpiChipDbDialog(SpiChipDb *chipDb, QWidget *parent) :
     chipDbTableModel(chipDb, parent)
 {
     ui->setupUi(this);
+
+#ifdef Q_OS_WIN32
+    QFont font("Courier New", 6);
+    ui->chipDbTableView->setFont(font);
+#endif
+
     chipDbProxyModel.setSourceModel(&chipDbTableModel);
     ui->chipDbTableView->setModel(&chipDbProxyModel);
     ui->chipDbTableView->setColumnWidth(SpiChipDb::CHIP_PARAM_NAME,
