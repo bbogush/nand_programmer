@@ -182,10 +182,7 @@ bool SerialPort::start(const char *portName, int baudRate)
 void SerialPort::stop()
 {
     if (timer)
-    {
         timer->cancel();
-        timer = nullptr;
-    }
 
     if (port)
     {
