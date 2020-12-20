@@ -6,8 +6,6 @@
 #include "writer.h"
 #include "err.h"
 #include <QDebug>
-#include <QTextBlock>
-#include <QTextCursor>
 
 #define READ_ACK_TIMEOUT 5000
 

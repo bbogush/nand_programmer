@@ -7,13 +7,10 @@
 #include "cmd.h"
 #include "err.h"
 #include <QDebug>
-#include <QTextBlock>
-#include <QTextCursor>
 
 #define READ_TIMEOUT 10
 #define NOTIFY_LIMIT 131072 // 128KB
 
-Q_DECLARE_METATYPE(QtMsgType)
 
 Reader::Reader()
 {
