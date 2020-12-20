@@ -43,6 +43,10 @@ void MainWindow::initBufTable()
     ui->bufferTableView->setColumnWidth(HEADER_ADDRESS_COL,
         HEADER_ADDRESS_WIDTH);
     ui->bufferTableView->setColumnWidth(HEADER_HEX_COL, HEADER_HEX_WIDTH);
+#ifdef Q_OS_WIN32
+    QFont font("Courier New", 6);
+    ui->bufferTableView->setFont(font);
+#endif
 }
 
 void MainWindow::resetBufTable()
