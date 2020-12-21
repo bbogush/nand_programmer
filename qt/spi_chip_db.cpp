@@ -94,8 +94,7 @@ int SpiChipDb::chipInfoToString(ChipInfo *chipInfo, QString &s)
     paramsList.append(csvValue);
     getStringFromParam(ci->getTotalSize(), csvValue);
     paramsList.append(csvValue);
-    getStringFromParam(ci->getSpareSize(), csvValue);
-    paramsList.append(csvValue);
+
     for (int i = CHIP_PARAM_PAGE_OFF; i < CHIP_PARAM_NUM; i++)
     {
         if (getStringFromOptParam(ci->getParam(i - CHIP_PARAM_PAGE_OFF),
