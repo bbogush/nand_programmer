@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+chmod 666 /etc/xdg/nando_parallel_chip_db.csv
+chmod 666 /etc/xdg/nando_spi_chip_db.csv
+exit 0
