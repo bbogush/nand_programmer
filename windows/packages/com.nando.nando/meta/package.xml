@@ -2,8 +2,8 @@
 <Package>
     <DisplayName>NANDO</DisplayName>
     <Description>NANDO software.</Description>
-    <Version>2.2.0-1</Version>
-    <ReleaseDate>2019-04-28</ReleaseDate>
+    <Version>3.4.0-1</Version>
+    <ReleaseDate>2020-12-20</ReleaseDate>
     <Licenses>
         <License name="GNU General Public License" file="license.txt" />
     </Licenses>

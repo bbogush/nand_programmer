@@ -37,7 +37,7 @@ Component.prototype.createOperations = function()
 
     if (systemInfo.productType === "windows") {
         component.addOperation("CreateShortcut", "@TargetDir@/nando.exe", "@StartMenuDir@/nando.lnk",
-            "workingDirectory=@TargetDir@", "iconPath=%SystemRoot%/system32/SHELL32.dll",
-            "iconId=2", "description=NANDO");
+            "workingDirectory=@TargetDir@", "description=NANDO");
+		component.addOperation("Execute", "cacls", "@TargetDir@\\*.csv", "/e", "/p", "Users:f");
     }
 }
