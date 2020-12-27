@@ -117,3 +117,6 @@ Linux based OS
 - Press "+" button and fill out parameters from datasheet.
 
 <img src="img/chip_db_settings.jpeg">
+
+## WiKi
+Check [WiKi](https://github.com/bbogush/nand_programmer/wiki) page for more information.
