@@ -24,6 +24,7 @@ Programmer::Programmer(QObject *parent) : QObject(parent)
     usbDevName = USB_DEV_NAME;
     skipBB = true;
     incSpare = false;
+    eccEnabled = false;
     isConn = false;
     firmwareBuffer = nullptr;
     QObject::connect(&reader, SIGNAL(log(QtMsgType, QString)), this,
@@ -134,6 +135,31 @@ void Programmer::setIncSpare(bool isIncSpare)
     incSpare = isIncSpare;
 }
 
+void Programmer::resetChipCb(int ret)
+{
+    QTimer::singleShot(0, &reader, &Reader::stop);
+    QObject::disconnect(&reader, SIGNAL(result(int)), this,
+        SLOT(resetChipCb(int)));
+    emit resetChipCompleted(ret);
+}
+
+void Programmer::resetChip()
+{
+    Cmd cmd;
+
+    QObject::connect(&reader, SIGNAL(result(int)), this,
+        SLOT(resetChipCb(int)));
+
+    cmd.code = CMD_NAND_RESET;
+
+    writeData.clear();
+    writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
+    reader.init(usbDevName, SERIAL_PORT_SPEED,nullptr, 0,
+        reinterpret_cast<const uint8_t *>(writeData.constData()),
+        static_cast<uint32_t>(writeData.size()), false, false);
+    reader.start();
+}
+
 void Programmer::readChipIdCb(int ret)
 {
     QTimer::singleShot(0, &reader, &Reader::stop);
@@ -155,6 +181,32 @@ void Programmer::readChipId(ChipId *chipId)
     writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED,
         reinterpret_cast<uint8_t *>(chipId), sizeof(ChipId),
+        reinterpret_cast<const uint8_t *>(writeData.constData()),
+        static_cast<uint32_t>(writeData.size()), false, false);
+    reader.start();
+}
+
+void Programmer::readChipUniqueIdCb(int ret)
+{
+    QTimer::singleShot(0, &reader, &Reader::stop);
+    QObject::disconnect(&reader, SIGNAL(result(int)), this,
+        SLOT(readChipUniqueIdCb(int)));
+    emit readChipUniqueIdCompleted(ret);
+}
+
+void Programmer::readChipUniqueId(ChipUniqueId *chipuId)
+{
+    Cmd cmd;
+
+    QObject::connect(&reader, SIGNAL(result(int)), this,
+        SLOT(readChipUniqueIdCb(int)));
+
+    cmd.code = CMD_NAND_READ_UNIQUE;
+
+    writeData.clear();
+    writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
+    reader.init(usbDevName, SERIAL_PORT_SPEED,
+        reinterpret_cast<uint8_t *>(chipuId), sizeof(ChipUniqueId),
         reinterpret_cast<const uint8_t *>(writeData.constData()),
         static_cast<uint32_t>(writeData.size()), false, false);
     reader.start();
@@ -283,6 +335,60 @@ void Programmer::readChipBadBlocks()
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
     reader.init(usbDevName, SERIAL_PORT_SPEED, nullptr, 0,
+        reinterpret_cast<const uint8_t *>(writeData.constData()),
+        static_cast<uint32_t>(writeData.size()), false, false);
+    reader.start();
+}
+
+void Programmer::enableChipEccCb(int ret)
+{
+    QTimer::singleShot(0, &reader, &Reader::stop);
+    QObject::disconnect(&reader, SIGNAL(result(int)), this,
+        SLOT(enableChipEccCb(int)));
+    emit enableChipEccCompleted(ret);
+
+    this->eccEnabled = true;
+}
+
+void Programmer::enableChipEcc()
+{
+    Cmd cmd;
+
+    QObject::connect(&reader, SIGNAL(result(int)), this,
+        SLOT(enableChipEccCb(int)));
+
+    cmd.code = CMD_NAND_ECC_E;
+
+    writeData.clear();
+    writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
+    reader.init(usbDevName, SERIAL_PORT_SPEED,nullptr, 0,
+        reinterpret_cast<const uint8_t *>(writeData.constData()),
+        static_cast<uint32_t>(writeData.size()), false, false);
+    reader.start();
+}
+
+void Programmer::disableChipEccCb(int ret)
+{
+    QTimer::singleShot(0, &reader, &Reader::stop);
+    QObject::disconnect(&reader, SIGNAL(result(int)), this,
+        SLOT(disableChipEccCb(int)));
+    emit disableChipEccCompleted(ret);
+
+    this->eccEnabled = false;
+}
+
+void Programmer::disableChipEcc()
+{
+    Cmd cmd;
+
+    QObject::connect(&reader, SIGNAL(result(int)), this,
+        SLOT(disableChipEccCb(int)));
+
+    cmd.code = CMD_NAND_ECC_D;
+
+    writeData.clear();
+    writeData.append(reinterpret_cast<const char *>(&cmd), sizeof(cmd));
+    reader.init(usbDevName, SERIAL_PORT_SPEED,nullptr, 0,
         reinterpret_cast<const uint8_t *>(writeData.constData()),
         static_cast<uint32_t>(writeData.size()), false, false);
     reader.start();

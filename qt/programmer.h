@@ -51,6 +51,7 @@ class Programmer : public QObject
     bool isConn;
     bool skipBB;
     bool incSpare;
+    bool eccEnabled;
     FwVersion fwVersion;
     uint8_t activeImage;
     uint8_t updateImage;
@@ -76,12 +77,16 @@ public:
     void setSkipBB(bool skip);
     bool isIncSpare();
     void setIncSpare(bool incSpare);
+    void resetChip();
     void readChipId(ChipId *chipId);
+    void readChipUniqueId(ChipUniqueId *chipuid);
     void eraseChip(uint32_t addr, uint32_t len);
     void readChip(uint8_t *buf, uint32_t addr, uint32_t len, bool isReadLess);
     void writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
         uint32_t pageSize);
     void readChipBadBlocks();
+    void enableChipEcc();
+    void disableChipEcc();
     void confChip(ChipInfo *chipInfo);
     void detectChip();
     QString fwVersionToString(FwVersion fwVersion);
@@ -89,7 +94,9 @@ public:
 
 signals:
     void connectCompleted(int ret);
+    void resetChipCompleted(int ret);
     void readChipIdCompleted(int ret);
+    void readChipUniqueIdCompleted(int ret);
     void writeChipCompleted(int ret);
     void writeChipProgress(unsigned int progress);
     void readChipCompleted(int ret);
@@ -97,12 +104,16 @@ signals:
     void eraseChipCompleted(int ret);
     void eraseChipProgress(unsigned int progress);
     void readChipBadBlocksCompleted(int ret);
+    void enableChipEccCompleted(int ret);
+    void disableChipEccCompleted(int ret);
     void confChipCompleted(int ret);
     void firmwareUpdateCompleted(int ret);
     void firmwareUpdateProgress(unsigned int progress);
 
 private slots:
+    void resetChipCb(int ret);
     void readChipIdCb(int ret);
+    void readChipUniqueIdCb(int ret);
     void writeCb(int ret);
     void writeProgressCb(unsigned int progress);
     void readCb(int ret);
@@ -110,6 +121,8 @@ private slots:
     void eraseChipCb(int ret);
     void eraseProgressChipCb(unsigned int progress);
     void readChipBadBlocksCb(int ret);
+    void enableChipEccCb(int ret);
+    void disableChipEccCb(int ret);
     void confChipCb(int ret);
     void logCb(QtMsgType msgType, QString msg);
     void connectCb(int ret);

@@ -22,7 +22,11 @@ enum
     CMD_ACTIVE_IMAGE_GET = 0x09,
     CMD_FW_UPDATE_S      = 0x0a,
     CMD_FW_UPDATE_D      = 0x0b,
-    CMD_FW_UPDATE_E      = 0x0c
+    CMD_FW_UPDATE_E      = 0x0c,
+    CMD_NAND_RESET       = 0x0d,
+    CMD_NAND_READ_UNIQUE = 0x0e,
+    CMD_NAND_ECC_E       = 0x0f,
+    CMD_NAND_ECC_D       = 0x10
 };
 
 typedef struct __attribute__((__packed__))
@@ -34,6 +38,7 @@ typedef struct __attribute__((__packed__))
 {
     uint8_t skipBB : 1;
     uint8_t incSpare : 1;
+    uint8_t eccEnabled : 1;
 } CmdFlags;
 
 typedef struct __attribute__((__packed__))
@@ -117,9 +122,14 @@ typedef struct __attribute__((__packed__))
 
 typedef struct __attribute__((__packed__))
 {
+    uint8_t Id[32];
+} ChipUniqueId;
+
+typedef struct __attribute__((__packed__))
+{
     uint8_t code;
     uint8_t info;
-    uint8_t data[];
+    //uint8_t data[];
 } RespHeader;
 
 typedef struct __attribute__((__packed__))

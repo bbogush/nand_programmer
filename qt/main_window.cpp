@@ -80,6 +80,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotFileSave()));
     connect(ui->actionConnect, SIGNAL(triggered()), this,
         SLOT(slotProgConnect()));
+    connect(ui->actionReset, SIGNAL(triggered()), this,
+        SLOT(slotProgResetDevice()));
+    connect(ui->actionReadUniqueId, SIGNAL(triggered()), this,
+        SLOT(slotProgReadUniqueId()));
     connect(ui->actionReadId, SIGNAL(triggered()), this,
         SLOT(slotProgReadDeviceId()));
     connect(ui->actionErase, SIGNAL(triggered()), this,
@@ -90,6 +94,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotProgWrite()));
     connect(ui->actionReadBadBlocks, SIGNAL(triggered()), this,
         SLOT(slotProgReadBadBlocks()));
+    connect(ui->actionEnableECC, SIGNAL(triggered()), this,
+        SLOT(slotProgEnableEcc()));
+    connect(ui->actionDisableECC, SIGNAL(triggered()), this,
+        SLOT(slotProgDisableEcc()));
     connect(ui->actionProgrammer, SIGNAL(triggered()), this,
         SLOT(slotSettingsProgrammer()));
     connect(ui->actionParallelChipDb, SIGNAL(triggered()), this,
@@ -207,11 +215,15 @@ void MainWindow::setUiStateConnected(bool isConnected)
 
 void MainWindow::setUiStateSelected(bool isSelected)
 {
+    ui->actionReset->setEnabled(isSelected);
+    ui->actionReadUniqueId->setEnabled(isSelected);
     ui->actionReadId->setEnabled(isSelected);
     ui->actionErase->setEnabled(isSelected);
     ui->actionRead->setEnabled(isSelected);
     ui->actionWrite->setEnabled(isSelected);
     ui->actionReadBadBlocks->setEnabled(isSelected);
+    ui->actionEnableECC->setEnabled(isSelected);
+    ui->actionDisableECC->setEnabled(isSelected);
 }
 
 void MainWindow::slotProgConnectCompleted(int status)
@@ -246,6 +258,24 @@ void MainWindow::slotProgConnect()
     }
 }
 
+void MainWindow::slotProgResetDeviceCompleted(int status){
+    disconnect(prog, SIGNAL(resetChipCompleted(int)), this,
+        SLOT(slotProgResetDeviceCompleted(int)));
+
+    if (status)
+        return;
+
+    qInfo() << "Reset Done!";
+}
+
+void MainWindow::slotProgResetDevice()
+{
+    qInfo() << "Resetting chip ...";
+    connect(prog, SIGNAL(resetChipCompleted(int)), this,
+        SLOT(slotProgResetDeviceCompleted(int)));
+    prog->resetChip();
+}
+
 void MainWindow::slotProgReadDeviceIdCompleted(int status)
 {
     QString idStr;
@@ -273,6 +303,31 @@ void MainWindow::slotProgReadDeviceId()
     connect(prog, SIGNAL(readChipIdCompleted(int)), this,
         SLOT(slotProgReadDeviceIdCompleted(int)));
     prog->readChipId(&chipId);
+}
+
+void MainWindow::slotProgReadUniqueIdCompleted(int status){
+    QString idStr;
+
+    disconnect(prog, SIGNAL(readChipUniqueIdCompleted(int)), this,
+        SLOT(slotProgReadUniqueIdCompleted(int)));
+
+    if (status)
+        return;
+
+    idStr.clear();
+    for(unsigned long int i = 0 ; i< sizeof(ChipUniqueId);i++){
+        idStr.append(QString("0x%1 ").arg(chipuId.Id[i], 2, 16, QLatin1Char('0')));
+    }
+
+    qInfo() << QString("Unique ID ").append(idStr).toLatin1().data();
+}
+
+void MainWindow::slotProgReadUniqueId()
+{
+    qInfo() << "Reading Unique Id ...";
+    connect(prog, SIGNAL(readChipUniqueIdCompleted(int)), this,
+        SLOT(slotProgReadUniqueIdCompleted(int)));
+    prog->readChipUniqueId(&chipuId);
 }
 
 void MainWindow::slotProgEraseCompleted(int status)
@@ -484,6 +539,42 @@ void MainWindow::slotProgSelectCompleted(int status)
     }
     else
         setUiStateSelected(false);
+}
+
+void MainWindow::slotProgEnableEccCompleted(int status){
+    disconnect(prog, SIGNAL(enableChipEccCompleted(int)), this,
+        SLOT(slotProgEnableEccCompleted(int)));
+
+    if (status)
+        return;
+
+    qInfo() << "ECC is enabled";
+}
+
+void MainWindow::slotProgEnableEcc()
+{
+    qInfo() << "Enabling ECC ...";
+    connect(prog, SIGNAL(enableChipEccCompleted(int)), this,
+        SLOT(slotProgEnableEccCompleted(int)));
+    prog->enableChipEcc();
+}
+
+void MainWindow::slotProgDisableEccCompleted(int status){
+    disconnect(prog, SIGNAL(disableChipEccCompleted(int)), this,
+        SLOT(slotProgDisableEccCompleted(int)));
+
+    if (status)
+        return;
+
+    qInfo() << "ECC is Disabled";
+}
+
+void MainWindow::slotProgDisableEcc()
+{
+    qInfo() << "Disabling ECC ...";
+    connect(prog, SIGNAL(disableChipEccCompleted(int)), this,
+        SLOT(slotProgDisableEccCompleted(int)));
+    prog->disableChipEcc();
 }
 
 void MainWindow::slotSelectChip(int selectedChipNum)

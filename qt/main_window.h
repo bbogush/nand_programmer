@@ -31,6 +31,7 @@ private:
     QVector<uint8_t> buffer;
     BufferTableModel bufferTableModel;
     ChipId chipId;
+    ChipUniqueId chipuId;
     ParallelChipDb parallelChipDb;
     SpiChipDb spiChipDb;
     ChipDb *currentChipDb;
@@ -49,6 +50,8 @@ private:
 private slots:
     void slotProgConnectCompleted(int status);
     void slotProgReadDeviceIdCompleted(int status);
+    void slotProgResetDeviceCompleted(int status);
+    void slotProgReadUniqueIdCompleted(int status);
     void slotProgReadCompleted(int status);
     void slotProgReadProgress(unsigned int progress);
     void slotProgWriteCompleted(int status);
@@ -57,6 +60,8 @@ private slots:
     void slotProgEraseProgress(unsigned int progress);
     void slotProgReadBadBlocksCompleted(int status);
     void slotProgSelectCompleted(int status);
+    void slotProgEnableEccCompleted(int status);
+    void slotProgDisableEccCompleted(int status);
     void slotProgDetectChipConfCompleted(int status);
     void slotProgDetectChipReadChipIdCompleted(int status);
     void slotProgFirmwareUpdateCompleted(int status);
@@ -65,11 +70,15 @@ public slots:
     void slotFileOpen();
     void slotFileSave();
     void slotProgConnect();
+    void slotProgResetDevice();
+    void slotProgReadUniqueId();
     void slotProgReadDeviceId();
     void slotProgErase();
     void slotProgRead();
     void slotProgWrite();
     void slotProgReadBadBlocks();
+    void slotProgEnableEcc();
+    void slotProgDisableEcc();
     void slotSelectChip(int selectedChipNum);
     void slotDetectChip();
     void slotSettingsProgrammer();
