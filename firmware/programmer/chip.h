@@ -15,4 +15,9 @@ typedef struct
     uint8_t fifth_id;
 } chip_id_t;
 
+typedef struct
+{
+    uint8_t id[32];
+}chip_unique_id_t;
+
 #endif /* _CHIP_H_ */

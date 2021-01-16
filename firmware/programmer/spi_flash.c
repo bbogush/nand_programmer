@@ -302,7 +302,7 @@ static uint32_t spi_flash_read_data(uint8_t *buf, uint32_t page,
 }
 
 static uint32_t spi_flash_read_page(uint8_t *buf, uint32_t page,
-    uint32_t page_size)
+    uint32_t page_size,int ecc_enabled)
 {
     return spi_flash_read_data(buf, page, 0, page_size);
 }

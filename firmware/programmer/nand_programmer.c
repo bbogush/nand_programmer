@@ -45,7 +45,11 @@ typedef enum
     NP_CMD_FW_UPDATE_S      = 0x0a,
     NP_CMD_FW_UPDATE_D      = 0x0b,
     NP_CMD_FW_UPDATE_E      = 0x0c,
-    NP_CMD_NAND_LAST        = 0x0d,
+    NP_CMD_NAND_RESET	    = 0x0d,
+    NP_CMD_NAND_READ_UNIQUE = 0x0e,
+    NP_CMD_NAND_ECC_E       = 0x0f,
+    NP_CMD_NAND_ECC_D       = 0x10,
+    NP_CMD_NAND_LAST        = 0x11,    
 } np_cmd_code_t;
 
 enum
@@ -76,6 +80,7 @@ typedef struct __attribute__((__packed__))
 {
     uint8_t skip_bb : 1;
     uint8_t inc_spare : 1;
+    uint8_t ecc_enabled: 1;
 } np_cmd_flags_t;
 
 typedef struct __attribute__((__packed__))
@@ -154,6 +159,13 @@ typedef struct __attribute__((__packed__))
     np_resp_t header;
     chip_id_t nand_id;
 } np_resp_id_t;
+
+typedef struct __attribute__((__packed__))
+{
+    np_resp_t header;
+    chip_unique_id_t nand_uid;
+} np_resp_unique_id_t;
+
 
 typedef struct __attribute__((__packed__))
 {
@@ -269,7 +281,7 @@ static int np_send_ok_status()
 static int np_send_error(uint8_t err_code)
 {
     np_resp_t status = { NP_RESP_STATUS, NP_STATUS_ERROR };
-    np_resp_err_t err_status = { status, err_code };
+    np_resp_err_t err_status = {status, err_code};
     size_t len = sizeof(err_status);
 
     if (np_comm_cb)
@@ -282,7 +294,7 @@ static int np_send_bad_block_info(uint32_t addr, uint32_t size, bool is_skipped)
 {
     uint8_t info = is_skipped ? NP_STATUS_BB_SKIP : NP_STATUS_BB;
     np_resp_t resp_header = { NP_RESP_STATUS, info };
-    np_resp_bad_block_t bad_block = { resp_header, addr, size };
+    np_resp_bad_block_t bad_block = {resp_header, addr, size};
 
     if (np_comm_cb->send((uint8_t *)&bad_block, sizeof(bad_block)))
         return -1;
@@ -293,12 +305,33 @@ static int np_send_bad_block_info(uint32_t addr, uint32_t size, bool is_skipped)
 static int np_send_progress(uint32_t progress)
 {
     np_resp_t resp_header = { NP_RESP_STATUS, NP_STATUS_PROGRESS };
-    np_resp_progress_t resp_progress = { resp_header, progress };
+    np_resp_progress_t resp_progress = {resp_header, progress};
 
     if (np_comm_cb->send((uint8_t *)&resp_progress, sizeof(resp_progress)))
         return -1;
 
     return 0;
+}
+
+static int _np_cmd_nand_reset(np_prog_t *prog)
+{
+
+    DEBUG_PRINT("Reset command\r\n");
+
+    hal[prog->hal]->reset();
+
+    return np_send_ok_status();
+}
+
+static int np_cmd_nand_reset(np_prog_t *prog)
+{
+    int ret;
+
+    led_rd_set(true);
+    ret = _np_cmd_nand_reset(prog);
+    led_rd_set(false);
+
+    return ret;
 }
 
 static int _np_cmd_nand_read_id(np_prog_t *prog)
@@ -333,19 +366,90 @@ static int np_cmd_nand_read_id(np_prog_t *prog)
     return ret;
 }
 
+static int _np_cmd_nand_read_unique_id(np_prog_t *prog)
+{
+    int i;
+    np_resp_unique_id_t resp;
+    size_t resp_len = sizeof(resp);
+
+    DEBUG_PRINT("Read Unique ID command\r\n");
+
+    resp.header.code = NP_RESP_DATA;
+    resp.header.info = resp_len - sizeof(resp.header);
+    hal[prog->hal]->read_unique_id(&resp.nand_uid);
+
+    if (np_comm_cb)
+        np_comm_cb->send((uint8_t *)&resp, resp_len);
+
+    DEBUG_PRINT("Chip Unique ID: ");
+    
+    for(i = 0; i < sizeof(chip_unique_id_t); i++){
+        DEBUG_PRINT("0x%02x ",resp.nand_uid.id[i]);
+    }
+
+    DEBUG_PRINT("\r\n");
+
+    return 0;
+}
+
+static int np_cmd_nand_read_unique_id(np_prog_t *prog){
+    int ret;
+
+    led_rd_set(true);
+    ret = _np_cmd_nand_read_unique_id(prog);
+    led_rd_set(false);
+
+    return ret;
+}
+
+static int _np_cmd_nand_ecc_set(np_prog_t *prog, int stat){
+
+    DEBUG_PRINT("Chip ECC command %s\r\n",stat == 1? "Enable" : "Disable");
+
+    hal[prog->hal]->set_ecc(stat);
+
+    return np_send_ok_status();
+}
+
+static int np_cmd_nand_ecc_set(np_prog_t *prog){
+    int ret = 0;
+    np_cmd_t *cmd = (np_cmd_t *)prog->rx_buf;
+
+    led_wr_set(true);
+
+    switch (cmd->code)
+    {
+    case NP_CMD_NAND_ECC_E:
+        ret = _np_cmd_nand_ecc_set(prog, 1);
+        break;
+    case NP_CMD_NAND_ECC_D:
+        ret = _np_cmd_nand_ecc_set(prog, 0);
+        break;
+    default:
+        break;
+    }
+
+    led_wr_set(false);
+
+    return ret;
+}
+
+
 static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
     uint32_t page, bool *is_bad)
 {
     uint32_t status, addr = block * prog->chip_info.block_size;
     uint8_t *bb_mark = &prog->page.buf[prog->chip_info.page_size +
         prog->chip_info.bb_mark_off];
+    np_read_cmd_t *read_cmd = (np_read_cmd_t *)prog->rx_buf;
+    int ecc_enabled = read_cmd->flags.ecc_enabled;
 
     status = hal[prog->hal]->read_spare_data(bb_mark, page,
         prog->chip_info.bb_mark_off, 1);
     if (status == FLASH_STATUS_INVALID_CMD)
     {
         status = hal[prog->hal]->read_page(prog->page.buf, page,
-            prog->chip_info.page_size + prog->chip_info.spare_size);
+            prog->chip_info.page_size + prog->chip_info.spare_size, ecc_enabled);
     }
 
     switch (status)
@@ -551,7 +655,7 @@ static int np_cmd_nand_erase(np_prog_t *prog)
 static int np_send_write_ack(uint32_t bytes_ack)
 {
     np_resp_t resp_header = { NP_RESP_STATUS, NP_STATUS_WRITE_ACK };
-    np_resp_write_ack_t write_ack = { resp_header, bytes_ack };
+    np_resp_write_ack_t write_ack = {resp_header, bytes_ack};
 
     if (np_comm_cb->send((uint8_t *)&write_ack, sizeof(write_ack)))
         return -1;
@@ -674,7 +778,7 @@ static int np_nand_handle_status(np_prog_t *prog)
 }
 
 static int np_nand_write(np_prog_t *prog)
-{   
+{  
     if (prog->nand_wr_in_progress)
     {
         DEBUG_PRINT("Wait for previous NAND write\r\n");
@@ -834,11 +938,11 @@ static int np_cmd_nand_write(np_prog_t *prog)
 }
 
 static int np_nand_read(uint32_t addr, np_page_t *page, uint32_t page_size,
-    uint32_t block_size, np_prog_t *prog)
+    uint32_t block_size, np_prog_t *prog,int ecc_enabled)
 {
     uint32_t status;
 
-    status = hal[prog->hal]->read_page(page->buf, page->page, page_size);
+    status = hal[prog->hal]->read_page(page->buf, page->page, page_size, ecc_enabled);
     switch (status)
     {
     case FLASH_STATUS_READY:
@@ -863,10 +967,11 @@ static int _np_cmd_nand_read(np_prog_t *prog)
     int ret;
     static np_page_t page;
     np_read_cmd_t *read_cmd;
-    bool skip_bb, inc_spare;
+    bool skip_bb, inc_spare, ecc_enabled;
     uint32_t addr, len, send_len, total_size, block_size, page_size, pages,
         pages_in_block;
     uint32_t resp_header_size = offsetof(np_resp_t, data);
+    //uint32_t resp_header_size = sizeof(np_resp_t);
     uint32_t tx_data_len = sizeof(np_packet_send_buf) - resp_header_size;
     np_resp_t *resp = (np_resp_t *)np_packet_send_buf;
 
@@ -882,6 +987,7 @@ static int _np_cmd_nand_read(np_prog_t *prog)
     len = read_cmd->len;
     skip_bb = read_cmd->flags.skip_bb;
     inc_spare = read_cmd->flags.inc_spare;
+    ecc_enabled = read_cmd->flags.ecc_enabled;
 
     DEBUG_PRINT("Read at 0x%lx 0x%lx bytes command\r\n", addr, len);
 
@@ -959,7 +1065,7 @@ static int _np_cmd_nand_read(np_prog_t *prog)
             continue;
         }
 
-        if (np_nand_read(addr, &page, page_size, block_size, prog))
+        if (np_nand_read(addr, &page, page_size, block_size, prog, (int)ecc_enabled))
             return NP_ERR_NAND_RD;
 
         while (page.offset < page_size && len)
@@ -972,7 +1078,9 @@ static int _np_cmd_nand_read(np_prog_t *prog)
             if (send_len > len)
                 send_len = len;
 
-            memcpy(resp->data, page.buf + page.offset, send_len);
+            //memcpy(resp + sizeof(np_resp_t), page.buf + page.offset, send_len);
+	    memcpy(resp->data, page.buf + page.offset, send_len);
+
 
             while (!np_comm_cb->send_ready());
 
@@ -1377,7 +1485,12 @@ static np_cmd_handler_t cmd_handler[] =
     { NP_CMD_ACTIVE_IMAGE_GET, 0, np_cmd_active_image_get },
     { NP_CMD_FW_UPDATE_S, 0, np_cmd_fw_update },
     { NP_CMD_FW_UPDATE_D, 0, np_cmd_fw_update },
-    { NP_CMD_FW_UPDATE_E, 0, np_cmd_fw_update },    
+    { NP_CMD_FW_UPDATE_E, 0, np_cmd_fw_update },
+    { NP_CMD_NAND_RESET, 1, np_cmd_nand_reset },
+    { NP_CMD_NAND_READ_UNIQUE, 1, np_cmd_nand_read_unique_id },
+    { NP_CMD_NAND_ECC_E, 1, np_cmd_nand_ecc_set},
+    { NP_CMD_NAND_ECC_D, 1, np_cmd_nand_ecc_set},
+
 };
 
 static bool np_cmd_is_valid(np_cmd_code_t code)

@@ -193,6 +193,12 @@ static uint32_t nand_get_status()
     return status;
 }
 
+static void nand_reset(void)
+{
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_conf.reset_cmd;
+}
+
+
 static void nand_read_id(chip_id_t *nand_id)
 {
     uint32_t data = 0;
@@ -210,6 +216,38 @@ static void nand_read_id(chip_id_t *nand_id)
     data = *((__IO uint32_t *)(Bank_NAND_ADDR | DATA_AREA) + 1);
     nand_id->fifth_id   = ADDR_1st_CYCLE(data);
 }
+
+static void nand_read_unique_id(chip_unique_id_t *nand_unique_id)
+{
+    int i;
+
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = 0xed;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x00;
+
+    /* Sequence to read Unique ID from NAND flash */
+    /* must read 32 bytes*/
+    for (i = 0 ; i < 32 ;i++){
+        nand_unique_id->id[i] = *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA);
+    }
+}
+
+static void nand_set_ecc(int i)
+{
+
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = 0xef;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = 0x90;
+
+    if(i == 1)
+        *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = 0x08; /* to enable */
+    else
+        *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = 0x00; /* to disable */
+    
+    *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = 0x00;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = 0x00;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = 0x00;
+
+}
+
 
 static void nand_write_page_async(uint8_t *buf, uint32_t page,
     uint32_t page_size)
@@ -274,7 +312,7 @@ static void nand_write_page_async(uint8_t *buf, uint32_t page,
 }
 
 static uint32_t nand_read_data(uint8_t *buf, uint32_t page,
-    uint32_t page_offset, uint32_t data_size)
+    uint32_t page_offset, uint32_t data_size,int ecc_status)
 {
     uint32_t i;
 
@@ -340,15 +378,26 @@ static uint32_t nand_read_data(uint8_t *buf, uint32_t page,
     if (fsmc_conf.read2_cmd != UNDEFINED_CMD)
         *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_conf.read2_cmd;
 
+
+    /* if ECC is enabled we need to check for Read error before fetching data @Todo */
+    if (ecc_status == 1){
+    //get status
+    nand_get_status();
+
+    //get back to read
+    if (fsmc_conf.read2_cmd != UNDEFINED_CMD)
+        *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_conf.read2_cmd;
+    }
+    
     for (i = 0; i < data_size; i++)
         buf[i] = *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA);
 
     return nand_get_status();
 }
 
-static uint32_t nand_read_page(uint8_t *buf, uint32_t page, uint32_t page_size)
+static uint32_t nand_read_page(uint8_t *buf, uint32_t page, uint32_t page_size,int ecc_status)
 {
-    return nand_read_data(buf, page, 0, page_size);
+    return nand_read_data(buf, page, 0, page_size, ecc_status);
 }
 
 static uint32_t nand_read_spare_data(uint8_t *buf, uint32_t page,
@@ -467,7 +516,10 @@ flash_hal_t hal_fsmc =
 {
     .init = nand_init,
     .uninit = nand_uninit,
+    .reset = nand_reset,
     .read_id = nand_read_id,
+    .read_unique_id = nand_read_unique_id,
+    .set_ecc = nand_set_ecc,
     .erase_block = nand_erase_block,
     .read_page = nand_read_page,
     .read_spare_data = nand_read_spare_data,

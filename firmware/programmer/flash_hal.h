@@ -23,9 +23,12 @@ typedef struct
 {
     int (*init)(void *conf, uint32_t conf_size);
     void (*uninit)();
+    void (*reset)();
     void (*read_id)(chip_id_t *chip_id);
+    void (*read_unique_id)(chip_unique_id_t *chip_uid);
+    void (*set_ecc)(int i);
     uint32_t (*erase_block)(uint32_t page);
-    uint32_t (*read_page)(uint8_t *buf, uint32_t page, uint32_t page_size);
+    uint32_t (*read_page)(uint8_t *buf, uint32_t page, uint32_t page_size,int ECC_status);
     uint32_t (*read_spare_data)(uint8_t *buf, uint32_t page, uint32_t offset,
         uint32_t data_size);
     void (*write_page_async)(uint8_t *buf, uint32_t page, uint32_t page_size);
