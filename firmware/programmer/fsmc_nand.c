@@ -138,6 +138,11 @@ static void nand_print_fsmc_info()
     DEBUG_PRINT("Status command: %d\r\n", fsmc_conf.status_cmd);
 }
 
+static void nand_reset()
+{
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_conf.reset_cmd;
+}
+
 static int nand_init(void *conf, uint32_t conf_size)
 {
     if (conf_size < sizeof(fsmc_conf_t))
@@ -148,6 +153,7 @@ static int nand_init(void *conf, uint32_t conf_size)
     nand_gpio_init();
     nand_fsmc_init(fsmc_conf);
     nand_print_fsmc_info();
+    nand_reset();
 
     return 0;
 }
