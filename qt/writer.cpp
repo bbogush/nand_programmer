@@ -317,7 +317,7 @@ void Writer::serialPortDestroy()
     if (!serialPort)
         return;
     serialPort->stop();
-    free(serialPort);
+    delete serialPort;
     serialPort = nullptr;
 }
 
