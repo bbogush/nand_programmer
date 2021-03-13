@@ -242,7 +242,7 @@ void Reader::readCb(int size)
         }
     }
     else
-        emit result(0);
+        emit result(readOffset);
 }
 
 int Reader::read(char *pbuf, uint32_t len)

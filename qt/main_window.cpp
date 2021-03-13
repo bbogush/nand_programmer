@@ -219,7 +219,7 @@ void MainWindow::slotProgConnectCompleted(int status)
     disconnect(prog, SIGNAL(connectCompleted(int)), this,
         SLOT(slotProgConnectCompleted(int)));
 
-    if (status)
+    if (status < 0)
         return;
 
     qInfo() << "Connected to programmer";
@@ -253,7 +253,7 @@ void MainWindow::slotProgReadDeviceIdCompleted(int status)
     disconnect(prog, SIGNAL(readChipIdCompleted(int)), this,
         SLOT(slotProgReadDeviceIdCompleted(int)));
 
-    if (status)
+    if (status < 0)
         return;
 
     idStr = tr("0x%1 0x%2 0x%3 0x%4 0x%5")
@@ -325,7 +325,7 @@ void MainWindow::slotProgErase()
     prog->eraseChip(START_ADDRESS, eraseSize);
 }
 
-void MainWindow::slotProgReadCompleted(int status)
+void MainWindow::slotProgReadCompleted(int readBytes)
 {
     disconnect(prog, SIGNAL(readChipProgress(unsigned int)), this,
         SLOT(slotProgReadProgress(unsigned int)));
@@ -334,15 +334,21 @@ void MainWindow::slotProgReadCompleted(int status)
 
     setProgress(100);
 
-    if (status)
+    if (readBytes < 0)
     {
         buffer.clear();
         return;
     }
 
+    if (readBytes > buffer.size())
+    {
+        qCritical() << "Read operation returned more than requested: " <<
+            readBytes << ">" << buffer.size();
+        return;
+    }
+
     qInfo() << "Data has been successfully read";
-    bufferTableModel.setBuffer(buffer.data(),
-        static_cast<uint32_t>(buffer.size()));
+    bufferTableModel.setBuffer(buffer.data(), readBytes);
 }
 
 void MainWindow::slotProgReadProgress(unsigned int progress)
@@ -555,7 +561,7 @@ void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
     disconnect(prog, SIGNAL(readChipIdCompleted(int)), this,
         SLOT(slotProgDetectChipReadChipIdCompleted(int)));
 
-    if (status)
+    if (status < 0)
         return;
 
     idStr = tr("0x%1 0x%2 0x%3 0x%4 0x%5")
@@ -593,7 +599,7 @@ void MainWindow::slotProgDetectChipConfCompleted(int status)
     disconnect(prog, SIGNAL(confChipCompleted(int)), this,
         SLOT(slotProgDetectChipConfCompleted(int)));
 
-    if (status)
+    if (status < 0)
         return;
 
     QTimer::singleShot(50, this, &MainWindow::detectChipReadChipIdDelayed);
