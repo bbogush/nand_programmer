@@ -1,0 +1,48 @@
+# Copyright (C) 2020 NANDO authors
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 3.
+
+BOOT_NAME=bootloader_fw.hex
+APP1_NAME=app_fw_1.hex
+APP2_NAME=app_fw_2.hex
+GEN_NAME=nando_fw
+
+BOOT_DIR=bootloader
+APP_DIR=programmer
+OBJ_DIR=obj
+
+BOOT_OBJ_DIR=$(BOOT_DIR)\\$(OBJ_DIR)
+APP_OBJ_DIR=$(APP_DIR)\\$(OBJ_DIR)
+
+BOOT_PATH=$(BOOT_OBJ_DIR)\\$(BOOT_NAME)
+APP1_PATH=$(APP_OBJ_DIR)\\$(APP1_NAME)
+APP2_PATH=$(APP_OBJ_DIR)\\$(APP2_NAME)
+
+TOOLCHAIN=arm-none-eabi-
+OBJCOPY=$(TOOLCHAIN)objcopy.exe
+
+all:
+	$(MAKE) -C $(BOOT_DIR)
+	$(MAKE) -C $(APP_DIR)
+	if not exist $(OBJ_DIR) mkdir $(OBJ_DIR)
+	copy $(BOOT_PATH) $(OBJ_DIR)\\
+	copy $(APP1_PATH) $(OBJ_DIR)\\
+	copy $(APP2_PATH) $(OBJ_DIR)\\
+	findstr  /r /v "^:00000001FF$$" $(OBJ_DIR)\\$(BOOT_NAME) \
+	  >> $(OBJ_DIR)\\$(BOOT_NAME).tmp
+	findstr  /r /v "^:00000001FF$$"  $(OBJ_DIR)\\$(APP1_NAME) \
+	  >> $(OBJ_DIR)\\$(APP1_NAME).tmp
+	type $(OBJ_DIR)\\$(BOOT_NAME).tmp $(OBJ_DIR)\\$(APP1_NAME).tmp \
+	  $(OBJ_DIR)\\$(APP2_NAME) > $(OBJ_DIR)\\$(GEN_NAME).hex
+	$(OBJCOPY) --input-target=ihex --output-target=binary \
+	  $(OBJ_DIR)\\$(GEN_NAME).hex $(OBJ_DIR)\\$(GEN_NAME).bin
+
+clean:
+	$(MAKE) -C $(BOOT_DIR) clean
+	$(MAKE) -C $(APP_DIR) clean
+	if exist $(OBJ_DIR) rd /s /q $(OBJ_DIR)
+
+distclean:
+	$(MAKE) -C $(BOOT_DIR) distclean
+	$(MAKE) -C $(APP_DIR) distclean
+	if exist $(OBJ_DIR) rd /s /q $(OBJ_DIR)

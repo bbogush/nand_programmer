@@ -2,52 +2,23 @@
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 3.
 
-BOOT_NAME=bootloader_fw.hex
-APP1_NAME=app_fw_1.hex
-APP2_NAME=app_fw_2.hex
-GEN_NAME=nando_fw
-
-BOOT_DIR=bootloader/
-APP_DIR=programmer/
-
-BOOT_OBJ_DIR=$(BOOT_DIR)obj/
-APP_OBJ_DIR=$(APP_DIR)obj/
-
-BOOT_PATH=$(BOOT_OBJ_DIR)$(BOOT_NAME)
-APP1_PATH=$(APP_OBJ_DIR)$(APP1_NAME)
-APP2_PATH=$(APP_OBJ_DIR)$(APP2_NAME)
-
-OBJ_DIR=obj/
-
-TOOLCHAIN=../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
-OBJCOPY=$(TOOLCHAIN)objcopy
-
 all:
-	$(MAKE) -C $(BOOT_DIR)
-	$(MAKE) -C $(APP_DIR)
-	mkdir -p $(OBJ_DIR)
-	cp $(BOOT_PATH) $(OBJ_DIR)
-	cp $(APP1_PATH) $(OBJ_DIR)
-	cp $(APP2_PATH) $(OBJ_DIR)
-	sed -i '$$d' $(OBJ_DIR)$(BOOT_NAME)
-	sed -i '$$d' $(OBJ_DIR)$(APP1_NAME)
-	cat $(OBJ_DIR)$(BOOT_NAME) $(OBJ_DIR)$(APP1_NAME) \
-	  $(OBJ_DIR)$(APP2_NAME) > $(OBJ_DIR)$(GEN_NAME).hex
-	$(OBJCOPY) --input-target=ihex --output-target=binary \
-	  $(OBJ_DIR)$(GEN_NAME).hex $(OBJ_DIR)$(GEN_NAME).bin
+ifeq ($(OS), Windows_NT)
+	$(MAKE) -f Makefile.windows all
+else
+	$(MAKE) -f Makefile.linux all
+endif
 
 clean:
-	$(MAKE) -C $(BOOT_DIR) clean
-	$(MAKE) -C $(APP_DIR) clean
-	rm -rf obj/
+ifeq ($(OS), Windows_NT)
+	$(MAKE) -f Makefile.windows clean
+else
+	$(MAKE) -f Makefile.linux clean
+endif
 
 distclean:
-	$(MAKE) -C $(BOOT_DIR) distclean
-	$(MAKE) -C $(APP_DIR) distclean
-	rm -rf obj/
-
-erase:
-	st-flash erase
-
-program:
-	st-flash write $(OBJ_DIR)$(GEN_NAME).bin 0x08000000
+ifeq ($(OS), Windows_NT)
+	$(MAKE) -f Makefile.windows distclean
+else
+	$(MAKE) -f Makefile.linux distclean
+endif
