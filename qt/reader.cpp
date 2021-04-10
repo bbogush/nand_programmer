@@ -142,6 +142,7 @@ int Reader::handleStatus(char *pbuf, uint32_t len)
 int Reader::handleData(char *pbuf, uint32_t len)
 {
     RespHeader *header = reinterpret_cast<RespHeader *>(pbuf);
+    char *data = pbuf + sizeof(RespHeader);
     uint8_t dataSize = header->info;
     size_t headerSize = sizeof(RespHeader), packetSize = headerSize + dataSize;
 
@@ -161,7 +162,7 @@ int Reader::handleData(char *pbuf, uint32_t len)
         return -1;
     }
 
-    memcpy(rbuf + readOffset, header->data, dataSize);
+    memcpy(rbuf + readOffset, data, dataSize);
     readOffset += dataSize;
     bytesRead += dataSize;
 
@@ -241,7 +242,7 @@ void Reader::readCb(int size)
         }
     }
     else
-        emit result(0);
+        emit result(readOffset);
 }
 
 int Reader::read(char *pbuf, uint32_t len)

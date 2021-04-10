@@ -82,7 +82,8 @@ QMAKE_CXXFLAGS += -std=c++11 -Wextra -Werror
 mingw:QMAKE_CXXFLAGS += -mno-ms-bitfields
 
 unix: {
-    LIBS += -lboost_system -lboost_thread
+    # use static linking for boost to avoid version dependency issues
+    LIBS += -Wl,-Bstatic -lboost_system -lboost_thread -Wl,-Bdynamic
 }
 
 win32: {
