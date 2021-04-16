@@ -45,7 +45,7 @@ QVariant BufferTableModel::data(const QModelIndex &index, int role) const
                     QChar('0')));
             }
             return hexString;
-        case HEADER_ANCII_COL:
+        case HEADER_ASCII_COL:
             start = static_cast<uint32_t>(index.row()) * ROW_DATA_SIZE;
             end = start + ROW_DATA_SIZE;
 
@@ -76,8 +76,8 @@ QVariant BufferTableModel::headerData(int section, Qt::Orientation orientation,
                 return QString("ADDRESS");
             case HEADER_HEX_COL:
                 return QString("HEX");
-            case HEADER_ANCII_COL:
-                return QString("ANCII");
+            case HEADER_ASCII_COL:
+                return QString("ASCII");
             }
         }
     }

@@ -10,7 +10,7 @@
 
 #define HEADER_ADDRESS_COL 0
 #define HEADER_HEX_COL 1
-#define HEADER_ANCII_COL 2
+#define HEADER_ASCII_COL 2
 
 #define ROW_DATA_SIZE 16
 
