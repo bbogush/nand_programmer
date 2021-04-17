@@ -472,7 +472,8 @@ void Programmer::getActiveImageCb(int ret)
 
     qInfo() << "Active firmware image: " << activeImage;
 
-    firmwareUpdateStart();
+    // Wait reader stop
+    QTimer::singleShot(50, this, &Programmer::firmwareUpdateStart);
     return;
 
 Error:
