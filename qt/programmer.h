@@ -51,6 +51,7 @@ class Programmer : public QObject
     bool isConn;
     bool skipBB;
     bool incSpare;
+    bool enableHwEcc;
     FwVersion fwVersion;
     uint8_t activeImage;
     uint8_t updateImage;
@@ -76,6 +77,8 @@ public:
     void setSkipBB(bool skip);
     bool isIncSpare();
     void setIncSpare(bool incSpare);
+    bool isHwEccEnabled();
+    void setHwEccEnabled(bool isHwEccEnabled);
     void readChipId(ChipId *chipId);
     void eraseChip(uint32_t addr, uint32_t len);
     void readChip(uint8_t *buf, uint32_t addr, uint32_t len, bool isReadLess);

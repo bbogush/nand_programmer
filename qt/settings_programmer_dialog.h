@@ -25,6 +25,8 @@ public:
     bool isSkipBB();
     void setIncSpare(bool incSpare);
     bool isIncSpare();
+    void setHwEccEnabled(bool enableHwEcc);
+    bool isHwEccEnabled();
 
 private:
     Ui::SettingsProgrammerDialog *ui;

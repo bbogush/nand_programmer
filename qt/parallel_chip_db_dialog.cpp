@@ -6,8 +6,8 @@
 #include "parallel_chip_db_dialog.h"
 #include "ui_parallel_chip_db_dialog.h"
 
-#define HEADER_LONG_WIDTH 120
-#define HEADER_MED_WIDTH 110
+#define HEADER_LONG_WIDTH 130
+#define HEADER_MED_WIDTH 120
 #define HEADER_SHORT_WIDTH 50
 
 ParallelChipDbDialog::ParallelChipDbDialog(ParallelChipDb *chipDb,
@@ -41,7 +41,7 @@ ParallelChipDbDialog::ParallelChipDbDialog(ParallelChipDb *chipDb,
         ui->chipDbTableView->setColumnWidth(i, HEADER_SHORT_WIDTH);
     }
     for (int i = ParallelChipDb::CHIP_PARAM_ROW_CYCLES;
-         i <= ParallelChipDb::CHIP_PARAM_STATUS_CMD; i++)
+         i <= ParallelChipDb::CHIP_PARAM_DISABLE_HW_ECC_VALUE; i++)
     {
         ui->chipDbTableView->setColumnWidth(i, HEADER_MED_WIDTH);
     }

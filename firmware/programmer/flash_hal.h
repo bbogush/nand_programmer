@@ -31,6 +31,7 @@ typedef struct
     void (*write_page_async)(uint8_t *buf, uint32_t page, uint32_t page_size);
     uint32_t (*read_status)();
     bool (*is_bb_supported)();
+    uint32_t (*enable_hw_ecc)(bool enable);
 } flash_hal_t;
 
 #endif /* _FLASH_HAL_H_ */

@@ -134,6 +134,16 @@ void Programmer::setIncSpare(bool isIncSpare)
     incSpare = isIncSpare;
 }
 
+bool Programmer::isHwEccEnabled()
+{
+    return enableHwEcc;
+}
+
+void Programmer::setHwEccEnabled(bool isHwEccEnabled)
+{
+    enableHwEcc = isHwEccEnabled;
+}
+
 void Programmer::readChipIdCb(int ret)
 {
     QTimer::singleShot(0, &reader, &Reader::stop);
@@ -259,7 +269,8 @@ void Programmer::writeChip(uint8_t *buf, uint32_t addr, uint32_t len,
         SLOT(writeProgressCb(unsigned int)));
 
     writer.init(usbDevName, SERIAL_PORT_SPEED, buf, addr, len, pageSize,
-        skipBB, incSpare, CMD_NAND_WRITE_S, CMD_NAND_WRITE_D, CMD_NAND_WRITE_E);
+        skipBB, incSpare, enableHwEcc, CMD_NAND_WRITE_S, CMD_NAND_WRITE_D,
+        CMD_NAND_WRITE_E);
     writer.start();
 }
 
@@ -448,7 +459,8 @@ void Programmer::firmwareUpdateStart()
     writer.init(usbDevName, SERIAL_PORT_SPEED,
         reinterpret_cast<uint8_t *>(firmwareBuffer),
         firmwareImage[updateImage].address, firmwareImage[updateImage].size,
-        flashPageSize, 0, 0, CMD_FW_UPDATE_S, CMD_FW_UPDATE_D, CMD_FW_UPDATE_E);
+        flashPageSize, 0, 0, 0, CMD_FW_UPDATE_S, CMD_FW_UPDATE_D,
+        CMD_FW_UPDATE_E);
     writer.start();
 }
 

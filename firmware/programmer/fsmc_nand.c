@@ -54,6 +54,10 @@ typedef struct __attribute__((__packed__))
     uint8_t erase1_cmd;
     uint8_t erase2_cmd;
     uint8_t status_cmd;
+    uint8_t set_features_cmd;
+    uint8_t enable_ecc_addr;
+    uint8_t enable_ecc_value;
+    uint8_t disable_ecc_value;
 } fsmc_conf_t;
 
 static fsmc_conf_t fsmc_conf;
@@ -136,6 +140,10 @@ static void nand_print_fsmc_info()
     DEBUG_PRINT("Erase 1 command: %d\r\n", fsmc_conf.erase1_cmd);
     DEBUG_PRINT("Erase 2 command: %d\r\n", fsmc_conf.erase2_cmd);
     DEBUG_PRINT("Status command: %d\r\n", fsmc_conf.status_cmd);
+    DEBUG_PRINT("Set feature command: %d\r\n", fsmc_conf.set_feature_cmd);
+    DEBUG_PRINT("Enable ECC address: %d\r\n", fsmc_conf.enable_ecc_addr);
+    DEBUG_PRINT("Enable ECC value: %d\r\n", fsmc_conf.enable_ecc_value);
+    DEBUG_PRINT("Disable ECC value: %d\r\n", fsmc_conf.disable_ecc_value);
 }
 
 static void nand_reset()
@@ -469,6 +477,26 @@ static inline bool nand_is_bb_supported()
     return true;
 }
 
+static uint32_t nand_enable_hw_ecc(bool enable)
+{
+    uint8_t enable_ecc;
+
+    if (fsmc_conf.set_features_cmd == UNDEFINED_CMD)
+        return FLASH_STATUS_INVALID_CMD;
+
+    enable_ecc = enable ? fsmc_conf.enable_ecc_value :
+        fsmc_conf.disable_ecc_value;
+
+    *(__IO uint8_t *)(Bank_NAND_ADDR | CMD_AREA) = fsmc_conf.set_features_cmd;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | ADDR_AREA) = fsmc_conf.enable_ecc_addr;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = enable_ecc;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = 0;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = 0;
+    *(__IO uint8_t *)(Bank_NAND_ADDR | DATA_AREA) = 0;
+
+    return 0;
+}
+
 flash_hal_t hal_fsmc =
 {
     .init = nand_init,
@@ -479,6 +507,7 @@ flash_hal_t hal_fsmc =
     .read_spare_data = nand_read_spare_data,
     .write_page_async = nand_write_page_async,
     .read_status = nand_read_status,
-    .is_bb_supported = nand_is_bb_supported
+    .is_bb_supported = nand_is_bb_supported,
+    .enable_hw_ecc = nand_enable_hw_ecc,
 };
 

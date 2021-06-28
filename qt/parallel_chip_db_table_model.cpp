@@ -145,6 +145,22 @@ QVariant ParallelChipDbTableModel::data(const QModelIndex &index,
         chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
             ParallelChipInfo::CHIP_PARAM_STATUS_CMD), paramStr);
         return paramStr;
+    case ParallelChipDb::CHIP_PARAM_SET_FEATURE_CMD:
+        chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_SET_FEATURE_CMD), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_ENABLE_HW_ECC_ADDR:
+        chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ENABLE_HW_ECC_ADDR), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_ENABLE_HW_ECC_VALUE:
+        chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ENABLE_HW_ECC_VALUE), paramStr);
+        return paramStr;
+    case ParallelChipDb::CHIP_PARAM_DISABLE_HW_ECC_VALUE:
+        chipDb->getHexStringFromOptParam(chipDb->getChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_DISABLE_HW_ECC_VALUE), paramStr);
+        return paramStr;
     case ParallelChipDb::CHIP_PARAM_ID1:
         chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
             ParallelChipInfo::CHIP_PARAM_ID1), paramStr);
@@ -241,6 +257,14 @@ QVariant ParallelChipDbTableModel::headerData(int section,
             return tr("Erase 2 com.");
         case ParallelChipDb::CHIP_PARAM_STATUS_CMD:
             return tr("Status com.");
+        case ParallelChipDb::CHIP_PARAM_SET_FEATURE_CMD:
+            return tr("Set feat. com.");
+        case ParallelChipDb::CHIP_PARAM_ENABLE_HW_ECC_ADDR:
+            return tr("En. HW ECC addr.");
+        case ParallelChipDb::CHIP_PARAM_ENABLE_HW_ECC_VALUE:
+            return tr("En. HW ECC val.");
+        case ParallelChipDb::CHIP_PARAM_DISABLE_HW_ECC_VALUE:
+            return tr("Dis. HW ECC val.");
         case ParallelChipDb::CHIP_PARAM_ID1:
             return tr("ID 1");
         case ParallelChipDb::CHIP_PARAM_ID2:
@@ -324,6 +348,14 @@ QVariant ParallelChipDbTableModel::headerData(int section,
             return tr("Erase 2 cycle command");
         case ParallelChipDb::CHIP_PARAM_STATUS_CMD:
             return tr("Status command");
+        case ParallelChipDb::CHIP_PARAM_SET_FEATURE_CMD:
+            return tr("Set feature command");
+        case ParallelChipDb::CHIP_PARAM_ENABLE_HW_ECC_ADDR:
+            return tr("Enable HW ECC address");
+        case ParallelChipDb::CHIP_PARAM_ENABLE_HW_ECC_VALUE:
+            return tr("Enable HW ECC value");
+        case ParallelChipDb::CHIP_PARAM_DISABLE_HW_ECC_VALUE:
+            return tr("Disable HW ECC value");
         case ParallelChipDb::CHIP_PARAM_ID1:
             return tr("Chip ID 1st byte");
         case ParallelChipDb::CHIP_PARAM_ID2:
@@ -570,6 +602,38 @@ bool ParallelChipDbTableModel::setData(const QModelIndex &index,
             return false;
         chipDb->setChipParam(index.row(),
             ParallelChipInfo::CHIP_PARAM_STATUS_CMD, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_SET_FEATURE_CMD:
+        if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_SET_FEATURE_CMD, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_ENABLE_HW_ECC_ADDR:
+        if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ENABLE_HW_ECC_ADDR, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_ENABLE_HW_ECC_VALUE:
+        if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_ENABLE_HW_ECC_VALUE, paramVal);
+        return true;
+    case ParallelChipDb::CHIP_PARAM_DISABLE_HW_ECC_VALUE:
+        if (chipDb->getOptParamFromHexString(value.toString(), paramVal))
+            return false;
+        if (!chipDb->isOptParamValid(paramVal, 0x00, 0xFF))
+            return false;
+        chipDb->setChipParam(index.row(),
+            ParallelChipInfo::CHIP_PARAM_DISABLE_HW_ECC_VALUE, paramVal);
         return true;
     case ParallelChipDb::CHIP_PARAM_ID1:
         if (chipDb->getParamFromHexString(value.toString(), paramVal))

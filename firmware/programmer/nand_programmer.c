@@ -76,6 +76,7 @@ typedef struct __attribute__((__packed__))
 {
     uint8_t skip_bb : 1;
     uint8_t inc_spare : 1;
+    uint8_t enable_hw_ecc: 1;
 } np_cmd_flags_t;
 
 typedef struct __attribute__((__packed__))
@@ -573,6 +574,10 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
     }
 
     write_start_cmd = (np_write_start_cmd_t *)prog->rx_buf;
+
+    if (hal[prog->hal]->enable_hw_ecc)
+        hal[prog->hal]->enable_hw_ecc(write_start_cmd->flags.enable_hw_ecc);
+
     addr = write_start_cmd->addr;
     len = write_start_cmd->len;
 

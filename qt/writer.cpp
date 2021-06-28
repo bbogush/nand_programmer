@@ -20,7 +20,7 @@ Writer::~Writer()
 
 void Writer::init(const QString &portName, qint32 baudRate, uint8_t *buf,
     uint32_t addr, uint32_t len, uint32_t pageSize, bool skipBB, bool incSpare,
-    uint8_t startCmd, uint8_t dataCmd, uint8_t endCmd)
+    bool enableHwEcc, uint8_t startCmd, uint8_t dataCmd, uint8_t endCmd)
 {
     this->portName = portName;
     this->baudRate = baudRate;
@@ -30,6 +30,7 @@ void Writer::init(const QString &portName, qint32 baudRate, uint8_t *buf,
     this->pageSize = pageSize;
     this->skipBB = skipBB;
     this->incSpare = incSpare;
+    this->enableHwEcc = enableHwEcc;
     this->startCmd = startCmd;
     this->dataCmd = dataCmd;
     this->endCmd = endCmd;
@@ -236,6 +237,7 @@ int Writer::writeStart()
     writeStartCmd.len = len;
     writeStartCmd.flags.skipBB = skipBB;
     writeStartCmd.flags.incSpare = incSpare;
+    writeStartCmd.flags.enableHwEcc = enableHwEcc;
     cmd = startCmd;
 
     if (write(reinterpret_cast<char *>(&writeStartCmd),

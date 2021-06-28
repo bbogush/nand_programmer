@@ -643,12 +643,15 @@ void MainWindow::slotSettingsProgrammer()
         prog->isSkipBB())).toBool());
     progDialog.setIncSpare((settings.value(SETTINGS_INCLUDE_SPARE_AREA,
         prog->isIncSpare())).toBool());
+    progDialog.setHwEccEnabled((settings.value(SETTINGS_ENABLE_HW_ECC,
+        prog->isHwEccEnabled())).toBool());
 
     if (progDialog.exec() == QDialog::Accepted)
     {
         settings.setValue(SETTINGS_USB_DEV_NAME, progDialog.getUsbDevName());
         settings.setValue(SETTINGS_SKIP_BAD_BLOCKS, progDialog.isSkipBB());
         settings.setValue(SETTINGS_INCLUDE_SPARE_AREA, progDialog.isIncSpare());
+        settings.setValue(SETTINGS_ENABLE_HW_ECC, progDialog.isHwEccEnabled());
         settings.sync();
 
         updateProgSettings();
@@ -668,6 +671,8 @@ void MainWindow::updateProgSettings()
         prog->setIncSpare(settings.value(SETTINGS_INCLUDE_SPARE_AREA).
             toBool());
     }
+    if (settings.contains(SETTINGS_ENABLE_HW_ECC))
+        prog->setHwEccEnabled(settings.value(SETTINGS_ENABLE_HW_ECC).toBool());
 }
 
 void MainWindow::slotSettingsParallelChipDb()

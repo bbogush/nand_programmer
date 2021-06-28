@@ -47,3 +47,13 @@ bool SettingsProgrammerDialog::isIncSpare()
 {
     return ui->incSpareCheckBox->isChecked();
 }
+
+void SettingsProgrammerDialog::setHwEccEnabled(bool enableHwEcc)
+{
+    ui->enableHwEccCheckBox->setChecked(enableHwEcc);
+}
+
+bool SettingsProgrammerDialog::isHwEccEnabled()
+{
+    return ui->enableHwEccCheckBox->isChecked();
+}

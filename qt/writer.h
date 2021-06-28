@@ -27,6 +27,7 @@ class Writer : public QObject
     uint32_t bytesWritten;
     bool skipBB;
     bool incSpare;
+    bool enableHwEcc;
     uint8_t startCmd;
     uint8_t dataCmd;
     uint8_t endCmd;
@@ -56,8 +57,8 @@ public:
     ~Writer();
     void init(const QString &portName, qint32 baudRate, uint8_t *buf,
         uint32_t addr, uint32_t len, uint32_t pageSize,
-        bool skipBB, bool incSpare, uint8_t startCmd, uint8_t dataCmd,
-        uint8_t endCmd);
+        bool skipBB, bool incSpare, bool enableHwEcc, uint8_t startCmd,
+        uint8_t dataCmd, uint8_t endCmd);
     void start();
     void stop();
 signals:

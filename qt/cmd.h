@@ -34,6 +34,7 @@ typedef struct __attribute__((__packed__))
 {
     uint8_t skipBB : 1;
     uint8_t incSpare : 1;
+    uint8_t enableHwEcc: 1;
 } CmdFlags;
 
 typedef struct __attribute__((__packed__))
