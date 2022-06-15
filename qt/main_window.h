@@ -12,6 +12,7 @@
 #include "spi_chip_db.h"
 #include <QMainWindow>
 #include <QVector>
+#include <QElapsedTimer>
 
 namespace Ui {
 class MainWindow;
@@ -34,6 +35,7 @@ private:
     ParallelChipDb parallelChipDb;
     SpiChipDb spiChipDb;
     ChipDb *currentChipDb;
+    QElapsedTimer timer;
 
     void initBufTable();
     void resetBufTable();

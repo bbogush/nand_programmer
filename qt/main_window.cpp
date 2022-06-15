@@ -22,6 +22,7 @@
 #include <QMessageBox>
 #include <memory>
 #include <QTimer>
+#include <QTime>
 
 #define HEADER_ADDRESS_WIDTH 80
 #define HEADER_HEX_WIDTH 340
@@ -720,7 +721,29 @@ void MainWindow::slotAboutDialog()
 
 void MainWindow::setProgress(unsigned int progress)
 {
-    statusBar()->showMessage(tr("Progress: %1%").arg(progress));
+    static unsigned int old_progress = 100;
+    QTime Qtime_passed, Qtime_total;
+
+    if(old_progress == progress)
+        return;
+
+    old_progress = progress;
+
+    if(progress == 0)
+    {
+        timer.restart();
+        Qtime_passed = QTime::fromMSecsSinceStartOfDay(0);
+        Qtime_total = QTime::fromMSecsSinceStartOfDay(0);
+    }
+    else
+    {
+        Qtime_passed = QTime::fromMSecsSinceStartOfDay(timer.elapsed());
+        Qtime_total = QTime::fromMSecsSinceStartOfDay(timer.elapsed() * 100 / progress);
+    }
+    statusBar()->showMessage(tr("Progress: %1%    Passed: %2    Total: %3")
+                             .arg(progress)
+                             .arg(Qtime_passed.toString("hh:mm:ss"))
+                             .arg(Qtime_total.toString("hh:mm:ss")));
 }
 
 void MainWindow::slotProgFirmwareUpdateCompleted(int status)
