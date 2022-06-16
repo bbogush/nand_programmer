@@ -7,6 +7,7 @@
 #define SETTINGS_PROGRAMMER_DIALOG_H
 
 #include <QDialog>
+#include <QSerialPortInfo>
 
 namespace Ui {
 class SettingsProgrammerDialog;
@@ -32,6 +33,9 @@ public:
 
 private:
     Ui::SettingsProgrammerDialog *ui;
+
+private slots:
+    void fillPortsInfo();
 };
 
 #endif // SETTINGS_PROGRAMMER_DIALOG_H

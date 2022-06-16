@@ -11,7 +11,7 @@
 
 QT += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets serialport
 
 TARGET = nando
 TEMPLATE = app
@@ -44,7 +44,8 @@ SOURCES += main.cpp\
     settings_programmer_dialog.cpp \
     err.cpp \
     about_dialog.cpp \
-    firmware_update_dialog.cpp
+    firmware_update_dialog.cpp \
+    clickcombobox.cpp
 
 HEADERS += main_window.h \
     chip_db.h \
@@ -69,7 +70,8 @@ HEADERS += main_window.h \
     about_dialog.h \
     version.h \
     firmware_update_dialog.h \
-    settings.h
+    settings.h \
+    clickcombobox.h
 
 FORMS += main_window.ui \
     parallel_chip_db_dialog.ui \
