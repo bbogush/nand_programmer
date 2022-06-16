@@ -36,6 +36,7 @@ private:
     SpiChipDb spiChipDb;
     ChipDb *currentChipDb;
     QElapsedTimer timer;
+    bool isAlertEnabled;
 
     void initBufTable();
     void resetBufTable();

@@ -27,6 +27,8 @@ public:
     bool isIncSpare();
     void setHwEccEnabled(bool enableHwEcc);
     bool isHwEccEnabled();
+    void setAlertEnabled(bool enableAlert);
+    bool isAlertEnabled();
 
 private:
     Ui::SettingsProgrammerDialog *ui;

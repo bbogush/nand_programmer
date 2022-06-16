@@ -49,7 +49,14 @@
        </item>
       </layout>
      </item>
-     <item row="4" column="0">
+     <item row="3" column="0">
+      <widget class="QCheckBox" name="enableHwEccCheckBox">
+       <property name="text">
+        <string>Enable HW ECC</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
       <spacer name="verticalSpacer">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -72,7 +79,7 @@
        </property>
       </widget>
      </item>
-     <item row="5" column="0">
+     <item row="6" column="0">
       <widget class="QDialogButtonBox" name="buttonBox">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -92,10 +99,10 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
-      <widget class="QCheckBox" name="enableHwEccCheckBox">
+     <item row="4" column="0">
+      <widget class="QCheckBox" name="enableAlertCheckBox">
        <property name="text">
-        <string>Enable HW ECC</string>
+        <string>Alert after completion</string>
        </property>
       </widget>
      </item>

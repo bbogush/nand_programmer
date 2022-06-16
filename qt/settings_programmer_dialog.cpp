@@ -57,3 +57,13 @@ bool SettingsProgrammerDialog::isHwEccEnabled()
 {
     return ui->enableHwEccCheckBox->isChecked();
 }
+
+void SettingsProgrammerDialog::setAlertEnabled(bool enableAlert)
+{
+    ui->enableAlertCheckBox->setChecked(enableAlert);
+}
+
+bool SettingsProgrammerDialog::isAlertEnabled()
+{
+    return ui->enableAlertCheckBox->isChecked();
+}

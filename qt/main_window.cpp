@@ -646,6 +646,8 @@ void MainWindow::slotSettingsProgrammer()
         prog->isIncSpare())).toBool());
     progDialog.setHwEccEnabled((settings.value(SETTINGS_ENABLE_HW_ECC,
         prog->isHwEccEnabled())).toBool());
+    progDialog.setAlertEnabled((settings.value(SETTINGS_ENABLE_ALERT,
+        isAlertEnabled)).toBool());
 
     if (progDialog.exec() == QDialog::Accepted)
     {
@@ -653,6 +655,7 @@ void MainWindow::slotSettingsProgrammer()
         settings.setValue(SETTINGS_SKIP_BAD_BLOCKS, progDialog.isSkipBB());
         settings.setValue(SETTINGS_INCLUDE_SPARE_AREA, progDialog.isIncSpare());
         settings.setValue(SETTINGS_ENABLE_HW_ECC, progDialog.isHwEccEnabled());
+        settings.setValue(SETTINGS_ENABLE_ALERT, progDialog.isAlertEnabled());
         settings.sync();
 
         updateProgSettings();
@@ -674,6 +677,8 @@ void MainWindow::updateProgSettings()
     }
     if (settings.contains(SETTINGS_ENABLE_HW_ECC))
         prog->setHwEccEnabled(settings.value(SETTINGS_ENABLE_HW_ECC).toBool());
+    if (settings.contains(SETTINGS_ENABLE_ALERT))
+        isAlertEnabled = settings.value(SETTINGS_ENABLE_ALERT).toBool();
 }
 
 void MainWindow::slotSettingsParallelChipDb()
@@ -744,6 +749,15 @@ void MainWindow::setProgress(unsigned int progress)
                              .arg(progress)
                              .arg(Qtime_passed.toString("hh:mm:ss"))
                              .arg(Qtime_total.toString("hh:mm:ss")));
+
+    if((progress == 100) && isAlertEnabled)
+    {
+        QMessageBox *msgBox = new QMessageBox(this);
+        msgBox->setIcon(QMessageBox::Information);
+        msgBox->setText("Completed.");
+        msgBox->setAttribute(Qt::WA_DeleteOnClose);
+        msgBox->open();
+    }
 }
 
 void MainWindow::slotProgFirmwareUpdateCompleted(int status)
