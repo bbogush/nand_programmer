@@ -464,9 +464,25 @@ void MainWindow::slotProgReadBadBlocksCompleted(int status)
 {
     disconnect(prog, SIGNAL(readChipBadBlocksCompleted(int)), this,
         SLOT(slotProgReadBadBlocksCompleted(int)));
+    disconnect(prog, SIGNAL(readChipBadBlocksProgress(unsigned int)), this,
+        SLOT(slotProgReadBadBlocksProgress(unsigned int)));
 
     if (!status)
         qInfo() << "Bad blocks have been successfully read";
+
+    setProgress(100);
+}
+
+void MainWindow::slotProgReadBadBlocksProgress(unsigned int progress)
+{
+    uint32_t progressPercent;
+    QString chipName = ui->chipSelectComboBox->currentText();
+    uint32_t pageNum =
+        currentChipDb->extendedTotalSizeGetByName(chipName) /
+        currentChipDb->extendedPageSizeGetByName(chipName);
+
+    progressPercent = progress * 100ULL / pageNum;
+    setProgress(progressPercent);
 }
 
 void MainWindow::slotProgReadBadBlocks()
@@ -475,6 +491,8 @@ void MainWindow::slotProgReadBadBlocks()
 
     connect(prog, SIGNAL(readChipBadBlocksCompleted(int)), this,
         SLOT(slotProgReadBadBlocksCompleted(int)));
+    connect(prog, SIGNAL(readChipBadBlocksProgress(unsigned int)), this,
+        SLOT(slotProgReadBadBlocksProgress(unsigned int)));
 
     prog->readChipBadBlocks();
 }

@@ -388,6 +388,7 @@ static int _np_cmd_read_bad_blocks(np_prog_t *prog)
     for (block = 0; block < block_num; block++)
     {
         page = block * page_num;
+        np_send_progress(page);
         if ((ret = np_read_bad_block_info_from_page(prog, block, page,
             &is_bad)))
         {

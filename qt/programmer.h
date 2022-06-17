@@ -99,6 +99,7 @@ signals:
     void readChipProgress(unsigned int ret);
     void eraseChipCompleted(int ret);
     void eraseChipProgress(unsigned int progress);
+    void readChipBadBlocksProgress(unsigned int progress);
     void readChipBadBlocksCompleted(int ret);
     void confChipCompleted(int ret);
     void firmwareUpdateCompleted(int ret);
@@ -113,6 +114,7 @@ private slots:
     void eraseChipCb(int ret);
     void eraseProgressChipCb(unsigned int progress);
     void readChipBadBlocksCb(int ret);
+    void readChipBadBlocksProgressCb(unsigned int progress);
     void confChipCb(int ret);
     void logCb(QtMsgType msgType, QString msg);
     void connectCb(int ret);

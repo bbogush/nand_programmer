@@ -59,6 +59,7 @@ private slots:
     void slotProgEraseCompleted(int status);
     void slotProgEraseProgress(unsigned int progress);
     void slotProgReadBadBlocksCompleted(int status);
+    void slotProgReadBadBlocksProgress(unsigned int progress);
     void slotProgSelectCompleted(int status);
     void slotProgDetectChipConfCompleted(int status);
     void slotProgDetectChipReadChipIdCompleted(int status);

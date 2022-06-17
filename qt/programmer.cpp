@@ -279,7 +279,14 @@ void Programmer::readChipBadBlocksCb(int ret)
     QTimer::singleShot(0, &reader, &Reader::stop);
     QObject::disconnect(&reader, SIGNAL(result(int)), this,
         SLOT(readChipBadBlocksCb(int)));
+    QObject::disconnect(&reader, SIGNAL(progress(unsigned int)), this,
+        SLOT(readChipBadBlocksProgressCb(unsigned int)));
     emit readChipBadBlocksCompleted(ret);
+}
+
+void Programmer::readChipBadBlocksProgressCb(unsigned int progress)
+{
+    emit readChipBadBlocksProgress(progress);
 }
 
 void Programmer::readChipBadBlocks()
@@ -288,6 +295,8 @@ void Programmer::readChipBadBlocks()
 
     QObject::connect(&reader, SIGNAL(result(int)), this,
         SLOT(readChipBadBlocksCb(int)));
+    QObject::connect(&reader, SIGNAL(progress(unsigned int)), this,
+        SLOT(readChipBadBlocksProgressCb(unsigned int)));
 
     cmd.code = CMD_NAND_READ_BB;
 
