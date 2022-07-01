@@ -7,19 +7,29 @@
 #define BUFFER_TABLE_MODEL_H
 
 #include <QAbstractTableModel>
+#include <QFile>
 
 #define HEADER_ADDRESS_COL 0
 #define HEADER_HEX_COL 1
 #define HEADER_ASCII_COL 2
 
 #define ROW_DATA_SIZE 16
+#define BUF_SIZE 4000
 
 class BufferTableModel: public QAbstractTableModel
 {
     Q_OBJECT
 
-    uint8_t *buf;
-    uint32_t bufSize;
+    typedef struct
+    {
+         uint8_t buf[BUF_SIZE];
+         qint64 fileSize;
+         qint64 bufFilePos;
+         QFile file;
+    } BufferModelState;
+
+    BufferModelState state;
+    BufferModelState *sPtr = &state;
 
 public:
     BufferTableModel(QObject *parent = nullptr);
@@ -30,8 +40,8 @@ public:
         const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role)
         const override;
-    void setBuffer(uint8_t *buffer, uint32_t size);
-    void getBuffer(uint8_t *&buffer, uint32_t &size);
+    void setFile(QString filePath);
+
 };
 
 #endif // BUFFER_TABLE_MODEL_H

@@ -45,14 +45,14 @@ void MainWindow::initBufTable()
         HEADER_ADDRESS_WIDTH);
     ui->bufferTableView->setColumnWidth(HEADER_HEX_COL, HEADER_HEX_WIDTH);
 #ifdef Q_OS_WIN32
-    QFont font("Courier New", 6);
+    QFont font("Courier New", 9);
     ui->bufferTableView->setFont(font);
 #endif
 }
 
 void MainWindow::resetBufTable()
 {
-    bufferTableModel.setBuffer(nullptr, 0);
+    bufferTableModel.setFile(ui->filePathLineEdit->text());
     buffer.clear();
 }
 
@@ -75,10 +75,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     connect(ui->chipSelectComboBox, SIGNAL(currentIndexChanged(int)),
         this, SLOT(slotSelectChip(int)));
 
-    connect(ui->actionOpen, SIGNAL(triggered()), this,
-        SLOT(slotFileOpen()));
-    connect(ui->actionSave, SIGNAL(triggered()), this,
-        SLOT(slotFileSave()));
     connect(ui->actionConnect, SIGNAL(triggered()), this,
         SLOT(slotProgConnect()));
     connect(ui->actionReadId, SIGNAL(triggered()), this,
@@ -103,98 +99,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotDetectChip()));
     connect(ui->actionFirmwareUpdate, SIGNAL(triggered()), this,
         SLOT(slotFirmwareUpdateDialog()));
+    connect(ui->selectFilePushButton, SIGNAL(clicked()), this,
+        SLOT(slotSelectFilePath()));
+    connect(ui->filePathLineEdit, SIGNAL(editingFinished()), this,
+        SLOT(slotFilePathEditingFinished()));
+
+    ui->filePathLineEdit->setText(QDir::tempPath() + "/nando_tmp.bin");
+    QSettings settings(SETTINGS_ORGANIZATION_NAME, SETTINGS_APPLICATION_NAME);
+    ui->filePathLineEdit->setText(settings.value(SETTINGS_WORK_FILE_PATH,
+        ui->filePathLineEdit->text()).toString());
+    bufferTableModel.setFile(ui->filePathLineEdit->text());
 }
 
 MainWindow::~MainWindow()
 {
     Logger::putInstance();
     delete ui;
-}
-
-void MainWindow::slotFileOpen()
-{
-    qint64 ret, fileSize;
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), ".",
-        tr("Binary Files (*)"));
-
-    if (fileName.isNull())
-        return;
-
-    QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly))
-    {
-        qCritical() << "Failed to open file:" << fileName << ", error:" <<
-            file.errorString();
-        return;
-    }
-
-    resetBufTable();
-    fileSize = file.size();
-    buffer.resize(static_cast<int>(fileSize));
-    ret = file.read(reinterpret_cast<char *>(buffer.data()), fileSize);
-    if (ret < 0)
-    {
-        qCritical() << "Failed to read file:" << fileName << ", error:" <<
-            file.errorString();
-        goto Exit;
-    }
-
-    if (ret != fileSize)
-    {
-        qCritical() << "File was partially read, length" << ret;
-        goto Exit;
-    }
-
-    bufferTableModel.setBuffer(buffer.data(),
-        static_cast<uint32_t>(buffer.size()));
-
-Exit:
-    file.close();
-}
-
-void MainWindow::slotFileSave()
-{
-    qint64 ret;
-    uint8_t *buffer;
-    uint32_t size;
-    QString fileName;
-
-    bufferTableModel.getBuffer(buffer, size);
-
-    if (!size)
-    {
-        QMessageBox::information(this, tr("Information"),
-            tr("The buffer is empty"));
-        return;
-    }
-
-    fileName = QFileDialog::getSaveFileName(this, tr("Save buffer to file"),
-        ".", tr("Binary Files (*)"));
-
-    if (fileName.isNull())
-        return;
-
-    QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly))
-    {
-        qCritical() << "Failed to open file:" << fileName << ", error:" <<
-            file.errorString();
-        return;
-    }
-
-    ret = file.write(reinterpret_cast<char *>(buffer), size);
-    if (ret < 0)
-    {
-        qCritical() << "Failed to write file:" << fileName << ", error:" <<
-            file.errorString();
-    }
-    else if (ret != size)
-    {
-        qCritical() << "Failed to write file: written " << ret << " bytes of "
-            << size;
-    }
-
-    file.close();
 }
 
 void MainWindow::setUiStateConnected(bool isConnected)
@@ -333,23 +253,29 @@ void MainWindow::slotProgReadCompleted(int readBytes)
     disconnect(prog, SIGNAL(readChipCompleted(int)), this,
         SLOT(slotProgReadCompleted(int)));
 
+    ui->filePathLineEdit->setDisabled(false);
+    ui->selectFilePushButton->setDisabled(false);
+
     setProgress(100);
 
     if (readBytes < 0)
     {
-        buffer.clear();
+        workFile.close();
         return;
     }
 
-    if (readBytes > buffer.size())
+    workFile.write((const char *)buffer.constData(), buffer.size());
+
+    if (readBytes != workFile.size())
     {
-        qCritical() << "Read operation returned more than requested: " <<
-            readBytes << ">" << buffer.size();
-        return;
+        qCritical() << "Read operation returned more or less than requested: " <<
+            readBytes << "!=" << workFile.size();
+        workFile.resize(0);
     }
 
+    workFile.close();
     qInfo() << "Data has been successfully read";
-    bufferTableModel.setBuffer(buffer.data(), readBytes);
+    bufferTableModel.setFile(ui->filePathLineEdit->text());
 }
 
 void MainWindow::slotProgReadProgress(unsigned int progress)
@@ -362,6 +288,9 @@ void MainWindow::slotProgReadProgress(unsigned int progress)
 
     progressPercent = progress * 100ULL / readSize;
     setProgress(progressPercent);
+
+    workFile.write((const char *)buffer.constData(), buffer.size());
+    buffer.clear();
 }
 
 void MainWindow::slotProgRead()
@@ -377,9 +306,32 @@ void MainWindow::slotProgRead()
         return;
     }
 
+    workFile.setFileName(ui->filePathLineEdit->text());
+    if (workFile.exists())
+    {
+        QMessageBox msgBox;
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setText("Replace data in current file?");
+        msgBox.setInformativeText("Selected file name is exist.");
+        msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        if (msgBox.exec() == QMessageBox::Cancel)
+        {
+            workFile.close();
+            return;
+        }
+    }
+
+    if (!workFile.open(QIODevice::WriteOnly))
+    {
+        qCritical() << "Failed to open file:" << ui->filePathLineEdit->text()
+            << ", error:" << workFile.errorString();
+        return;
+    }
+
+    workFile.resize(0);
     resetBufTable();
     buffer.clear();
-    buffer.resize(static_cast<int>(readSize));
 
     qInfo() << "Reading data ...";
     setProgress(0);
@@ -389,7 +341,10 @@ void MainWindow::slotProgRead()
     connect(prog, SIGNAL(readChipProgress(unsigned int)), this,
         SLOT(slotProgReadProgress(unsigned int)));
 
-    prog->readChip(buffer.data(), START_ADDRESS, readSize, true);
+    ui->filePathLineEdit->setDisabled(true);
+    ui->selectFilePushButton->setDisabled(true);
+
+    prog->readChip(&buffer, START_ADDRESS, readSize, true);
 }
 
 void MainWindow::slotProgWriteCompleted(int status)
@@ -399,30 +354,47 @@ void MainWindow::slotProgWriteCompleted(int status)
     disconnect(prog, SIGNAL(writeChipCompleted(int)), this,
         SLOT(slotProgWriteCompleted(int)));
 
+    ui->filePathLineEdit->setDisabled(false);
+    ui->selectFilePushButton->setDisabled(false);
+
     if (!status)
         qInfo() << "Data has been successfully written";
 
     setProgress(100);
+    workFile.close();
 }
 
 void MainWindow::slotProgWriteProgress(unsigned int progress)
 {
     uint32_t progressPercent;
-    uint32_t bufferSize = static_cast<uint32_t>(buffer.size());
 
-    progressPercent = progress * 100ULL / bufferSize;
+    progressPercent = progress * 100ULL / progSize;
     setProgress(progressPercent);
+
+    uint32_t dataSize = workFile.read((char *)buffer.data(), pageSize);
+
+    if (dataSize < pageSize)
+    {
+        uint32_t tail = pageSize - dataSize;
+        memset(buffer.end() - tail, 0xFF, tail);
+    }
 }
 
 void MainWindow::slotProgWrite()
 {
     int index;
     QString chipName;
-    uint32_t pageSize, bufferSize;
 
-    if (buffer.isEmpty())
+    workFile.setFileName(ui->filePathLineEdit->text());
+    if (!workFile.open(QIODevice::ReadOnly))
     {
-        qInfo() << "Write buffer is empty";
+        qCritical() << "Failed to open file:" << ui->filePathLineEdit->text() << ", error:" <<
+            workFile.errorString();
+        return;
+    }
+    if (!workFile.size())
+    {
+        qInfo() << "Write file is empty";
         return;
     }
 
@@ -443,11 +415,11 @@ void MainWindow::slotProgWrite()
         return;
     }
 
-    bufferSize = static_cast<uint32_t>(buffer.size());
-    if (bufferSize % pageSize)
+    progSize = static_cast<uint32_t>(workFile.size());
+
+    if (progSize % pageSize)
     {
-        bufferSize = (bufferSize / pageSize + 1) * pageSize;
-        buffer.resize(static_cast<int>(bufferSize));
+        progSize = (progSize / pageSize + 1) * pageSize;
     }
 
     qInfo() << "Writing data ...";
@@ -457,7 +429,12 @@ void MainWindow::slotProgWrite()
     connect(prog, SIGNAL(writeChipProgress(unsigned int)), this,
         SLOT(slotProgWriteProgress(unsigned int)));
 
-    prog->writeChip(buffer.data(), START_ADDRESS, bufferSize, pageSize);
+    ui->filePathLineEdit->setDisabled(true);
+    ui->selectFilePushButton->setDisabled(true);
+
+    buffer.reserve(pageSize);
+    buffer.resize(workFile.read((char *)buffer.data(), pageSize));
+    prog->writeChip(&buffer, START_ADDRESS, progSize, pageSize);
 }
 
 void MainWindow::slotProgReadBadBlocksCompleted(int status)
@@ -815,3 +792,35 @@ void MainWindow::slotFirmwareUpdateDialog()
         SLOT(slotProgFirmwareUpdateProgress(unsigned int)));
     prog->firmwareUpdate(fileName);
 }
+
+void MainWindow::slotSelectFilePath()
+{
+    QString filePath = ui->filePathLineEdit->text();
+
+    QFileDialog selectFile(this);
+    selectFile.setWindowTitle(tr("Choose a file."));
+    selectFile.setDirectory(filePath);
+    selectFile.setNameFilter(tr("Binary file(*.bin);;All Files(*)"));
+    selectFile.setViewMode(QFileDialog::Detail);
+    selectFile.setLabelText(QFileDialog::Accept, tr("Select"));
+    selectFile.setLabelText(QFileDialog::Reject, tr("Cancel"));
+    if (selectFile.exec())
+    {
+        filePath = selectFile.selectedFiles().at(0);
+        ui->filePathLineEdit->setText(filePath);
+        bufferTableModel.setFile(filePath);
+        QSettings settings(SETTINGS_ORGANIZATION_NAME, SETTINGS_APPLICATION_NAME);
+        settings.setValue(SETTINGS_WORK_FILE_PATH, filePath);
+    }
+}
+
+void MainWindow::slotFilePathEditingFinished()
+{
+    if (ui->filePathLineEdit->text().isEmpty())
+        return;
+    QString filePath = ui->filePathLineEdit->text();
+    bufferTableModel.setFile(filePath);
+    QSettings settings(SETTINGS_ORGANIZATION_NAME, SETTINGS_APPLICATION_NAME);
+    settings.setValue(SETTINGS_WORK_FILE_PATH, filePath);
+}
+

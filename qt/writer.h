@@ -19,7 +19,7 @@ class Writer : public QObject
     SerialPort *serialPort = nullptr;
     QString portName;
     qint32 baudRate;
-    uint8_t *buf;
+    QVector<uint8_t> *buf;
     uint32_t addr;
     uint32_t len;
     uint32_t pageSize;
@@ -55,7 +55,7 @@ class Writer : public QObject
 public:
     explicit Writer();
     ~Writer();
-    void init(const QString &portName, qint32 baudRate, uint8_t *buf,
+    void init(const QString &portName, qint32 baudRate, QVector<uint8_t> *buf,
         uint32_t addr, uint32_t len, uint32_t pageSize,
         bool skipBB, bool incSpare, bool enableHwEcc, uint8_t startCmd,
         uint8_t dataCmd, uint8_t endCmd);

@@ -18,7 +18,7 @@ class Reader : public QObject
     SerialPort *serialPort = nullptr;
     QString portName;
     qint32 baudRate;
-    uint8_t *rbuf;
+    QVector<uint8_t> *rbuf;
     uint32_t rlen;
     const uint8_t *wbuf;
     uint32_t wlen;
@@ -49,7 +49,7 @@ public:
     explicit Reader();
     ~Reader();
 
-    void init(const QString &portName, qint32 baudRate, uint8_t *rbuf,
+    void init(const QString &portName, qint32 baudRate, QVector<uint8_t> *rbuf,
         uint32_t rlen, const uint8_t *wbuf, uint32_t wlen, bool isSkipBB,
         bool isReadLess);
     void start();

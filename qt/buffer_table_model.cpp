@@ -8,13 +8,13 @@
 BufferTableModel::BufferTableModel(QObject *parent):
     QAbstractTableModel(parent)
 {
-    buf = nullptr;
-    bufSize = 0;
+    state.bufFilePos = 0;
+    state.fileSize = 0;
 }
 
 int BufferTableModel::rowCount(const QModelIndex & /*parent*/) const
 {
-    return (bufSize + ROW_DATA_SIZE - 1) / ROW_DATA_SIZE;
+    return (state.fileSize + ROW_DATA_SIZE - 1) / ROW_DATA_SIZE;
 }
 
 int BufferTableModel::columnCount(const QModelIndex & /*parent*/) const
@@ -26,22 +26,32 @@ QVariant BufferTableModel::data(const QModelIndex &index, int role) const
 {
     QString hexString;
     QChar decodedChar;
-    uint32_t start, end;
+    qint64 start, end;
 
     if (role == Qt::DisplayRole)
     {
         switch (index.column())
         {
         case HEADER_ADDRESS_COL:
-            return QString("%1").arg(index.row() * ROW_DATA_SIZE, 8, 16,
+            return QString("%1").arg(index.row() * ROW_DATA_SIZE, 10, 16,
                 QChar('0'));
         case HEADER_HEX_COL:
             start = static_cast<uint32_t>(index.row()) * ROW_DATA_SIZE;
             end = start + ROW_DATA_SIZE;
 
-            for (uint32_t i = start; i < end && i < bufSize; i++)
+            if ((sPtr->bufFilePos > start) || ((sPtr->bufFilePos + BUF_SIZE) < end))
             {
-                hexString.append(QString("%1 ").arg(buf[i], 2, 16,
+                sPtr->bufFilePos = start - (BUF_SIZE / 2);
+                if (sPtr->bufFilePos < 0)
+                    sPtr->bufFilePos = 0;
+
+                sPtr->file.seek(sPtr->bufFilePos);
+                sPtr->file.read((char *)sPtr->buf, BUF_SIZE);
+            }
+
+            for (qint64 i = start; i < end && i < state.fileSize; i++)
+            {
+                hexString.append(QString("%1 ").arg(sPtr->buf[i - sPtr->bufFilePos], 2, 16,
                     QChar('0')));
             }
             return hexString;
@@ -49,9 +59,9 @@ QVariant BufferTableModel::data(const QModelIndex &index, int role) const
             start = static_cast<uint32_t>(index.row()) * ROW_DATA_SIZE;
             end = start + ROW_DATA_SIZE;
 
-            for (uint32_t i = start; i < end && i < bufSize; i++)
+            for (qint64 i = start; i < end && i < state.fileSize; i++)
             {
-                decodedChar = QChar(buf[i]);
+                decodedChar = QChar(state.buf[i - state.bufFilePos]);
                 if (!decodedChar.isPrint())
                     decodedChar = QChar('.');
                 hexString.append(decodedChar);
@@ -85,16 +95,25 @@ QVariant BufferTableModel::headerData(int section, Qt::Orientation orientation,
     return QVariant();
 }
 
-void BufferTableModel::setBuffer(uint8_t *buffer, uint32_t size)
+void BufferTableModel::setFile(QString filePath)
 {
     beginResetModel();
-    buf = buffer;
-    bufSize = size;
+    state.file.close();
+    if (!filePath.isEmpty())
+    {
+        state.bufFilePos = 0;
+        state.fileSize = 0;
+    }
+    state.file.setFileName(filePath);
+    if (state.file.open(QIODevice::ReadOnly))
+    {
+        state.fileSize = state.file.size();
+        state.bufFilePos = INT64_MAX;
+    }
+    else
+    {
+        state.bufFilePos = 0;
+        state.fileSize = 0;
+    }
     endResetModel();
-}
-
-void BufferTableModel::getBuffer(uint8_t *&buffer, uint32_t &size)
-{
-    buffer = buf;
-    size = bufSize;
 }
