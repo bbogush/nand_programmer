@@ -53,23 +53,24 @@ void ParallelChipInfo::chipInfoToStmParams(StmParams *stmParams)
         clrSetupTime;
     const double tHCLK = 13.88; /* 1 / 72MHz */
     const double tsuD_NOE = 25;
-    std::array<uint32_t, 5> setupArr = { params[CHIP_PARAM_T_CH],
+    std::array<uint32_t, 5> setupArr = { params[CHIP_PARAM_T_CS],
         params[CHIP_PARAM_T_CLS], params[CHIP_PARAM_T_ALS],
         params[CHIP_PARAM_T_CLR], params[CHIP_PARAM_T_AR] };
-    std::array<uint32_t, 3> hiZArr = { params[CHIP_PARAM_T_CH],
+    std::array<uint32_t, 3> hiZArr = { params[CHIP_PARAM_T_CS],
         params[CHIP_PARAM_T_ALS], params[CHIP_PARAM_T_CLS] };
     std::array<uint32_t, 3> holdArr = { params[CHIP_PARAM_T_CH],
         params[CHIP_PARAM_T_CLH], params[CHIP_PARAM_T_ALH] };
 
-    /* (SET + 1) * tHCLK >= max(tCH, tCLS, tALS, tCLR, tAR) - tWP */
+    /* (SET + 1) * tHCLK >= max(tCS, tCLS, tALS, tCLR, tAR) - tWP */
     setupTime = *std::max_element(setupArr.begin(), setupArr.end()) -
         params[CHIP_PARAM_T_WP];
     setupTime = setupTime / tHCLK - 1;
-    setupTime = setupTime <= 0 ? 0 : ceil(setupTime);
+    /* K9F2G08U0C requires at least 1 tick */
+    setupTime = setupTime <= 0 ? 1 : ceil(setupTime);
     stmParams->setupTime = static_cast<uint8_t>(setupTime);
 
     /* (WAIT + 1) * tHCLK >= max(tWP, tRP) */
-    waitSetupTime = std::max(params[CHIP_PARAM_T_WP], params[CHIP_PARAM_T_WP]);
+    waitSetupTime = std::max(params[CHIP_PARAM_T_WP], params[CHIP_PARAM_T_RP]);
     waitSetupTime = waitSetupTime / tHCLK - 1;
     waitSetupTime = waitSetupTime <= 0 ? 0 : ceil(waitSetupTime);
     stmParams->waitSetupTime = static_cast<uint8_t>(waitSetupTime);
@@ -90,8 +91,8 @@ void ParallelChipInfo::chipInfoToStmParams(StmParams *stmParams)
     /* (HOLD + 1) * tHCLK >= max(tCH, tCLH, tALH) */
     holdSetupTime =*std::max_element(holdArr.begin(), holdArr.end());
     holdSetupTime = holdSetupTime / tHCLK - 1;
-    /* K9F2G08U0C requires at least 1 tick */
-    holdSetupTime = holdSetupTime <= 0 ? 1 : ceil(holdSetupTime);
+    /* K9F2G08U0C requires at least 2 tick */
+    holdSetupTime = holdSetupTime <= 0 ? 2 : ceil(holdSetupTime);
     stmParams->holdSetupTime = static_cast<uint8_t>(holdSetupTime);
 
     /* ((WAIT + 1) + (HOLD + 1) + (SET + 1)) * tHCLK >= max(tWC, tRC) */
@@ -102,12 +103,17 @@ void ParallelChipInfo::chipInfoToStmParams(StmParams *stmParams)
         stmParams->setupTime++;
     }
 
-    /* Not clear how to calculate, use the same approach as above */
-    arSetupTime = params[CHIP_PARAM_T_AR] / tHCLK - 1;
+    /* RM0008 Reference manual
+       In any case, it turns out 0 */
+    /* t_ar = (TAR + SET + 4) × THCLK
+       t_ar / THCLK - 4 - SET  = TAR */
+    arSetupTime = params[CHIP_PARAM_T_AR] / tHCLK - 4 - stmParams->setupTime;
     arSetupTime = arSetupTime <= 0 ? 0 : ceil(arSetupTime);
     stmParams->arSetupTime = static_cast<uint8_t>(arSetupTime);
 
-    clrSetupTime = params[CHIP_PARAM_T_CLR] / tHCLK - 1;
+    /* t_clr = (TCLR + SET + 4) × THCLK
+       t_clr / THCLK - 4 - SET  = TCLR */
+    clrSetupTime = params[CHIP_PARAM_T_CLR] / tHCLK - 4 - stmParams->setupTime;
     clrSetupTime = clrSetupTime <= 0 ? 0 : ceil(clrSetupTime);
     stmParams->clrSetupTime = static_cast<uint8_t>(clrSetupTime);
 }
