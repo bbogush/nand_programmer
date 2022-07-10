@@ -37,9 +37,6 @@ private:
     ChipDb *currentChipDb;
     QElapsedTimer timer;
     bool isAlertEnabled;
-    QFile workFile;
-    uint32_t progSize;
-    uint32_t pageSize;
 
     void initBufTable();
     void resetBufTable();
@@ -68,10 +65,9 @@ private slots:
     void slotProgDetectChipReadChipIdCompleted(int status);
     void slotProgFirmwareUpdateCompleted(int status);
     void slotProgFirmwareUpdateProgress(unsigned int progress);
-    void slotSelectFilePath();
-    void slotFilePathEditingFinished();
-
 public slots:
+    void slotFileOpen();
+    void slotFileSave();
     void slotProgConnect();
     void slotProgReadDeviceId();
     void slotProgErase();
