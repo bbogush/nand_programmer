@@ -5,6 +5,8 @@
 
 #include "buffer_table_model.h"
 
+#define TABLE_BUFFER_LIMIT (1024*1024*1024)
+
 BufferTableModel::BufferTableModel(QObject *parent):
     QAbstractTableModel(parent)
 {
@@ -14,7 +16,13 @@ BufferTableModel::BufferTableModel(QObject *parent):
 
 int BufferTableModel::rowCount(const QModelIndex & /*parent*/) const
 {
-    return (state.fileSize + ROW_DATA_SIZE - 1) / ROW_DATA_SIZE;
+    qint64 tableBufferSize = state.fileSize;
+
+    // Limit buffer size to avoid memory overlows for large buffers
+    if (tableBufferSize > TABLE_BUFFER_LIMIT)
+        tableBufferSize = TABLE_BUFFER_LIMIT;
+
+    return (tableBufferSize + ROW_DATA_SIZE - 1) / ROW_DATA_SIZE;
 }
 
 int BufferTableModel::columnCount(const QModelIndex & /*parent*/) const
