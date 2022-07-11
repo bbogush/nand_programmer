@@ -33,7 +33,7 @@ SOURCES += main.cpp\
     parallel_chip_info.cpp \
     programmer.cpp \
     logger.cpp \
-    buffer_table_model.cpp \
+    dataviewer.cpp \
     serial_port.cpp \
     spi_chip_db.cpp \
     spi_chip_db_dialog.cpp \
@@ -56,7 +56,7 @@ HEADERS += main_window.h \
     parallel_chip_info.h \
     programmer.h \
     logger.h \
-    buffer_table_model.h \
+    dataviewer.h \
     cmd.h \
     serial_port.h \
     spi_chip_db.h \

@@ -37,22 +37,15 @@
 
 void MainWindow::initBufTable()
 {
-    ui->bufferTableView->setModel(&bufferTableModel);
-    QHeaderView *verticalHeader = ui->bufferTableView->verticalHeader();
-    verticalHeader->setSectionResizeMode(QHeaderView::Fixed);
-    verticalHeader->setDefaultSectionSize(BUFFER_ROW_HEIGHT);
-    ui->bufferTableView->setColumnWidth(HEADER_ADDRESS_COL,
-        HEADER_ADDRESS_WIDTH);
-    ui->bufferTableView->setColumnWidth(HEADER_HEX_COL, HEADER_HEX_WIDTH);
 #ifdef Q_OS_WIN32
     QFont font("Courier New", 9);
-    ui->bufferTableView->setFont(font);
+    ui->dataViewer->setFont(font);
 #endif
 }
 
 void MainWindow::resetBufTable()
 {
-    bufferTableModel.setFile(ui->filePathLineEdit->text());
+    ui->dataViewer->setFile(ui->filePathLineEdit->text());
     buffer.buf.clear();
 }
 
@@ -108,7 +101,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     QSettings settings(SETTINGS_ORGANIZATION_NAME, SETTINGS_APPLICATION_NAME);
     ui->filePathLineEdit->setText(settings.value(SETTINGS_WORK_FILE_PATH,
         ui->filePathLineEdit->text()).toString());
-    bufferTableModel.setFile(ui->filePathLineEdit->text());
+    ui->dataViewer->setFile(ui->filePathLineEdit->text());
 }
 
 MainWindow::~MainWindow()
@@ -278,7 +271,7 @@ void MainWindow::slotProgReadCompleted(int readBytes)
 
     workFile.close();
     qInfo() << "Data has been successfully read";
-    bufferTableModel.setFile(ui->filePathLineEdit->text());
+    ui->dataViewer->setFile(ui->filePathLineEdit->text());
 }
 
 void MainWindow::slotProgReadProgress(unsigned int progress)
@@ -843,7 +836,7 @@ void MainWindow::slotSelectFilePath()
     {
         filePath = selectFile.selectedFiles().at(0);
         ui->filePathLineEdit->setText(filePath);
-        bufferTableModel.setFile(filePath);
+        ui->dataViewer->setFile(filePath);
         QSettings settings(SETTINGS_ORGANIZATION_NAME, SETTINGS_APPLICATION_NAME);
         settings.setValue(SETTINGS_WORK_FILE_PATH, filePath);
     }
@@ -854,7 +847,7 @@ void MainWindow::slotFilePathEditingFinished()
     if (ui->filePathLineEdit->text().isEmpty())
         return;
     QString filePath = ui->filePathLineEdit->text();
-    bufferTableModel.setFile(filePath);
+    ui->dataViewer->setFile(filePath);
     QSettings settings(SETTINGS_ORGANIZATION_NAME, SETTINGS_APPLICATION_NAME);
     settings.setValue(SETTINGS_WORK_FILE_PATH, filePath);
 }

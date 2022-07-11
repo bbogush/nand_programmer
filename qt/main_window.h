@@ -7,7 +7,6 @@
 #define MAIN_WINDOW_H
 
 #include "programmer.h"
-#include "buffer_table_model.h"
 #include "parallel_chip_db.h"
 #include "spi_chip_db.h"
 #include <QMainWindow>
@@ -30,7 +29,6 @@ public:
 private:
     Ui::MainWindow *ui;
     SyncBuffer buffer;
-    BufferTableModel bufferTableModel;
     ChipId chipId;
     ParallelChipDb parallelChipDb;
     SpiChipDb spiChipDb;
