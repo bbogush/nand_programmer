@@ -8,6 +8,7 @@
 
 #include "cmd.h"
 #include "serial_port.h"
+#include "sync_buffer.h"
 #include <QObject>
 
 class Writer : public QObject
@@ -19,7 +20,7 @@ class Writer : public QObject
     SerialPort *serialPort = nullptr;
     QString portName;
     qint32 baudRate;
-    QVector<uint8_t> *buf;
+    SyncBuffer *buf;
     uint32_t addr;
     uint32_t len;
     uint32_t pageSize;
@@ -34,6 +35,7 @@ class Writer : public QObject
     char pbuf[bufSize];
     int offset;
     uint8_t cmd;
+    bool restartRead;
 
     int write(char *data, uint32_t dataLen);
     int read(char *data, uint32_t dataLen);
@@ -55,7 +57,7 @@ class Writer : public QObject
 public:
     explicit Writer();
     ~Writer();
-    void init(const QString &portName, qint32 baudRate, QVector<uint8_t> *buf,
+    void init(const QString &portName, qint32 baudRate, SyncBuffer *buf,
         uint32_t addr, uint32_t len, uint32_t pageSize,
         bool skipBB, bool incSpare, bool enableHwEcc, uint8_t startCmd,
         uint8_t dataCmd, uint8_t endCmd);

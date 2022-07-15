@@ -21,7 +21,7 @@ Reader::~Reader()
     stop();
 }
 
-void Reader::init(const QString &portName, qint32 baudRate, QVector<uint8_t> *rbuf,
+void Reader::init(const QString &portName, qint32 baudRate, SyncBuffer *rbuf,
     uint32_t rlen, const uint8_t *wbuf, uint32_t wlen, bool isSkipBB,
     bool isReadLess)
 {
@@ -162,9 +162,10 @@ int Reader::handleData(char *pbuf, uint32_t len)
         return -1;
     }
 
-    QVector<uint8_t>tmp(dataSize);
-    memcpy(tmp.data(), data, dataSize);
-    rbuf->append(tmp);
+    rbuf->mutex.lock();
+    rbuf->buf.insert(rbuf->buf.end(), data, data + dataSize);
+    rbuf->mutex.unlock();
+
     readOffset += dataSize;
     bytesRead += dataSize;
 

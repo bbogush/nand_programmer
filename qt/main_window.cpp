@@ -53,7 +53,7 @@ void MainWindow::initBufTable()
 void MainWindow::resetBufTable()
 {
     bufferTableModel.setFile(ui->filePathLineEdit->text());
-    buffer.clear();
+    buffer.buf.clear();
 }
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
@@ -264,7 +264,10 @@ void MainWindow::slotProgReadCompleted(int readBytes)
         return;
     }
 
-    workFile.write((const char *)buffer.constData(), buffer.size());
+    buffer.mutex.lock();
+    workFile.write((const char *)buffer.buf.data(), buffer.buf.size());
+    buffer.buf.clear();
+    buffer.mutex.unlock();
 
     if (readBytes != workFile.size())
     {
@@ -289,8 +292,10 @@ void MainWindow::slotProgReadProgress(unsigned int progress)
     progressPercent = progress * 100ULL / readSize;
     setProgress(progressPercent);
 
-    workFile.write((const char *)buffer.constData(), buffer.size());
-    buffer.clear();
+    buffer.mutex.lock();
+    workFile.write((const char *)buffer.buf.data(), buffer.buf.size());
+    buffer.buf.clear();
+    buffer.mutex.unlock();
 }
 
 void MainWindow::slotProgRead()
@@ -331,7 +336,7 @@ void MainWindow::slotProgRead()
 
     workFile.resize(0);
     resetBufTable();
-    buffer.clear();
+    buffer.buf.clear();
 
     qInfo() << "Reading data ...";
     setProgress(0);
@@ -371,13 +376,26 @@ void MainWindow::slotProgWriteProgress(unsigned int progress)
     progressPercent = progress * 100ULL / progSize;
     setProgress(progressPercent);
 
-    uint32_t dataSize = workFile.read((char *)buffer.data(), pageSize);
+    std::unique_lock<std::mutex> lck(buffer.mutex);
 
-    if (dataSize < pageSize)
+    qint64 readSize = workFile.read((char *)buffer.buf.data(), pageSize);
+    if (readSize < 0)
     {
-        uint32_t tail = pageSize - dataSize;
-        memset(buffer.end() - tail, 0xFF, tail);
+        qCritical() << "Failed to read file";
+        return;
     }
+    else if (readSize == 0)
+    {
+        return;
+    }
+    else if (readSize < pageSize)
+    {
+        std::fill(buffer.buf.begin() + readSize, buffer.buf.end(), 0xFF);
+    }
+
+    // Notify writer that new data is ready
+    buffer.ready = true;
+    buffer.cv.notify_one();
 }
 
 void MainWindow::slotProgWrite()
@@ -432,8 +450,25 @@ void MainWindow::slotProgWrite()
     ui->filePathLineEdit->setDisabled(true);
     ui->selectFilePushButton->setDisabled(true);
 
-    buffer.reserve(pageSize);
-    buffer.resize(workFile.read((char *)buffer.data(), pageSize));
+    buffer.buf.reserve(pageSize);
+    buffer.buf.resize(pageSize);
+    qint64 readSize = workFile.read((char *)buffer.buf.data(), (qint64)pageSize);
+    if (readSize < 0)
+    {
+        qCritical() << "Failed to read file";
+        return;
+    }
+    else if (readSize == 0)
+    {
+        qInfo() << "File is empty";
+        return;
+    }
+    else if (readSize < pageSize)
+    {
+        std::fill(buffer.buf.begin() + readSize, buffer.buf.end(), 0xFF);
+    }
+
+    buffer.ready = true;
     prog->writeChip(&buffer, START_ADDRESS, progSize, pageSize);
 }
 

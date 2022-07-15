@@ -56,7 +56,8 @@ class Programmer : public QObject
     uint8_t activeImage;
     uint8_t updateImage;
     QString firmwareFileName;
-    QVector<uint8_t> buf;
+    QByteArray firmwareBuffer;
+    SyncBuffer buffer;
     ChipId *chipId_p;
 
     int serialPortConnect();
@@ -82,8 +83,8 @@ public:
     void setHwEccEnabled(bool isHwEccEnabled);
     void readChipId(ChipId *chipId);
     void eraseChip(uint32_t addr, uint32_t len);
-    void readChip(QVector<uint8_t> *buf, uint32_t addr, uint32_t len, bool isReadLess);
-    void writeChip(QVector<uint8_t> *buf, uint32_t addr, uint32_t len,
+    void readChip(SyncBuffer *buf, uint32_t addr, uint32_t len, bool isReadLess);
+    void writeChip(SyncBuffer *buf, uint32_t addr, uint32_t len,
         uint32_t pageSize);
     void readChipBadBlocks();
     void confChip(ChipInfo *chipInfo);

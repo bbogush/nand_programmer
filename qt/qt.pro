@@ -63,6 +63,7 @@ HEADERS += main_window.h \
     spi_chip_db_dialog.h \
     spi_chip_db_table_model.h \
     spi_chip_info.h \
+    sync_buffer.h \
     writer.h \
     reader.h \
     settings_programmer_dialog.h \

@@ -18,7 +18,7 @@ Writer::~Writer()
     stop();
 }
 
-void Writer::init(const QString &portName, qint32 baudRate, QVector<uint8_t> *buf,
+void Writer::init(const QString &portName, qint32 baudRate, SyncBuffer *buf,
     uint32_t addr, uint32_t len, uint32_t pageSize, bool skipBB, bool incSpare,
     bool enableHwEcc, uint8_t startCmd, uint8_t dataCmd, uint8_t endCmd)
 {
@@ -37,6 +37,7 @@ void Writer::init(const QString &portName, qint32 baudRate, QVector<uint8_t> *bu
     bytesWritten = 0;
     bytesAcked = 0;
     offset = 0;
+    restartRead = false;
 }
 
 int Writer::write(char *data, uint32_t dataLen)
@@ -106,6 +107,10 @@ int Writer::handleBadBlock(RespHeader *header, uint32_t len, bool isSkipped)
 
     logInfo(message.arg(badBlock->addr, 8, 16, QLatin1Char('0'))
         .arg(badBlock->size, 8, 16, QLatin1Char('0')));
+
+    // Bad block notification is received before acknowledge therefore need to restart read.
+    // Need to implement async write to avoid this.
+    restartRead = true;
 
     return size;
 }
@@ -204,6 +209,14 @@ void Writer::readCb(int size)
         return;
     }
 
+    if (restartRead)
+    {
+        restartRead = false;
+        if (read(pbuf + offset, bufSize - offset) < 0)
+            goto Error;
+        return;
+    }
+
     if (cmd == startCmd)
     {
         if (writeData())
@@ -262,6 +275,11 @@ int Writer::writeData()
     dataLenMax = bufSize - headerLen;
     cmd = dataCmd;
 
+    // Wait new chunk of data is written to buffer by caller
+    std::unique_lock<std::mutex> lck(buf->mutex);
+    buf->cv.wait(lck, [this] { return this->buf->ready; });
+    buf->ready = false;
+
     while (len)
     {
         dataLen = len < dataLenMax ? len : dataLenMax;
@@ -271,7 +289,7 @@ int Writer::writeData()
             dataLen = pageLim - bytesWritten;
 
         writeDataCmd->len = static_cast<uint8_t>(dataLen);
-        memcpy(pbuf + headerLen, buf->constData() + bufWriten, dataLen);
+        memcpy(pbuf + headerLen, buf->buf.data() + bufWriten, dataLen);
         if (write(pbuf, headerLen + dataLen))
             return -1;
 

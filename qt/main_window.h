@@ -29,7 +29,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    QVector<uint8_t> buffer;
+    SyncBuffer buffer;
     BufferTableModel bufferTableModel;
     ChipId chipId;
     ParallelChipDb parallelChipDb;
