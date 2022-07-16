@@ -370,7 +370,7 @@ static int np_read_bad_block_info_from_page(np_prog_t *prog, uint32_t block,
     return 0;
 }
 
-static int _np_cmd_read_bad_blocks(np_prog_t *prog)
+static int _np_cmd_read_bad_blocks(np_prog_t *prog, bool send_progress)
 {
     int ret;
     bool is_bad;
@@ -388,7 +388,10 @@ static int _np_cmd_read_bad_blocks(np_prog_t *prog)
     for (block = 0; block < block_num; block++)
     {
         page = block * page_num;
-        np_send_progress(page);
+
+        if (send_progress)
+            np_send_progress(page);
+
         if ((ret = np_read_bad_block_info_from_page(prog, block, page,
             &is_bad)))
         {
@@ -476,8 +479,11 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
         total_size = prog->chip_info.total_size;
     }
 
-    if (skip_bb && !prog->bb_is_read && (ret = _np_cmd_read_bad_blocks(prog)))
+    if (skip_bb && !prog->bb_is_read && (ret = _np_cmd_read_bad_blocks(prog,
+        false)))
+    {
         return ret;
+    }
 
     if (addr % block_size)
     {
@@ -630,7 +636,7 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
 
     prog->skip_bb = write_start_cmd->flags.skip_bb;
     if (prog->skip_bb && !prog->bb_is_read &&
-        (ret = _np_cmd_read_bad_blocks(prog)))
+        (ret = _np_cmd_read_bad_blocks(prog, false)))
     {
         return ret;
     }
@@ -934,8 +940,11 @@ static int _np_cmd_nand_read(np_prog_t *prog)
         return NP_ERR_LEN_NOT_ALIGN;
     }
 
-    if (skip_bb && !prog->bb_is_read && (ret = _np_cmd_read_bad_blocks(prog)))
+    if (skip_bb && !prog->bb_is_read && (ret = _np_cmd_read_bad_blocks(prog,
+        false)))
+    {
         return ret;
+    }
 
     page.page = addr / page_size;
     page.offset = 0;
@@ -1088,7 +1097,7 @@ int np_cmd_read_bad_blocks(np_prog_t *prog)
 
     led_rd_set(true);
     nand_bad_block_table_init();  
-    ret = _np_cmd_read_bad_blocks(prog);
+    ret = _np_cmd_read_bad_blocks(prog, true);
     led_rd_set(false);
 
     if (ret || (ret = np_send_bad_blocks(prog)))
