@@ -20,7 +20,7 @@ SpiChipDb::~SpiChipDb()
 ChipInfo *SpiChipDb::stringToChipInfo(const QString &s)
 {
     int paramNum;
-    uint32_t paramValue;
+    quint64 paramValue;
     QStringList paramsList;
     SpiChipInfo *ci = new SpiChipInfo();
 
@@ -212,7 +212,7 @@ QString SpiChipDb::getNameByChipId(uint32_t id1, uint32_t id2,
     return QString();
 }
 
-uint32_t SpiChipDb::getChipParam(int chipIndex, int paramIndex)
+quint64 SpiChipDb::getChipParam(int chipIndex, int paramIndex)
 {
     SpiChipInfo *ci = dynamic_cast<SpiChipInfo *>(getChipInfo(chipIndex));
 
@@ -223,7 +223,7 @@ uint32_t SpiChipDb::getChipParam(int chipIndex, int paramIndex)
 }
 
 int SpiChipDb::setChipParam(int chipIndex, int paramIndex,
-    uint32_t paramValue)
+    quint64 paramValue)
 {
     SpiChipInfo *ci = dynamic_cast<SpiChipInfo *>(getChipInfo(chipIndex));
 

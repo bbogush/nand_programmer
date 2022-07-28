@@ -53,12 +53,12 @@ void ParallelChipInfo::chipInfoToStmParams(StmParams *stmParams)
         clrSetupTime;
     const double tHCLK = 13.88; /* 1 / 72MHz */
     const double tsuD_NOE = 25;
-    std::array<uint32_t, 5> setupArr = { params[CHIP_PARAM_T_CS],
+    std::array<quint64, 5> setupArr = { params[CHIP_PARAM_T_CS],
         params[CHIP_PARAM_T_CLS], params[CHIP_PARAM_T_ALS],
         params[CHIP_PARAM_T_CLR], params[CHIP_PARAM_T_AR] };
-    std::array<uint32_t, 3> hiZArr = { params[CHIP_PARAM_T_CS],
+    std::array<quint64, 3> hiZArr = { params[CHIP_PARAM_T_CS],
         params[CHIP_PARAM_T_ALS], params[CHIP_PARAM_T_CLS] };
-    std::array<uint32_t, 3> holdArr = { params[CHIP_PARAM_T_CH],
+    std::array<quint64, 3> holdArr = { params[CHIP_PARAM_T_CH],
         params[CHIP_PARAM_T_CLH], params[CHIP_PARAM_T_ALH] };
 
     /* (SET + 1) * tHCLK >= max(tCS, tCLS, tALS, tCLR, tAR) - tWP */
@@ -157,7 +157,7 @@ const QByteArray &ParallelChipInfo::getHalConf()
     return halConf;
 }
 
-uint32_t ParallelChipInfo::getParam(uint32_t num)
+quint64 ParallelChipInfo::getParam(uint32_t num)
 {
     if (num >= CHIP_PARAM_NUM)
         return 0;
@@ -165,7 +165,7 @@ uint32_t ParallelChipInfo::getParam(uint32_t num)
     return params[num];
 }
 
-int ParallelChipInfo::setParam(uint32_t num, uint32_t value)
+int ParallelChipInfo::setParam(uint32_t num, quint64 value)
 {
     if (num >= CHIP_PARAM_NUM)
         return -1;

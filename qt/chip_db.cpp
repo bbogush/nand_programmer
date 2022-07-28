@@ -20,11 +20,11 @@ ChipDb::~ChipDb()
         delete chipInfoVector[i];
 }
 
-int ChipDb::getParamFromString(const QString &value, uint32_t &param)
+int ChipDb::getParamFromString(const QString &value, quint64 &param)
 {
     bool ok;
 
-    param = value.toUInt(&ok);
+    param = value.toULongLong(&ok);
     if (!ok)
         return -1;
 
@@ -33,7 +33,7 @@ int ChipDb::getParamFromString(const QString &value, uint32_t &param)
 
 int ChipDb::getParamFromString(const QString &value, uint8_t &param)
 {
-    uint32_t temp;
+    quint64 temp;
 
     if (getParamFromString(value, temp))
         return -1;
@@ -46,32 +46,32 @@ int ChipDb::getParamFromString(const QString &value, uint8_t &param)
     return 0;
 }
 
-int ChipDb::getParamFromHexString(const QString &value, uint32_t &param)
+int ChipDb::getParamFromHexString(const QString &value, quint64 &param)
 {
     bool ok;
 
-    param = value.toUInt(&ok, 16);
+    param = value.toULongLong(&ok, 16);
     if (!ok)
         return -1;
 
     return 0;
 }
 
-int ChipDb::getStringFromParam(const uint32_t &param, QString &value)
+int ChipDb::getStringFromParam(const quint64 &param, QString &value)
 {
     value = QString("%1").arg(param);
 
     return 0;
 }
 
-int ChipDb::getHexStringFromParam(const uint32_t &param, QString &value)
+int ChipDb::getHexStringFromParam(const quint64 &param, QString &value)
 {
     value = QString("0x%1").arg(param, 0, 16, QLatin1Char('0'));
 
     return 0;
 }
 
-int ChipDb::getOptParamFromString(const QString &value, uint32_t &param)
+int ChipDb::getOptParamFromString(const QString &value, quint64 &param)
 {
     if (value.trimmed() == paramNotDefSymbol)
     {
@@ -83,7 +83,7 @@ int ChipDb::getOptParamFromString(const QString &value, uint32_t &param)
 }
 
 int ChipDb::getOptParamFromHexString(const QString &value,
-    uint32_t &param)
+    quint64 &param)
 {
     if (value.trimmed() == paramNotDefSymbol)
     {
@@ -94,7 +94,7 @@ int ChipDb::getOptParamFromHexString(const QString &value,
     return getParamFromHexString(value, param);
 }
 
-int ChipDb::getStringFromOptParam(const uint32_t &param, QString &value)
+int ChipDb::getStringFromOptParam(const quint64 &param, QString &value)
 {
     if (param == paramNotDefValue)
     {
@@ -105,7 +105,7 @@ int ChipDb::getStringFromOptParam(const uint32_t &param, QString &value)
     return getStringFromParam(param, value);
 }
 
-int ChipDb::getHexStringFromOptParam(const uint32_t &param,
+int ChipDb::getHexStringFromOptParam(const quint64 &param,
     QString &value)
 {
     if (param == paramNotDefValue)
@@ -117,12 +117,12 @@ int ChipDb::getHexStringFromOptParam(const uint32_t &param,
     return getHexStringFromParam(param, value);
 }
 
-bool ChipDb::isParamValid(uint32_t param, uint32_t min, uint32_t max)
+bool ChipDb::isParamValid(quint64 param, quint64 min, quint64 max)
 {
     return param >= min && param <= max;
 }
 
-bool ChipDb::isOptParamValid(uint32_t param, uint32_t min, uint32_t max)
+bool ChipDb::isOptParamValid(quint64 param, quint64 min, quint64 max)
 {
     return (param == paramNotDefValue) ||
         (param >= min && param <= max);
@@ -305,23 +305,23 @@ uint32_t ChipDb::extendedPageSizeGetByName(const QString &name)
     return info->getPageSize() + info->getSpareSize();
 }
 
-uint32_t ChipDb::totalSizeGetById(int id)
+quint64 ChipDb::totalSizeGetById(int id)
 {
     ChipInfo *info = chipInfoGetById(id);
 
     return info ? info->getTotalSize() : 0;
 }
 
-uint32_t ChipDb::totalSizeGetByName(const QString &name)
+quint64 ChipDb::totalSizeGetByName(const QString &name)
 {
     ChipInfo *info = chipInfoGetByName(name);
 
     return info ? info->getTotalSize() : 0;
 }
 
-uint32_t ChipDb::extendedTotalSizeGetById(int id)
+quint64 ChipDb::extendedTotalSizeGetById(int id)
 {
-    uint32_t totalSize, totalSpare;
+    quint64 totalSize, totalSpare;
     ChipInfo *info = chipInfoGetById(id);
 
     if (!info)
@@ -333,9 +333,9 @@ uint32_t ChipDb::extendedTotalSizeGetById(int id)
     return totalSize + totalSpare;
 }
 
-uint32_t ChipDb::extendedTotalSizeGetByName(const QString &name)
+quint64 ChipDb::extendedTotalSizeGetByName(const QString &name)
 {
-    uint32_t totalSize, totalSpare;
+    quint64 totalSize, totalSpare;
     ChipInfo *info = chipInfoGetByName(name);
 
     if (!info)
@@ -439,14 +439,14 @@ int ChipDb::setBlockSize(int chipIndex, uint32_t blockSize)
     return 0;
 }
 
-uint32_t ChipDb::getTotalSize(int chipIndex)
+quint64 ChipDb::getTotalSize(int chipIndex)
 {
     ChipInfo *ci = getChipInfo(chipIndex);
 
     return ci ? ci->getTotalSize() : 0;
 }
 
-int ChipDb::setTotalSize(int chipIndex, uint32_t totalSize)
+int ChipDb::setTotalSize(int chipIndex, quint64 totalSize)
 {
     ChipInfo *ci = getChipInfo(chipIndex);
 

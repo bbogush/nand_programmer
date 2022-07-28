@@ -49,7 +49,7 @@ const QByteArray &SpiChipInfo::getHalConf()
     return halConf;
 }
 
-uint32_t SpiChipInfo::getParam(uint32_t num)
+quint64 SpiChipInfo::getParam(uint32_t num)
 {
     if (num >= CHIP_PARAM_NUM)
         return 0;
@@ -57,7 +57,7 @@ uint32_t SpiChipInfo::getParam(uint32_t num)
     return params[num];
 }
 
-int SpiChipInfo::setParam(uint32_t num, uint32_t value)
+int SpiChipInfo::setParam(uint32_t num, quint64 value)
 {
     if (num >= CHIP_PARAM_NUM)
         return -1;

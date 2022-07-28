@@ -50,12 +50,12 @@ void ChipInfo::setBlockSize(uint32_t blockSize)
     this->blockSize = blockSize;
 }
 
-uint32_t ChipInfo::getTotalSize()
+quint64 ChipInfo::getTotalSize()
 {
     return totalSize;
 }
 
-void ChipInfo::setTotalSize(uint32_t totalSize)
+void ChipInfo::setTotalSize(quint64 totalSize)
 {
     this->totalSize = totalSize;
 }

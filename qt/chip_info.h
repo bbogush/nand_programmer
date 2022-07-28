@@ -21,7 +21,7 @@ protected:
     QString name;
     uint32_t pageSize;
     uint32_t blockSize;
-    uint32_t totalSize;
+    quint64 totalSize;
     uint32_t spareSize;
     uint8_t bbMarkOffset;
     uint32_t hal;
@@ -35,16 +35,16 @@ public:
     void setPageSize(uint32_t pageSize);
     uint32_t getBlockSize();
     void setBlockSize(uint32_t blockSize);
-    uint32_t getTotalSize();
-    void setTotalSize(uint32_t totalSize);
+    quint64 getTotalSize();
+    void setTotalSize(quint64 totalSize);
     uint32_t getSpareSize();
     void setSpareSize(uint32_t spareSize);
     uint8_t getBBMarkOffset();
     void setBBMarkOffset(uint8_t offset);
     uint8_t getHal();
     virtual const QByteArray &getHalConf() = 0;
-    virtual uint32_t getParam(uint32_t num) = 0;
-    virtual int setParam(uint32_t num, uint32_t value) = 0;
+    virtual quint64 getParam(uint32_t num) = 0;
+    virtual int setParam(uint32_t num, quint64 value) = 0;
 };
 
 #endif // CHIP_INFO_H

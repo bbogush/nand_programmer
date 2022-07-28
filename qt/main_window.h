@@ -36,7 +36,7 @@ private:
     QElapsedTimer timer;
     bool isAlertEnabled;
     QFile workFile;
-    uint32_t progSize;
+    quint64 progSize;
     uint32_t pageSize;
 
     void initBufTable();
@@ -51,21 +51,21 @@ private:
     void detectChipDelayed();
     void setChipNameDelayed();
 private slots:
-    void slotProgConnectCompleted(int status);
-    void slotProgReadDeviceIdCompleted(int status);
-    void slotProgReadCompleted(int readBytes);
-    void slotProgReadProgress(unsigned int progress);
+    void slotProgConnectCompleted(quint64 status);
+    void slotProgReadDeviceIdCompleted(quint64 status);
+    void slotProgReadCompleted(quint64 readBytes);
+    void slotProgReadProgress(quint64 progress);
     void slotProgWriteCompleted(int status);
-    void slotProgWriteProgress(unsigned int progress);
-    void slotProgEraseCompleted(int status);
-    void slotProgEraseProgress(unsigned int progress);
-    void slotProgReadBadBlocksCompleted(int status);
-    void slotProgReadBadBlocksProgress(unsigned int progress);
-    void slotProgSelectCompleted(int status);
-    void slotProgDetectChipConfCompleted(int status);
-    void slotProgDetectChipReadChipIdCompleted(int status);
+    void slotProgWriteProgress(quint64 progress);
+    void slotProgEraseCompleted(quint64 status);
+    void slotProgEraseProgress(quint64 progress);
+    void slotProgReadBadBlocksCompleted(quint64 status);
+    void slotProgReadBadBlocksProgress(quint64 progress);
+    void slotProgSelectCompleted(quint64 status);
+    void slotProgDetectChipConfCompleted(quint64 status);
+    void slotProgDetectChipReadChipIdCompleted(quint64 status);
     void slotProgFirmwareUpdateCompleted(int status);
-    void slotProgFirmwareUpdateProgress(unsigned int progress);
+    void slotProgFirmwareUpdateProgress(quint64 progress);
     void slotSelectFilePath();
     void slotFilePathEditingFinished();
 

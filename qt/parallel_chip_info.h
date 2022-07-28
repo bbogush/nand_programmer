@@ -63,7 +63,7 @@ private:
     } StmParams;
 
     QByteArray halConf;
-    uint32_t params[CHIP_PARAM_NUM] = {};
+    quint64 params[CHIP_PARAM_NUM] = {};
 
     void chipInfoToStmParams(StmParams *stmParams);
 
@@ -71,8 +71,8 @@ public:
     ParallelChipInfo();
     virtual ~ParallelChipInfo();
     const QByteArray &getHalConf() override;
-    uint32_t getParam(uint32_t num) override;
-    int setParam(uint32_t num, uint32_t value) override;
+    quint64 getParam(uint32_t num) override;
+    int setParam(uint32_t num, quint64 value) override;
 };
 
 #endif // PARALLEL_CHIP_INFO_H

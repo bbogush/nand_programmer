@@ -20,12 +20,12 @@ class Reader : public QObject
     QString portName;
     qint32 baudRate;
     SyncBuffer *rbuf;
-    uint32_t rlen;
+    quint64 rlen;
     const uint8_t *wbuf;
     uint32_t wlen;
-    uint32_t readOffset;
-    uint32_t bytesRead;
-    uint32_t bytesReadNotified;
+    quint64 readOffset;
+    quint64 bytesRead;
+    quint64 bytesReadNotified;
     int offset;
     bool isSkipBB;
     bool isReadLess;
@@ -51,13 +51,13 @@ public:
     ~Reader();
 
     void init(const QString &portName, qint32 baudRate, SyncBuffer *rbuf,
-        uint32_t rlen, const uint8_t *wbuf, uint32_t wlen, bool isSkipBB,
+        quint64 rlen, const uint8_t *wbuf, uint32_t wlen, bool isSkipBB,
         bool isReadLess);
     void start();
     void stop();
 signals:
-    void result(int ret);
-    void progress(unsigned int progress);
+    void result(quint64 ret);
+    void progress(quint64 progress);
     void log(QtMsgType msgType, QString msg);
 };
 

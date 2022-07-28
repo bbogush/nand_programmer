@@ -19,7 +19,7 @@ Writer::~Writer()
 }
 
 void Writer::init(const QString &portName, qint32 baudRate, SyncBuffer *buf,
-    uint32_t addr, uint32_t len, uint32_t pageSize, bool skipBB, bool incSpare,
+    quint64 addr, quint64 len, uint32_t pageSize, bool skipBB, bool incSpare,
     bool enableHwEcc, uint8_t startCmd, uint8_t dataCmd, uint8_t endCmd)
 {
     this->portName = portName;

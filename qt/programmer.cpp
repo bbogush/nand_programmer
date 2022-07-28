@@ -50,15 +50,15 @@ void Programmer::serialPortDisconnect()
     serialPort.stop();
 }
 
-void Programmer::connectCb(int ret)
+void Programmer::connectCb(quint64 ret)
 {
     QTimer::singleShot(0, &reader, &Reader::stop);
-    QObject::disconnect(&reader, SIGNAL(result(int)), this,
-        SLOT(connectCb(int)));
+    QObject::disconnect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(connectCb(quint64)));
 
     memcpy(&fwVersion, buffer.buf.data(), sizeof(fwVersion));
 
-    if (ret < 0)
+    if (ret == UINT64_MAX)
     {
         qCritical() << "Failed to read firmware version";
         return;
@@ -79,8 +79,8 @@ int Programmer::connect()
         return -1;
     serialPortDisconnect();
 
-    QObject::connect(&reader, SIGNAL(result(int)), this,
-        SLOT(connectCb(int)));
+    QObject::connect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(connectCb(quint64)));
 
     cmd.code = CMD_VERSION_GET;
 
@@ -146,11 +146,11 @@ void Programmer::setHwEccEnabled(bool isHwEccEnabled)
     enableHwEcc = isHwEccEnabled;
 }
 
-void Programmer::readChipIdCb(int ret)
+void Programmer::readChipIdCb(quint64 ret)
 {
     QTimer::singleShot(0, &reader, &Reader::stop);
-    QObject::disconnect(&reader, SIGNAL(result(int)), this,
-        SLOT(readChipIdCb(int)));
+    QObject::disconnect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(readChipIdCb(quint64)));
 
     memcpy(chipId_p, buffer.buf.data(), sizeof(ChipId));
 
@@ -161,8 +161,8 @@ void Programmer::readChipId(ChipId *chipId)
 {
     Cmd cmd;
 
-    QObject::connect(&reader, SIGNAL(result(int)), this,
-        SLOT(readChipIdCb(int)));
+    QObject::connect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(readChipIdCb(quint64)));
 
     cmd.code = CMD_NAND_READ_ID;
 
@@ -179,29 +179,29 @@ void Programmer::readChipId(ChipId *chipId)
     reader.start();
 }
 
-void Programmer::eraseChipCb(int ret)
+void Programmer::eraseChipCb(quint64 ret)
 {
     QTimer::singleShot(0, &reader, &Reader::stop);
-    QObject::disconnect(&reader, SIGNAL(progress(unsigned int)), this,
-        SLOT(eraseProgressChipCb(unsigned int)));
-    QObject::disconnect(&reader, SIGNAL(result(int)), this,
-        SLOT(eraseChipCb(int)));
+    QObject::disconnect(&reader, SIGNAL(progress(quint64)), this,
+        SLOT(eraseProgressChipCb(quint64)));
+    QObject::disconnect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(eraseChipCb(quint64)));
     emit eraseChipCompleted(ret);
 }
 
-void Programmer::eraseProgressChipCb(unsigned int progress)
+void Programmer::eraseProgressChipCb(quint64 progress)
 {
     emit eraseChipProgress(progress);
 }
 
-void Programmer::eraseChip(uint32_t addr, uint32_t len)
+void Programmer::eraseChip(quint64 addr, quint64 len)
 {
     EraseCmd eraseCmd;
 
-    QObject::connect(&reader, SIGNAL(result(int)), this,
-        SLOT(eraseChipCb(int)));
-    QObject::connect(&reader, SIGNAL(progress(unsigned int)), this,
-        SLOT(eraseProgressChipCb(unsigned int)));
+    QObject::connect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(eraseChipCb(quint64)));
+    QObject::connect(&reader, SIGNAL(progress(quint64)), this,
+        SLOT(eraseProgressChipCb(quint64)));
 
     eraseCmd.cmd.code = CMD_NAND_ERASE;
     eraseCmd.addr = addr;
@@ -218,28 +218,30 @@ void Programmer::eraseChip(uint32_t addr, uint32_t len)
     reader.start();
 }
 
-void Programmer::readCb(int ret)
+void Programmer::readCb(quint64 ret)
 {
     QTimer::singleShot(0, &reader, &Reader::stop);
-    QObject::disconnect(&reader, SIGNAL(progress(unsigned int)), this,
-        SLOT(readProgressCb(unsigned int)));
-    QObject::disconnect(&reader, SIGNAL(result(int)), this, SLOT(readCb(int)));
+    QObject::disconnect(&reader, SIGNAL(progress(quint64)), this,
+        SLOT(readProgressCb(quint64)));
+    QObject::disconnect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(readCb(quint64)));
     emit readChipCompleted(ret);
 }
 
-void Programmer::readProgressCb(unsigned int progress)
+void Programmer::readProgressCb(quint64 progress)
 {
     emit readChipProgress(progress);
 }
 
-void Programmer::readChip(SyncBuffer *buf, uint32_t addr, uint32_t len,
+void Programmer::readChip(SyncBuffer *buf, quint64 addr, quint64 len,
     bool isReadLess)
 {
     ReadCmd readCmd;
 
-    QObject::connect(&reader, SIGNAL(result(int)), this, SLOT(readCb(int)));
-    QObject::connect(&reader, SIGNAL(progress(unsigned int)), this,
-        SLOT(readProgressCb(unsigned int)));
+    QObject::connect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(readCb(quint64)));
+    QObject::connect(&reader, SIGNAL(progress(quint64)), this,
+        SLOT(readProgressCb(quint64)));
 
     readCmd.cmd.code = CMD_NAND_READ;
     readCmd.addr = addr;
@@ -259,23 +261,23 @@ void Programmer::readChip(SyncBuffer *buf, uint32_t addr, uint32_t len,
 void Programmer::writeCb(int ret)
 {
     QTimer::singleShot(0, &writer, &Writer::stop);
-    QObject::disconnect(&writer, SIGNAL(progress(unsigned int)), this,
-        SLOT(writeProgressCb(unsigned int)));
+    QObject::disconnect(&writer, SIGNAL(progress(quint64)), this,
+        SLOT(writeProgressCb(quint64)));
     QObject::disconnect(&writer, SIGNAL(result(int)), this, SLOT(writeCb(int)));
     emit writeChipCompleted(ret);
 }
 
-void Programmer::writeProgressCb(unsigned int progress)
+void Programmer::writeProgressCb(quint64 progress)
 {
     emit writeChipProgress(progress);
 }
 
-void Programmer::writeChip(SyncBuffer *buf, uint32_t addr, uint32_t len,
+void Programmer::writeChip(SyncBuffer *buf, quint64 addr, quint64 len,
     uint32_t pageSize)
 {
     QObject::connect(&writer, SIGNAL(result(int)), this, SLOT(writeCb(int)));
-    QObject::connect(&writer, SIGNAL(progress(unsigned int)), this,
-        SLOT(writeProgressCb(unsigned int)));
+    QObject::connect(&writer, SIGNAL(progress(quint64)), this,
+        SLOT(writeProgressCb(quint64)));
 
     writer.init(usbDevName, SERIAL_PORT_SPEED, buf, addr, len, pageSize,
         skipBB, incSpare, enableHwEcc, CMD_NAND_WRITE_S, CMD_NAND_WRITE_D,
@@ -283,17 +285,17 @@ void Programmer::writeChip(SyncBuffer *buf, uint32_t addr, uint32_t len,
     writer.start();
 }
 
-void Programmer::readChipBadBlocksCb(int ret)
+void Programmer::readChipBadBlocksCb(quint64 ret)
 {
     QTimer::singleShot(0, &reader, &Reader::stop);
-    QObject::disconnect(&reader, SIGNAL(result(int)), this,
-        SLOT(readChipBadBlocksCb(int)));
-    QObject::disconnect(&reader, SIGNAL(progress(unsigned int)), this,
-        SLOT(readChipBadBlocksProgressCb(unsigned int)));
+    QObject::disconnect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(readChipBadBlocksCb(quint64)));
+    QObject::disconnect(&reader, SIGNAL(progress(quint64)), this,
+        SLOT(readChipBadBlocksProgressCb(quint64)));
     emit readChipBadBlocksCompleted(ret);
 }
 
-void Programmer::readChipBadBlocksProgressCb(unsigned int progress)
+void Programmer::readChipBadBlocksProgressCb(quint64 progress)
 {
     emit readChipBadBlocksProgress(progress);
 }
@@ -302,10 +304,10 @@ void Programmer::readChipBadBlocks()
 {
     Cmd cmd;
 
-    QObject::connect(&reader, SIGNAL(result(int)), this,
-        SLOT(readChipBadBlocksCb(int)));
-    QObject::connect(&reader, SIGNAL(progress(unsigned int)), this,
-        SLOT(readChipBadBlocksProgressCb(unsigned int)));
+    QObject::connect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(readChipBadBlocksCb(quint64)));
+    QObject::connect(&reader, SIGNAL(progress(quint64)), this,
+        SLOT(readChipBadBlocksProgressCb(quint64)));
 
     cmd.code = CMD_NAND_READ_BB;
 
@@ -317,11 +319,11 @@ void Programmer::readChipBadBlocks()
     reader.start();
 }
 
-void Programmer::confChipCb(int ret)
+void Programmer::confChipCb(quint64 ret)
 {
     QTimer::singleShot(0, &reader, &Reader::stop);
-    QObject::disconnect(&reader, SIGNAL(result(int)), this,
-        SLOT(confChipCb(int)));
+    QObject::disconnect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(confChipCb(quint64)));
     emit confChipCompleted(ret);
 }
 
@@ -337,8 +339,8 @@ void Programmer::confChip(ChipInfo *chipInfo)
     confCmd.spareSize = chipInfo->getSpareSize();
     confCmd.bbMarkOff = chipInfo->getBBMarkOffset();
 
-    QObject::connect(&reader, SIGNAL(result(int)), this,
-        SLOT(confChipCb(int)));
+    QObject::connect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(confChipCb(quint64)));
 
     writeData.clear();
     writeData.append(reinterpret_cast<const char *>(&confCmd), sizeof(confCmd));
@@ -432,7 +434,7 @@ Error:
     return -1;
 }
 
-void Programmer::firmwareUpdateProgressCb(unsigned int progress)
+void Programmer::firmwareUpdateProgressCb(quint64 progress)
 {
     emit firmwareUpdateProgress(progress * 100ULL /
         firmwareImage[updateImage].size);
@@ -447,8 +449,8 @@ void Programmer::firmwareUpdateProgressCb(unsigned int progress)
 void Programmer::firmwareUpdateCb(int ret)
 {
     QTimer::singleShot(0, &writer, &Writer::stop);
-    QObject::disconnect(&writer, SIGNAL(progress(unsigned int)), this,
-        SLOT(firmwareUpdateProgressCb(unsigned int)));
+    QObject::disconnect(&writer, SIGNAL(progress(quint64)), this,
+        SLOT(firmwareUpdateProgressCb(quint64)));
     QObject::disconnect(&writer, SIGNAL(result(int)), this,
         SLOT(firmwareUpdateCb(int)));
 
@@ -468,8 +470,8 @@ void Programmer::firmwareUpdateStart()
 
     QObject::connect(&writer, SIGNAL(result(int)), this,
         SLOT(firmwareUpdateCb(int)));
-    QObject::connect(&writer, SIGNAL(progress(unsigned int)), this,
-        SLOT(firmwareUpdateProgressCb(unsigned int)));
+    QObject::connect(&writer, SIGNAL(progress(quint64)), this,
+        SLOT(firmwareUpdateProgressCb(quint64)));
 
     buffer.buf.reserve(flashPageSize);
     buffer.buf.resize(flashPageSize);
@@ -484,15 +486,15 @@ void Programmer::firmwareUpdateStart()
     writer.start();
 }
 
-void Programmer::getActiveImageCb(int ret)
+void Programmer::getActiveImageCb(quint64 ret)
 {
     QTimer::singleShot(0, &reader, &Reader::stop);
-    QObject::disconnect(&reader, SIGNAL(result(int)), this,
-        SLOT(getActiveImageCb(int)));
+    QObject::disconnect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(getActiveImageCb(quint64)));
 
     activeImage = buffer.buf.at(0);
 
-    if (ret < 0)
+    if (ret == UINT64_MAX)
     {
         qCritical() << "Failed to get active firmware image";
         goto Error;
@@ -520,8 +522,8 @@ void Programmer::firmwareUpdate(const QString &fileName)
 
     firmwareFileName = fileName;
 
-    QObject::connect(&reader, SIGNAL(result(int)), this,
-        SLOT(getActiveImageCb(int)));
+    QObject::connect(&reader, SIGNAL(result(quint64)), this,
+        SLOT(getActiveImageCb(quint64)));
 
     cmd.code = CMD_ACTIVE_IMAGE_GET;
 

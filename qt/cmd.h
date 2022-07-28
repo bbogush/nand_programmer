@@ -40,24 +40,24 @@ typedef struct __attribute__((__packed__))
 typedef struct __attribute__((__packed__))
 {
     Cmd cmd;
-    uint32_t addr;
-    uint32_t len;
+    uint64_t addr;
+    uint64_t len;
     CmdFlags flags;
 } EraseCmd;
 
 typedef struct __attribute__((__packed__))
 {
     Cmd cmd;
-    uint32_t addr;
-    uint32_t len;
+    uint64_t addr;
+    uint64_t len;
     CmdFlags flags;
 } ReadCmd;
 
 typedef struct __attribute__((__packed__))
 {
     Cmd cmd;
-    uint32_t addr;
-    uint32_t len;
+    uint64_t addr;
+    uint64_t len;
     CmdFlags flags;
 } WriteStartCmd;
 
@@ -78,7 +78,7 @@ typedef struct __attribute__((__packed__))
     uint8_t hal;
     uint32_t pageSize;
     uint32_t blockSize;
-    uint32_t totalSize;
+    uint64_t totalSize;
     uint32_t spareSize;
     uint8_t bbMarkOff;
 } ConfCmd;
@@ -136,14 +136,14 @@ typedef struct __attribute__((__packed__))
 typedef struct __attribute__((__packed__))
 {
     RespHeader header;
-    uint32_t addr;
+    uint64_t addr;
     uint32_t size;
 } RespBadBlock;
 
 typedef struct __attribute__((__packed__))
 {
     RespHeader header;
-    uint32_t ackBytes;
+    uint64_t ackBytes;
 } RespWriteAck;
 
 typedef struct __attribute__((__packed__))
@@ -155,7 +155,7 @@ typedef struct __attribute__((__packed__))
 typedef struct __attribute__((__packed__))
 {
     RespHeader header;
-    uint32_t progress;
+    uint64_t progress;
 } RespProgress;
 
 #endif // CMD_H

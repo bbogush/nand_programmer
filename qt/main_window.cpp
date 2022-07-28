@@ -128,12 +128,12 @@ void MainWindow::setUiStateSelected(bool isSelected)
     ui->actionReadBadBlocks->setEnabled(isSelected);
 }
 
-void MainWindow::slotProgConnectCompleted(int status)
+void MainWindow::slotProgConnectCompleted(quint64 status)
 {
-    disconnect(prog, SIGNAL(connectCompleted(int)), this,
-        SLOT(slotProgConnectCompleted(int)));
+    disconnect(prog, SIGNAL(connectCompleted(quint64)), this,
+        SLOT(slotProgConnectCompleted(quint64)));
 
-    if (status < 0)
+    if (status == UINT64_MAX)
         return;
 
     qInfo() << "Connected to programmer";
@@ -147,8 +147,8 @@ void MainWindow::slotProgConnect()
     {
         if (!prog->connect())
         {
-            connect(prog, SIGNAL(connectCompleted(int)), this,
-                SLOT(slotProgConnectCompleted(int)));
+            connect(prog, SIGNAL(connectCompleted(quint64)), this,
+                SLOT(slotProgConnectCompleted(quint64)));
         }
     }
     else
@@ -160,14 +160,14 @@ void MainWindow::slotProgConnect()
     }
 }
 
-void MainWindow::slotProgReadDeviceIdCompleted(int status)
+void MainWindow::slotProgReadDeviceIdCompleted(quint64 status)
 {
     QString idStr;
 
-    disconnect(prog, SIGNAL(readChipIdCompleted(int)), this,
-        SLOT(slotProgReadDeviceIdCompleted(int)));
+    disconnect(prog, SIGNAL(readChipIdCompleted(quint64)), this,
+        SLOT(slotProgReadDeviceIdCompleted(quint64)));
 
-    if (status < 0)
+    if (status == UINT64_MAX)
         return;
 
     idStr = tr("0x%1 0x%2 0x%3 0x%4 0x%5")
@@ -184,17 +184,17 @@ void MainWindow::slotProgReadDeviceIdCompleted(int status)
 void MainWindow::slotProgReadDeviceId()
 {
     qInfo() << "Reading chip ID ...";
-    connect(prog, SIGNAL(readChipIdCompleted(int)), this,
-        SLOT(slotProgReadDeviceIdCompleted(int)));
+    connect(prog, SIGNAL(readChipIdCompleted(quint64)), this,
+        SLOT(slotProgReadDeviceIdCompleted(quint64)));
     prog->readChipId(&chipId);
 }
 
-void MainWindow::slotProgEraseCompleted(int status)
+void MainWindow::slotProgEraseCompleted(quint64 status)
 {
-    disconnect(prog, SIGNAL(eraseChipProgress(unsigned int)), this,
-        SLOT(slotProgEraseProgress(unsigned int)));
-    disconnect(prog, SIGNAL(eraseChipCompleted(int)), this,
-        SLOT(slotProgEraseCompleted(int)));
+    disconnect(prog, SIGNAL(eraseChipProgress(quint64)), this,
+        SLOT(slotProgEraseProgress(quint64)));
+    disconnect(prog, SIGNAL(eraseChipCompleted(quint64)), this,
+        SLOT(slotProgEraseCompleted(quint64)));
 
     if (!status)
         qInfo() << "Chip has been erased successfully";
@@ -202,11 +202,11 @@ void MainWindow::slotProgEraseCompleted(int status)
     setProgress(100);
 }
 
-void MainWindow::slotProgEraseProgress(unsigned int progress)
+void MainWindow::slotProgEraseProgress(quint64 progress)
 {
     uint32_t progressPercent;
     QString chipName = ui->chipSelectComboBox->currentText();
-    uint32_t eraseSize = prog->isIncSpare() ?
+    quint64 eraseSize = prog->isIncSpare() ?
         currentChipDb->extendedTotalSizeGetByName(chipName) :
         currentChipDb->totalSizeGetByName(chipName);
 
@@ -217,7 +217,7 @@ void MainWindow::slotProgEraseProgress(unsigned int progress)
 void MainWindow::slotProgErase()
 {
     QString chipName = ui->chipSelectComboBox->currentText();
-    uint32_t eraseSize = prog->isIncSpare() ?
+    quint64 eraseSize = prog->isIncSpare() ?
         currentChipDb->extendedTotalSizeGetByName(chipName) :
         currentChipDb->totalSizeGetByName(chipName);
 
@@ -231,27 +231,27 @@ void MainWindow::slotProgErase()
 
     setProgress(0);
 
-    connect(prog, SIGNAL(eraseChipCompleted(int)), this,
-        SLOT(slotProgEraseCompleted(int)));
-    connect(prog, SIGNAL(eraseChipProgress(unsigned int)), this,
-        SLOT(slotProgEraseProgress(unsigned int)));
+    connect(prog, SIGNAL(eraseChipCompleted(quint64)), this,
+        SLOT(slotProgEraseCompleted(quint64)));
+    connect(prog, SIGNAL(eraseChipProgress(quint64)), this,
+        SLOT(slotProgEraseProgress(quint64)));
 
     prog->eraseChip(START_ADDRESS, eraseSize);
 }
 
-void MainWindow::slotProgReadCompleted(int readBytes)
+void MainWindow::slotProgReadCompleted(quint64 readBytes)
 {
-    disconnect(prog, SIGNAL(readChipProgress(unsigned int)), this,
-        SLOT(slotProgReadProgress(unsigned int)));
-    disconnect(prog, SIGNAL(readChipCompleted(int)), this,
-        SLOT(slotProgReadCompleted(int)));
+    disconnect(prog, SIGNAL(readChipProgress(quint64)), this,
+        SLOT(slotProgReadProgress(quint64)));
+    disconnect(prog, SIGNAL(readChipCompleted(quint64)), this,
+        SLOT(slotProgReadCompleted(quint64)));
 
     ui->filePathLineEdit->setDisabled(false);
     ui->selectFilePushButton->setDisabled(false);
 
     setProgress(100);
 
-    if (readBytes < 0)
+    if (readBytes == UINT64_MAX)
     {
         workFile.close();
         return;
@@ -262,7 +262,7 @@ void MainWindow::slotProgReadCompleted(int readBytes)
     buffer.buf.clear();
     buffer.mutex.unlock();
 
-    if (readBytes != workFile.size())
+    if (readBytes != (quint64)workFile.size())
     {
         qCritical() << "Read operation returned more or less than requested: " <<
             readBytes << "!=" << workFile.size();
@@ -274,11 +274,11 @@ void MainWindow::slotProgReadCompleted(int readBytes)
     ui->dataViewer->setFile(ui->filePathLineEdit->text());
 }
 
-void MainWindow::slotProgReadProgress(unsigned int progress)
+void MainWindow::slotProgReadProgress(quint64 progress)
 {
     uint32_t progressPercent;
     QString chipName = ui->chipSelectComboBox->currentText();
-    uint32_t readSize = prog->isIncSpare() ?
+    quint64 readSize = prog->isIncSpare() ?
         currentChipDb->extendedTotalSizeGetByName(chipName) :
         currentChipDb->totalSizeGetByName(chipName);
 
@@ -294,7 +294,7 @@ void MainWindow::slotProgReadProgress(unsigned int progress)
 void MainWindow::slotProgRead()
 {
     QString chipName = ui->chipSelectComboBox->currentText();
-    uint32_t readSize = prog->isIncSpare() ?
+    quint64 readSize = prog->isIncSpare() ?
         currentChipDb->extendedTotalSizeGetByName(chipName) :
         currentChipDb->totalSizeGetByName(chipName);
 
@@ -334,10 +334,10 @@ void MainWindow::slotProgRead()
     qInfo() << "Reading data ...";
     setProgress(0);
 
-    connect(prog, SIGNAL(readChipCompleted(int)), this,
-        SLOT(slotProgReadCompleted(int)));
-    connect(prog, SIGNAL(readChipProgress(unsigned int)), this,
-        SLOT(slotProgReadProgress(unsigned int)));
+    connect(prog, SIGNAL(readChipCompleted(quint64)), this,
+        SLOT(slotProgReadCompleted(quint64)));
+    connect(prog, SIGNAL(readChipProgress(quint64)), this,
+        SLOT(slotProgReadProgress(quint64)));
 
     ui->filePathLineEdit->setDisabled(true);
     ui->selectFilePushButton->setDisabled(true);
@@ -347,8 +347,8 @@ void MainWindow::slotProgRead()
 
 void MainWindow::slotProgWriteCompleted(int status)
 {
-    disconnect(prog, SIGNAL(writeChipProgress(unsigned int)), this,
-        SLOT(slotProgWriteProgress(unsigned int)));
+    disconnect(prog, SIGNAL(writeChipProgress(quint64)), this,
+        SLOT(slotProgWriteProgress(quint64)));
     disconnect(prog, SIGNAL(writeChipCompleted(int)), this,
         SLOT(slotProgWriteCompleted(int)));
 
@@ -362,7 +362,7 @@ void MainWindow::slotProgWriteCompleted(int status)
     workFile.close();
 }
 
-void MainWindow::slotProgWriteProgress(unsigned int progress)
+void MainWindow::slotProgWriteProgress(quint64 progress)
 {
     uint32_t progressPercent;
 
@@ -437,8 +437,8 @@ void MainWindow::slotProgWrite()
 
     connect(prog, SIGNAL(writeChipCompleted(int)), this,
         SLOT(slotProgWriteCompleted(int)));
-    connect(prog, SIGNAL(writeChipProgress(unsigned int)), this,
-        SLOT(slotProgWriteProgress(unsigned int)));
+    connect(prog, SIGNAL(writeChipProgress(quint64)), this,
+        SLOT(slotProgWriteProgress(quint64)));
 
     ui->filePathLineEdit->setDisabled(true);
     ui->selectFilePushButton->setDisabled(true);
@@ -465,12 +465,12 @@ void MainWindow::slotProgWrite()
     prog->writeChip(&buffer, START_ADDRESS, progSize, pageSize);
 }
 
-void MainWindow::slotProgReadBadBlocksCompleted(int status)
+void MainWindow::slotProgReadBadBlocksCompleted(quint64 status)
 {
-    disconnect(prog, SIGNAL(readChipBadBlocksCompleted(int)), this,
-        SLOT(slotProgReadBadBlocksCompleted(int)));
-    disconnect(prog, SIGNAL(readChipBadBlocksProgress(unsigned int)), this,
-        SLOT(slotProgReadBadBlocksProgress(unsigned int)));
+    disconnect(prog, SIGNAL(readChipBadBlocksCompleted(quint64)), this,
+        SLOT(slotProgReadBadBlocksCompleted(quint64)));
+    disconnect(prog, SIGNAL(readChipBadBlocksProgress(quint64)), this,
+        SLOT(slotProgReadBadBlocksProgress(quint64)));
 
     if (!status)
         qInfo() << "Bad blocks have been successfully read";
@@ -478,11 +478,11 @@ void MainWindow::slotProgReadBadBlocksCompleted(int status)
     setProgress(100);
 }
 
-void MainWindow::slotProgReadBadBlocksProgress(unsigned int progress)
+void MainWindow::slotProgReadBadBlocksProgress(quint64 progress)
 {
     uint32_t progressPercent;
     QString chipName = ui->chipSelectComboBox->currentText();
-    uint32_t pageNum =
+    quint64 pageNum =
         currentChipDb->extendedTotalSizeGetByName(chipName) /
         currentChipDb->extendedPageSizeGetByName(chipName);
 
@@ -494,18 +494,18 @@ void MainWindow::slotProgReadBadBlocks()
 {
     qInfo() << "Reading bad blocks ...";
 
-    connect(prog, SIGNAL(readChipBadBlocksCompleted(int)), this,
-        SLOT(slotProgReadBadBlocksCompleted(int)));
-    connect(prog, SIGNAL(readChipBadBlocksProgress(unsigned int)), this,
-        SLOT(slotProgReadBadBlocksProgress(unsigned int)));
+    connect(prog, SIGNAL(readChipBadBlocksCompleted(quint64)), this,
+        SLOT(slotProgReadBadBlocksCompleted(quint64)));
+    connect(prog, SIGNAL(readChipBadBlocksProgress(quint64)), this,
+        SLOT(slotProgReadBadBlocksProgress(quint64)));
 
     prog->readChipBadBlocks();
 }
 
-void MainWindow::slotProgSelectCompleted(int status)
+void MainWindow::slotProgSelectCompleted(quint64 status)
 {
-    disconnect(prog, SIGNAL(confChipCompleted(int)), this,
-        SLOT(slotProgSelectCompleted(int)));
+    disconnect(prog, SIGNAL(confChipCompleted(quint64)), this,
+        SLOT(slotProgSelectCompleted(quint64)));
 
     if (!status)
     {
@@ -546,8 +546,8 @@ void MainWindow::slotSelectChip(int selectedChipNum)
 
     qInfo() << "Configuring programmer ...";
 
-    connect(prog, SIGNAL(confChipCompleted(int)), this,
-        SLOT(slotProgSelectCompleted(int)));
+    connect(prog, SIGNAL(confChipCompleted(quint64)), this,
+        SLOT(slotProgSelectCompleted(quint64)));
 
     if (chipInfo)
         prog->confChip(chipInfo);
@@ -577,15 +577,15 @@ void MainWindow::setChipNameDelayed()
     }
 }
 
-void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
+void MainWindow::slotProgDetectChipReadChipIdCompleted(quint64 status)
 {
     QString idStr;
     QString chipName;
 
-    disconnect(prog, SIGNAL(readChipIdCompleted(int)), this,
-        SLOT(slotProgDetectChipReadChipIdCompleted(int)));
+    disconnect(prog, SIGNAL(readChipIdCompleted(quint64)), this,
+        SLOT(slotProgDetectChipReadChipIdCompleted(quint64)));
 
-    if (status < 0)
+    if (status == UINT64_MAX)
         return;
 
     idStr = tr("0x%1 0x%2 0x%3 0x%4 0x%5")
@@ -613,17 +613,17 @@ void MainWindow::slotProgDetectChipReadChipIdCompleted(int status)
 
 void MainWindow::detectChipReadChipIdDelayed()
 {
-    connect(prog, SIGNAL(readChipIdCompleted(int)), this,
-        SLOT(slotProgDetectChipReadChipIdCompleted(int)));
+    connect(prog, SIGNAL(readChipIdCompleted(quint64)), this,
+        SLOT(slotProgDetectChipReadChipIdCompleted(quint64)));
     prog->readChipId(&chipId);
 }
 
-void MainWindow::slotProgDetectChipConfCompleted(int status)
+void MainWindow::slotProgDetectChipConfCompleted(quint64 status)
 {
-    disconnect(prog, SIGNAL(confChipCompleted(int)), this,
-        SLOT(slotProgDetectChipConfCompleted(int)));
+    disconnect(prog, SIGNAL(confChipCompleted(quint64)), this,
+        SLOT(slotProgDetectChipConfCompleted(quint64)));
 
-    if (status < 0)
+    if (status == UINT64_MAX)
         return;
 
     QTimer::singleShot(50, this, &MainWindow::detectChipReadChipIdDelayed);
@@ -644,8 +644,8 @@ void MainWindow::detectChip(ChipDb *chipDb)
         return;
     }
 
-    connect(prog, SIGNAL(confChipCompleted(int)), this,
-        SLOT(slotProgDetectChipConfCompleted(int)));
+    connect(prog, SIGNAL(confChipCompleted(quint64)), this,
+        SLOT(slotProgDetectChipConfCompleted(quint64)));
     prog->confChip(chipInfo);
 }
 
@@ -785,8 +785,8 @@ void MainWindow::setProgress(unsigned int progress)
 
 void MainWindow::slotProgFirmwareUpdateCompleted(int status)
 {
-    disconnect(prog, SIGNAL(firmwareUpdateProgress(unsigned int)), this,
-        SLOT(slotProgFirmwareUpdateProgress(unsigned int)));
+    disconnect(prog, SIGNAL(firmwareUpdateProgress(quint64)), this,
+        SLOT(slotProgFirmwareUpdateProgress(quint64)));
     disconnect(prog, SIGNAL(firmwareUpdateCompleted(int)), this,
         SLOT(slotProgFirmwareUpdateCompleted(int)));
 
@@ -796,7 +796,7 @@ void MainWindow::slotProgFirmwareUpdateCompleted(int status)
     setProgress(100);
 }
 
-void MainWindow::slotProgFirmwareUpdateProgress(unsigned int progress)
+void MainWindow::slotProgFirmwareUpdateProgress(quint64 progress)
 {
     setProgress(progress);
 }
@@ -816,8 +816,8 @@ void MainWindow::slotFirmwareUpdateDialog()
     qInfo() << "Firmware update ...";
     connect(prog, SIGNAL(firmwareUpdateCompleted(int)), this,
         SLOT(slotProgFirmwareUpdateCompleted(int)));
-    connect(prog, SIGNAL(firmwareUpdateProgress(unsigned int)), this,
-        SLOT(slotProgFirmwareUpdateProgress(unsigned int)));
+    connect(prog, SIGNAL(firmwareUpdateProgress(quint64)), this,
+        SLOT(slotProgFirmwareUpdateProgress(quint64)));
     prog->firmwareUpdate(fileName);
 }
 

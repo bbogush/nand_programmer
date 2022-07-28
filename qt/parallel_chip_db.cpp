@@ -20,7 +20,7 @@ ParallelChipDb::~ParallelChipDb()
 ChipInfo *ParallelChipDb::stringToChipInfo(const QString &s)
 {
     int paramNum;
-    uint32_t paramValue;
+    quint64 paramValue;
     QStringList paramsList;
     ParallelChipInfo *ci = new ParallelChipInfo();
 
@@ -241,7 +241,7 @@ QString ParallelChipDb::getDbFileName()
     return dbFileName;
 }
 
-uint32_t ParallelChipDb::getChipParam(int chipIndex, int paramIndex)
+quint64 ParallelChipDb::getChipParam(int chipIndex, int paramIndex)
 {
     ParallelChipInfo *ci = dynamic_cast<ParallelChipInfo *>
         (getChipInfo(chipIndex));
@@ -253,7 +253,7 @@ uint32_t ParallelChipDb::getChipParam(int chipIndex, int paramIndex)
 }
 
 int ParallelChipDb::setChipParam(int chipIndex, int paramIndex,
-    uint32_t paramValue)
+    quint64 paramValue)
 {
     ParallelChipInfo *ci = dynamic_cast<ParallelChipInfo *>
         (getChipInfo(chipIndex));

@@ -51,7 +51,7 @@ QVariant SpiChipDbTableModel::data(const QModelIndex &index, int role) const
             paramStr);
         return paramStr;
     case SpiChipDb::CHIP_PARAM_PAGE_OFF:
-        return chipDb->getChipParam(index.row(),
+        return (uint)chipDb->getChipParam(index.row(),
             SpiChipInfo::CHIP_PARAM_PAGE_OFF);
     case SpiChipDb::CHIP_PARAM_READ_CMD:
         chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
@@ -78,13 +78,13 @@ QVariant SpiChipDbTableModel::data(const QModelIndex &index, int role) const
             SpiChipInfo::CHIP_PARAM_STATUS_CMD), paramStr);
         return paramStr;
     case SpiChipDb::CHIP_PARAM_BUSY_BIT:
-        return chipDb->getChipParam(index.row(),
+        return (uint)chipDb->getChipParam(index.row(),
             SpiChipInfo::CHIP_PARAM_BUSY_BIT);
     case SpiChipDb::CHIP_PARAM_BUSY_STATE:
-        return chipDb->getChipParam(index.row(),
+        return (uint)chipDb->getChipParam(index.row(),
             SpiChipInfo::CHIP_PARAM_BUSY_STATE);
     case SpiChipDb::CHIP_PARAM_FREQ:
-        return chipDb->getChipParam(index.row(),
+        return (uint)chipDb->getChipParam(index.row(),
             SpiChipInfo::CHIP_PARAM_FREQ);
     case SpiChipDb::CHIP_PARAM_ID1:
         chipDb->getHexStringFromParam(chipDb->getChipParam(index.row(),
@@ -196,7 +196,7 @@ Qt::ItemFlags SpiChipDbTableModel::flags (const QModelIndex &index) const
 bool SpiChipDbTableModel::setData(const QModelIndex &index,
     const QVariant &value, int role)
 {
-    uint32_t paramVal;
+    quint64 paramVal;
 
     if (role != Qt::EditRole)
         return false;

@@ -10,7 +10,7 @@ typedef struct
 {
     uint32_t page_size; /* without spare area */
     uint32_t block_size;
-    uint32_t total_size;
+    uint64_t total_size;
     uint32_t spare_size;
     uint8_t bb_mark_off;
 } chip_info_t;
