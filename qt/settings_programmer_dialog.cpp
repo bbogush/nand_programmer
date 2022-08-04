@@ -24,7 +24,7 @@ SettingsProgrammerDialog::~SettingsProgrammerDialog()
 void SettingsProgrammerDialog::setUsbDevName(const QString &name)
 {
     fillPortsInfo();
-    ui->portInfoListBox->setCurrentIndex(ui->portInfoListBox->findText(name, Qt::MatchStartsWith));
+    ui->portInfoListBox->setCurrentIndex(ui->portInfoListBox->findText(name + ":", Qt::MatchStartsWith));
 }
 
 QString SettingsProgrammerDialog::getUsbDevName()
