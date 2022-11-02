@@ -474,7 +474,7 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
         pages = prog->chip_info.total_size / prog->chip_info.page_size;
         page_size = prog->chip_info.page_size + prog->chip_info.spare_size;
         block_size = pages_in_block * page_size;
-        total_size = pages * page_size;
+        total_size = (uint64_t)pages * page_size;
     }
     else
     {
@@ -604,7 +604,7 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
         prog->page_size = prog->chip_info.page_size +
             prog->chip_info.spare_size;
         prog->block_size = pages_in_block * prog->page_size;
-        prog->total_size = pages * prog->page_size;
+        prog->total_size = (uint64_t)pages * prog->page_size;
     }
     else
     {
@@ -914,7 +914,7 @@ static int _np_cmd_nand_read(np_prog_t *prog)
             prog->chip_info.page_size;
         page_size = prog->chip_info.page_size + prog->chip_info.spare_size;
         block_size = pages_in_block * page_size;
-        total_size = pages * page_size;
+        total_size = (uint64_t)pages * page_size;
     }
     else
     {
