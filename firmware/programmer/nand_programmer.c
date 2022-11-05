@@ -19,7 +19,7 @@
 #include <inttypes.h>
 
 #define NP_PACKET_BUF_SIZE 64
-#define NP_MAX_PAGE_SIZE 0x0840 /* 2KB + 64 spare */
+#define NP_MAX_PAGE_SIZE 0x21C0 /* 8KB + 448 spare */
 #define NP_WRITE_ACK_BYTES 1984
 #define NP_NAND_TIMEOUT 0x1000000
 
