@@ -648,6 +648,13 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
         return ret;
     }
 
+    if (prog->page_size > sizeof(prog->page.buf))
+    {
+        ERROR_PRINT("Page size 0x%lx"
+            " is more then buffer size 0x%x\r\n", prog->page_size, sizeof(prog->page.buf));
+        return NP_ERR_BUF_OVERFLOW;
+    }
+
     prog->addr = addr;
     prog->len = len;
     prog->addr_is_set = 1;
