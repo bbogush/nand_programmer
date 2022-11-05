@@ -560,7 +560,7 @@ static int np_cmd_nand_erase(np_prog_t *prog)
     return ret;
 }
 
-static int np_send_write_ack(uint32_t bytes_ack)
+static int np_send_write_ack(uint64_t bytes_ack)
 {
     np_resp_t resp_header = { NP_RESP_STATUS, NP_STATUS_WRITE_ACK };
     np_resp_write_ack_t write_ack = { resp_header, bytes_ack };
