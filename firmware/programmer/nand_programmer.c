@@ -19,7 +19,7 @@
 #include <inttypes.h>
 
 #define NP_PACKET_BUF_SIZE 64
-#define NP_MAX_PAGE_SIZE 0x0840 /* 2KB + 64 spare */
+#define NP_MAX_PAGE_SIZE 0x21C0 /* 8KB + 448 spare */
 #define NP_WRITE_ACK_BYTES 1984
 #define NP_NAND_TIMEOUT 0x1000000
 
@@ -474,7 +474,7 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
         pages = prog->chip_info.total_size / prog->chip_info.page_size;
         page_size = prog->chip_info.page_size + prog->chip_info.spare_size;
         block_size = pages_in_block * page_size;
-        total_size = pages * page_size;
+        total_size = (uint64_t)pages * page_size;
     }
     else
     {
@@ -560,7 +560,7 @@ static int np_cmd_nand_erase(np_prog_t *prog)
     return ret;
 }
 
-static int np_send_write_ack(uint32_t bytes_ack)
+static int np_send_write_ack(uint64_t bytes_ack)
 {
     np_resp_t resp_header = { NP_RESP_STATUS, NP_STATUS_WRITE_ACK };
     np_resp_write_ack_t write_ack = { resp_header, bytes_ack };
@@ -604,7 +604,7 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
         prog->page_size = prog->chip_info.page_size +
             prog->chip_info.spare_size;
         prog->block_size = pages_in_block * prog->page_size;
-        prog->total_size = pages * prog->page_size;
+        prog->total_size = (uint64_t)pages * prog->page_size;
     }
     else
     {
@@ -646,6 +646,13 @@ static int np_cmd_nand_write_start(np_prog_t *prog)
         (ret = _np_cmd_read_bad_blocks(prog, false)))
     {
         return ret;
+    }
+
+    if (prog->page_size > sizeof(prog->page.buf))
+    {
+        ERROR_PRINT("Page size 0x%lx"
+            " is more then buffer size 0x%x\r\n", prog->page_size, sizeof(prog->page.buf));
+        return NP_ERR_BUF_OVERFLOW;
     }
 
     prog->addr = addr;
@@ -914,7 +921,7 @@ static int _np_cmd_nand_read(np_prog_t *prog)
             prog->chip_info.page_size;
         page_size = prog->chip_info.page_size + prog->chip_info.spare_size;
         block_size = pages_in_block * page_size;
-        total_size = pages * page_size;
+        total_size = (uint64_t)pages * page_size;
     }
     else
     {
