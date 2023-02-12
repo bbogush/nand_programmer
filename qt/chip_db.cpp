@@ -347,6 +347,12 @@ quint64 ChipDb::extendedTotalSizeGetByName(const QString &name)
     return totalSize + totalSpare;
 }
 
+quint64 ChipDb::blockCountGetByName(const QString &name)
+{
+    ChipInfo *info = chipInfoGetByName(name);
+    return info->getTotalSize() / info->getBlockSize();
+}
+
 void ChipDb::addChip(ChipInfo *chipInfo)
 {
     chipInfoVector.append(chipInfo);

@@ -57,6 +57,7 @@ public:
     quint64 totalSizeGetByName(const QString &name);
     quint64 extendedTotalSizeGetById(int id);
     quint64 extendedTotalSizeGetByName(const QString &name);
+    quint64 blockCountGetByName(const QString &name);
     void addChip(ChipInfo *chipInfo);
     void delChip(int index);
     int size();

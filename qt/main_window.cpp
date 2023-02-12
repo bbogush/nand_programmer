@@ -28,8 +28,6 @@
 #define HEADER_HEX_WIDTH 340
 #define BUFFER_ROW_HEIGHT 20
 
-#define START_ADDRESS 0x00000000
-
 #define CHIP_NAME_DEFAULT "NONE"
 #define CHIP_INDEX_DEFAULT 0
 #define CHIP_INDEX2ID(index) (index - 1)
@@ -59,6 +57,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
     logger->setTextEdit(ui->logTextEdit);
 
     initBufTable();
+#ifdef Q_OS_WIN32
+    QFont font("Courier New", 9);
+    ui->firstSpinBox->setFont(font);
+    ui->lastSpinBox->setFont(font);
+#endif
+    ui->firstSpinBox->setEnabled(false);
+    ui->lastSpinBox->setEnabled(false);
 
     prog = new Programmer(this);
     updateProgSettings();
@@ -126,6 +131,22 @@ void MainWindow::setUiStateSelected(bool isSelected)
     ui->actionRead->setEnabled(isSelected);
     ui->actionWrite->setEnabled(isSelected);
     ui->actionReadBadBlocks->setEnabled(isSelected);
+
+    ui->firstSpinBox->setEnabled(isSelected);
+    ui->lastSpinBox->setEnabled(isSelected);
+    if (isSelected)
+    {
+        QString chipName = ui->chipSelectComboBox->currentText();
+        quint32 blocksCount = currentChipDb->blockCountGetByName(chipName);
+        ui->firstSpinBox->setMaximum(blocksCount - 1);
+        ui->firstSpinBox->setValue(0);
+        ui->lastSpinBox->setMaximum(blocksCount - 1);
+        ui->lastSpinBox->setValue(blocksCount - 1);
+        quint64 chipSize = prog->isIncSpare() ?
+            currentChipDb->extendedTotalSizeGetByName(chipName) :
+            currentChipDb->totalSizeGetByName(chipName);
+        ui->blockSizeValueLabel->setText(QString("0x%1").arg(chipSize / blocksCount, 8, 16, QLatin1Char( '0' )));
+    }
 }
 
 void MainWindow::slotProgConnectCompleted(quint64 status)
@@ -205,23 +226,21 @@ void MainWindow::slotProgEraseCompleted(quint64 status)
 void MainWindow::slotProgEraseProgress(quint64 progress)
 {
     uint32_t progressPercent;
-    QString chipName = ui->chipSelectComboBox->currentText();
-    quint64 eraseSize = prog->isIncSpare() ?
-        currentChipDb->extendedTotalSizeGetByName(chipName) :
-        currentChipDb->totalSizeGetByName(chipName);
 
-    progressPercent = progress * 100ULL / eraseSize;
+    progressPercent = progress * 100ULL / areaSize;
     setProgress(progressPercent);
 }
 
 void MainWindow::slotProgErase()
 {
-    QString chipName = ui->chipSelectComboBox->currentText();
-    quint64 eraseSize = prog->isIncSpare() ?
-        currentChipDb->extendedTotalSizeGetByName(chipName) :
-        currentChipDb->totalSizeGetByName(chipName);
+    quint64 start_address =
+            ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
+            * ui->firstSpinBox->value();
+    areaSize =
+            ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
+            * (ui->lastSpinBox->value() + 1) - start_address;
 
-    if (!eraseSize)
+    if (!areaSize)
     {
         qCritical() << "Chip size is not set";
         return;
@@ -236,7 +255,7 @@ void MainWindow::slotProgErase()
     connect(prog, SIGNAL(eraseChipProgress(quint64)), this,
         SLOT(slotProgEraseProgress(quint64)));
 
-    prog->eraseChip(START_ADDRESS, eraseSize);
+    prog->eraseChip(start_address, areaSize);
 }
 
 void MainWindow::slotProgReadCompleted(quint64 readBytes)
@@ -277,12 +296,8 @@ void MainWindow::slotProgReadCompleted(quint64 readBytes)
 void MainWindow::slotProgReadProgress(quint64 progress)
 {
     uint32_t progressPercent;
-    QString chipName = ui->chipSelectComboBox->currentText();
-    quint64 readSize = prog->isIncSpare() ?
-        currentChipDb->extendedTotalSizeGetByName(chipName) :
-        currentChipDb->totalSizeGetByName(chipName);
 
-    progressPercent = progress * 100ULL / readSize;
+    progressPercent = progress * 100ULL / areaSize;
     setProgress(progressPercent);
 
     buffer.mutex.lock();
@@ -293,12 +308,14 @@ void MainWindow::slotProgReadProgress(quint64 progress)
 
 void MainWindow::slotProgRead()
 {
-    QString chipName = ui->chipSelectComboBox->currentText();
-    quint64 readSize = prog->isIncSpare() ?
-        currentChipDb->extendedTotalSizeGetByName(chipName) :
-        currentChipDb->totalSizeGetByName(chipName);
+    quint64 start_address =
+            ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
+            * ui->firstSpinBox->value();
+    areaSize  =
+            ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
+            * (ui->lastSpinBox->value() + 1) - start_address;
 
-    if (!readSize)
+    if (!areaSize)
     {
         qCritical() << "Chip size is not set";
         return;
@@ -342,7 +359,7 @@ void MainWindow::slotProgRead()
     ui->filePathLineEdit->setDisabled(true);
     ui->selectFilePushButton->setDisabled(true);
 
-    prog->readChip(&buffer, START_ADDRESS, readSize, true);
+    prog->readChip(&buffer, start_address, areaSize, true);
 }
 
 void MainWindow::slotProgWriteCompleted(int status)
@@ -366,7 +383,7 @@ void MainWindow::slotProgWriteProgress(quint64 progress)
 {
     uint32_t progressPercent;
 
-    progressPercent = progress * 100ULL / progSize;
+    progressPercent = progress * 100ULL / areaSize;
     setProgress(progressPercent);
 
     std::unique_lock<std::mutex> lck(buffer.mutex);
@@ -426,12 +443,23 @@ void MainWindow::slotProgWrite()
         return;
     }
 
-    progSize = static_cast<uint32_t>(workFile.size());
+    quint64 start_address =
+            ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
+            * ui->firstSpinBox->value();
 
-    if (progSize % pageSize)
+    areaSize = workFile.size();
+
+    if (areaSize % pageSize)
     {
-        progSize = (progSize / pageSize + 1) * pageSize;
+        areaSize = (areaSize / pageSize + 1) * pageSize;
     }
+
+    quint64 setSize =
+            ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
+            * (ui->lastSpinBox->value() + 1) - start_address;
+
+    if (setSize < areaSize)
+        areaSize = setSize;
 
     qInfo() << "Writing data ...";
 
@@ -462,7 +490,7 @@ void MainWindow::slotProgWrite()
     }
 
     buffer.ready = true;
-    prog->writeChip(&buffer, START_ADDRESS, progSize, pageSize);
+    prog->writeChip(&buffer, start_address, areaSize, pageSize);
 }
 
 void MainWindow::slotProgReadBadBlocksCompleted(quint64 status)
@@ -702,6 +730,11 @@ void MainWindow::updateProgSettings()
         prog->setHwEccEnabled(settings.value(SETTINGS_ENABLE_HW_ECC).toBool());
     if (settings.contains(SETTINGS_ENABLE_ALERT))
         isAlertEnabled = settings.value(SETTINGS_ENABLE_ALERT).toBool();
+
+    if (ui->chipSelectComboBox->currentIndex() > 0)
+    {
+        setUiStateSelected(true);
+    }
 }
 
 void MainWindow::slotSettingsParallelChipDb()

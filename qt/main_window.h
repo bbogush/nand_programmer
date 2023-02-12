@@ -36,7 +36,7 @@ private:
     QElapsedTimer timer;
     bool isAlertEnabled;
     QFile workFile;
-    quint64 progSize;
+    quint64 areaSize;
     uint32_t pageSize;
 
     void initBufTable();
