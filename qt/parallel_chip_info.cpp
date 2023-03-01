@@ -33,7 +33,7 @@ typedef struct __attribute__((__packed__))
     uint8_t enableEccAddr;
     uint8_t enableEccValue;
     uint8_t disableEccValue;
-} Conf;
+} ParallelChipConf;
 
 ParallelChipInfo::ParallelChipInfo()
 {
@@ -120,7 +120,7 @@ void ParallelChipInfo::chipInfoToStmParams(StmParams *stmParams)
 
 const QByteArray &ParallelChipInfo::getHalConf()
 {
-    Conf conf;
+    ParallelChipConf conf;
     StmParams stmParams;
 
     chipInfoToStmParams(&stmParams);
