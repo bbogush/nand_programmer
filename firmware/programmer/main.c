@@ -11,7 +11,6 @@
 #include "jtag.h"
 #include "version.h"
 #include "clock.h"
-#include "spi_flash.h"
 #include <stdio.h>
 
 int main()
