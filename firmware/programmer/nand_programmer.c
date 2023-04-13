@@ -464,7 +464,7 @@ static int _np_cmd_nand_erase(np_prog_t *prog)
     skip_bb = erase_cmd->flags.skip_bb;
     inc_spare = erase_cmd->flags.inc_spare;
 
-    DEBUG_PRINT("Erase at 0x%" PRIx64 " %" PRIx64 " bytes command\r\n", addr,
+    DEBUG_PRINT("Erase at 0x%" PRIx64 " 0x%" PRIx64 " bytes command\r\n", addr,
         len);
 
     pages_in_block = prog->chip_info.block_size / prog->chip_info.page_size;
@@ -1052,7 +1052,7 @@ static void np_print_chip_info(np_prog_t *prog)
 {
     DEBUG_PRINT("Page size: %lu\r\n", prog->chip_info.page_size);
     DEBUG_PRINT("Block size: %lu\r\n", prog->chip_info.block_size);
-    DEBUG_PRINT("Total size: %" PRIx64 "\r\n", prog->chip_info.total_size);
+    DEBUG_PRINT("Total size: 0x%" PRIx64 "\r\n", prog->chip_info.total_size);
     DEBUG_PRINT("Spare size: %lu\r\n", prog->chip_info.spare_size);    
     DEBUG_PRINT("Bad block mark offset: %d\r\n", prog->chip_info.bb_mark_off);
 }
