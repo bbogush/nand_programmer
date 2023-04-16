@@ -377,7 +377,7 @@ void MainWindow::slotProgVerifyCompleted(quint64 readBytes)
 
     setProgress(100);
     workFile.close();
-    buffer.clear();
+    buffer.buf.clear();
 
     qInfo() << readBytes << " bytes read. Verify end."  ;
 }
@@ -390,9 +390,10 @@ void MainWindow::slotProgVerifyProgress(quint64 progress)
     setProgress(progressPercent);
 
     QVector<uint8_t> cmpBuffer;
-    cmpBuffer.resize(buffer.size());
+    buffer.mutex.lock();
+    cmpBuffer.resize(buffer.buf.size());
 
-    qint64 readSize = workFile.read((char *)cmpBuffer.data(), buffer.size());
+    qint64 readSize = workFile.read((char *)cmpBuffer.data(), buffer.buf.size());
 
     if (readSize < 0)
     {
@@ -405,7 +406,7 @@ void MainWindow::slotProgVerifyProgress(quint64 progress)
 
     for(uint32_t i = 0; i < readSize; i++)
     {
-        if(cmpBuffer.at(i) != buffer.at(i))
+        if(cmpBuffer.at(i) != buffer.buf.at(i))
         {
             uint64_t block = progress / ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
                              + ui->firstSpinBox->text().toULongLong(nullptr, 10) - 1;
@@ -419,7 +420,8 @@ void MainWindow::slotProgVerifyProgress(quint64 progress)
         }
     }
 
-    buffer.clear();
+    buffer.buf.clear();
+    buffer.mutex.unlock();
 }
 
 void MainWindow::slotProgVerify()
@@ -486,7 +488,7 @@ void MainWindow::slotProgVerify()
     ui->filePathLineEdit->setDisabled(true);
     ui->selectFilePushButton->setDisabled(true);
 
-    buffer.clear();
+    buffer.buf.clear();
 
     prog->readChip(&buffer, start_address, areaSize, true);
 }
