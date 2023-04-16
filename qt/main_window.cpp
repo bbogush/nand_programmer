@@ -81,6 +81,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent),
         SLOT(slotProgErase()));
     connect(ui->actionRead, SIGNAL(triggered()), this,
         SLOT(slotProgRead()));
+    connect(ui->actionVerify, SIGNAL(triggered()), this,
+            SLOT(slotProgVerify()));
     connect(ui->actionWrite, SIGNAL(triggered()), this,
         SLOT(slotProgWrite()));
     connect(ui->actionReadBadBlocks, SIGNAL(triggered()), this,
@@ -130,6 +132,7 @@ void MainWindow::setUiStateSelected(bool isSelected)
     ui->actionErase->setEnabled(isSelected);
     ui->actionRead->setEnabled(isSelected);
     ui->actionWrite->setEnabled(isSelected);
+    ui->actionVerify->setEnabled(isSelected);
     ui->actionReadBadBlocks->setEnabled(isSelected);
 
     ui->firstSpinBox->setEnabled(isSelected);
@@ -358,6 +361,132 @@ void MainWindow::slotProgRead()
 
     ui->filePathLineEdit->setDisabled(true);
     ui->selectFilePushButton->setDisabled(true);
+
+    prog->readChip(&buffer, start_address, areaSize, true);
+}
+
+void MainWindow::slotProgVerifyCompleted(quint64 readBytes)
+{
+    disconnect(prog, SIGNAL(readChipProgress(quint64)), this,
+               SLOT(slotProgVerifyProgress(quint64)));
+    disconnect(prog, SIGNAL(readChipCompleted(quint64)), this,
+               SLOT(slotProgVerifyCompleted(quint64)));
+
+    ui->filePathLineEdit->setDisabled(false);
+    ui->selectFilePushButton->setDisabled(false);
+
+    setProgress(100);
+    workFile.close();
+    buffer.clear();
+
+    qInfo() << readBytes << " bytes read. Verify end."  ;
+}
+
+void MainWindow::slotProgVerifyProgress(quint64 progress)
+{
+    uint32_t progressPercent;
+
+    progressPercent = progress * 100ULL / areaSize;
+    setProgress(progressPercent);
+
+    QVector<uint8_t> cmpBuffer;
+    cmpBuffer.resize(buffer.size());
+
+    qint64 readSize = workFile.read((char *)cmpBuffer.data(), buffer.size());
+
+    if (readSize < 0)
+    {
+        qCritical() << "Failed to read file";
+    }
+    else if (readSize == 0)
+    {
+        qCritical() << "File read 0 byte";
+    }
+
+    for(uint32_t i = 0; i < readSize; i++)
+    {
+        if(cmpBuffer.at(i) != buffer.at(i))
+        {
+            uint64_t block = progress / ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
+                             + ui->firstSpinBox->text().toULongLong(nullptr, 10) - 1;
+            uint64_t byte = progress - ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
+                            + ui->firstSpinBox->text().toULongLong(nullptr, 10)
+                            * ui->blockSizeValueLabel->text().toULongLong(nullptr, 16) + i;
+            qCritical() << "Wrong block: " << QString("%1").arg(block)
+                << ", Wrong byte addr: "
+                << QString("0x%1").arg(byte, 8, 16, QLatin1Char( '0' ));
+            break;
+        }
+    }
+
+    buffer.clear();
+}
+
+void MainWindow::slotProgVerify()
+{
+    int index;
+    QString chipName;
+
+    workFile.setFileName(ui->filePathLineEdit->text());
+    if (!workFile.open(QIODevice::ReadOnly))
+    {
+        qCritical() << "Failed to open compare file:" << ui->filePathLineEdit->text() << ", error:" <<
+            workFile.errorString();
+        return;
+    }
+    if (!workFile.size())
+    {
+        qInfo() << "Compare file is empty";
+        return;
+    }
+
+    index = ui->chipSelectComboBox->currentIndex();
+    if (index <= CHIP_INDEX_DEFAULT)
+    {
+        qInfo() << "Chip is not selected";
+        return;
+    }
+
+    chipName = ui->chipSelectComboBox->currentText();
+    pageSize = prog->isIncSpare() ?
+                   currentChipDb->extendedPageSizeGetByName(chipName) :
+                   currentChipDb->pageSizeGetByName(chipName);
+    if (!pageSize)
+    {
+        qInfo() << "Chip page size is unknown";
+        return;
+    }
+
+    quint64 start_address =
+        ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
+        * ui->firstSpinBox->value();
+
+    areaSize = workFile.size();
+
+    if (areaSize % pageSize)
+    {
+        areaSize = (areaSize / pageSize + 1) * pageSize;
+    }
+
+    quint64 setSize =
+        ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
+            * (ui->lastSpinBox->value() + 1) - start_address;
+
+    if (setSize < areaSize)
+        areaSize = setSize;
+
+    qInfo() << "Reading data ...";
+    setProgress(0);
+
+    connect(prog, SIGNAL(readChipCompleted(quint64)), this,
+            SLOT(slotProgVerifyCompleted(quint64)));
+    connect(prog, SIGNAL(readChipProgress(quint64)), this,
+            SLOT(slotProgVerifyProgress(quint64)));
+
+    ui->filePathLineEdit->setDisabled(true);
+    ui->selectFilePushButton->setDisabled(true);
+
+    buffer.clear();
 
     prog->readChip(&buffer, start_address, areaSize, true);
 }

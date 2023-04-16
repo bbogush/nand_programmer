@@ -318,6 +318,7 @@
     <addaction name="actionErase"/>
     <addaction name="actionRead"/>
     <addaction name="actionWrite"/>
+    <addaction name="actionVerify"/>
     <addaction name="actionReadBadBlocks"/>
    </widget>
    <widget class="QMenu" name="menuProgrammer">
@@ -407,6 +408,14 @@
   <action name="actionProgrammer">
    <property name="text">
     <string>Programmer</string>
+   </property>
+  </action>
+    <action name="actionVerify">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Verify</string>
    </property>
   </action>
   <action name="actionReadBadBlocks">
