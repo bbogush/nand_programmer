@@ -133,6 +133,8 @@ typedef struct __attribute__((__packed__))
     ChipId nandId;
 } RespId;
 
+/* BB, write ack and error responses are aligned to the same size to avoid
+ * receiver wait for additional data */
 typedef struct __attribute__((__packed__))
 {
     RespHeader header;
@@ -144,12 +146,14 @@ typedef struct __attribute__((__packed__))
 {
     RespHeader header;
     uint64_t ackBytes;
+    uint8_t dummy[4];
 } RespWriteAck;
 
 typedef struct __attribute__((__packed__))
 {
     RespHeader header;
     uint8_t errCode;
+    uint8_t dummy[11];
 } RespError;
 
 typedef struct __attribute__((__packed__))

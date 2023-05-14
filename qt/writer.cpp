@@ -301,7 +301,7 @@ int Writer::writeData()
             break;
     }
 
-    if (read(pbuf, writeDataAckLen))
+    if (read(pbuf, sizeof(RespWriteAck)))
         return -1;
 
     return 0;
