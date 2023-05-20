@@ -1,3 +1,4 @@
+set PATH=%PATH%;C:\Qt\Tools\mingw810_64\bin\
 del /Q /S packages\com.nando.nando\data\*
 md packages\com.nando.nando\data\
 copy ..\bin\* packages\com.nando.nando\data\

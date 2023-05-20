@@ -6,8 +6,8 @@ EMAIL=bogdan.s.bogush@gmail.com
 DEB_RELEASE_DIR=release
 
 # prepare pbuilder envinronment
-# mkdir ~/pbuilder
-# sudo pbuilder --create --mirror "http://archive.ubuntu.com/ubuntu"
+# sudo apt install dh-make pbuilder
+# sudo pbuilder create --distribution <ubuntu release>
 
 # generate private key
 # gpg --gen-key
@@ -30,7 +30,7 @@ dh_make -e $EMAIL -f ../$TAR_NAME
 pdebuild --debbuildopts -sa
 
 # result
-# ls ~/pbuilder/result/
+# ls /var/cache/pbuilder/result/
 
 
 

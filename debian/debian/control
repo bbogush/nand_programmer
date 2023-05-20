@@ -2,7 +2,7 @@ Source: nando
 Section: utils
 Priority: optional
 Maintainer: Bogdan Bogush <bogdan.s.bogush@gmail.com>
-Build-Depends: debhelper (>= 9), qt5-qmake, qtbase5-dev, libboost-system-dev, libboost-thread-dev
+Build-Depends: debhelper (>= 9), qt5-qmake, qtbase5-dev, libboost-system-dev, libboost-thread-dev, libqt5serialport5-dev
 Standards-Version: 4.1.4
 Homepage: https://github.com/bbogush/nand_programmer
 
