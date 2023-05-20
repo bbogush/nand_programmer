@@ -54,3 +54,39 @@
 - Support of HY27US08121B.
 ### Fixed
 - Fixed read of bad blocks when read spare area command is available.
+## [3.4.0] - 2020-12-22
+### Added
+SPI flash support.
+SOIC-8 adapter for AT45DB.
+New parallel NAND and SPI chips.
+Boost library for serial port.
+### Fixed
+Fixed saving of settings.
+Fixed lost of packets in Windows.
+Fixed UI on Windows.
+Schematic refactoring.
+## [3.4.1] - 2021-02-14
+### Added
+Added NAND reset on init.
+## [3.4.2] - 2021-03-17
+### Added
+Firmware compilation on Windows.
+#### Fixed
+Firmware update.
+UI issues.
+## [3.5.0] - 2023-05-20
+### Added
+Support of HW ECC.
+Operation time estimate.
+Serial port selector.
+Progress indication.
+Read/write to file instead of memory buffer.
+Support of flash more then 4GB.
+UI improvements for large buffers.
+Custom read/write range.
+Pinout table on PCB.
+Verify operation.
+### Fixed
+NAND timings.
+Synchronization issues.
+Low write speed on Windows.
