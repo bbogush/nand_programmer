@@ -6,7 +6,7 @@
 #ifndef _CHIP_H_
 #define _CHIP_H_
 
-typedef struct
+typedef struct __attribute__((__packed__))
 {
     uint8_t maker_id;
     uint8_t device_id;
