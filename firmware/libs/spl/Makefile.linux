@@ -4,10 +4,10 @@ SRC_DIR=CMSIS/CM3/CoreSupport/ STM32F10x_StdPeriph_Driver/src/ \
   STM32_USB-FS-Device_Driver/src/
 OBJ_DIR=obj/
 
-TOOLCHAIN=../../../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
-
-CC=$(TOOLCHAIN)gcc
-AR=$(TOOLCHAIN)ar
+#TOOLCHAIN=../../../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
+#
+#CC=$(TOOLCHAIN)gcc
+#AR=$(TOOLCHAIN)ar
 
 CHIP=STM32F10X_MD
 

@@ -7,7 +7,7 @@ PROG_NAME=bootloader_fw
 SRC_DIR=./
 OBJ_DIR=obj/
 LIB_DIR=../libs/
-TOOLCHAIN=../../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
+#TOOLCHAIN=../../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
 PROG=$(OBJ_DIR)$(PROG_NAME)
 
 SPL_PATH=$(LIB_DIR)spl/
@@ -18,10 +18,10 @@ SPL_LIB=stm32f10x
 SPL_CONFIG_FILE=$(SPL_PATH)stm32f10x_conf.h
 SPL_FLAGS=-DSTM32F10X_HD -DCONFIG_BOOTLOADER
 
-CC=$(TOOLCHAIN)gcc
-OBJCOPY=$(TOOLCHAIN)objcopy
-OBJDUMP=$(TOOLCHAIN)objdump
-SIZE=$(TOOLCHAIN)size
+#CC=$(TOOLCHAIN)gcc
+#OBJCOPY=$(TOOLCHAIN)objcopy
+#OBJDUMP=$(TOOLCHAIN)objdump
+#SIZE=$(TOOLCHAIN)size
 
 INCLUDES=-include$(SPL_CONFIG_FILE)
 INCLUDES+=-I$(SPL_CORE_SUPPORT)
@@ -54,7 +54,7 @@ LINKER_SCRIPT=$(SRC_DIR)stm32_flash.ld
 all: lib dirs $(PROG).elf
 
 lib:
-	$(MAKE) -C $(SPL_PATH)
+	$(MAKE) -C $(SPL_PATH) CC=$(CC) AR=$(AR)
 
 dirs:
 	mkdir -p $(OBJ_DIR)

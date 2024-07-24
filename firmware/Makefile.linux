@@ -19,23 +19,28 @@ APP2_PATH=$(APP_OBJ_DIR)$(APP2_NAME)
 
 OBJ_DIR=obj/
 
-TOOLCHAIN=../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
+TOOLCHAIN=/opt/local/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
+CC=$(TOOLCHAIN)gcc
 OBJCOPY=$(TOOLCHAIN)objcopy
+OBJDUMP=$(TOOLCHAIN)objdump
+SIZE=$(TOOLCHAIN)size
+AR=$(TOOLCHAIN)ar
 
 all:
-	$(MAKE) -C $(BOOT_DIR)
-	$(MAKE) -C $(APP_DIR)
+	$(MAKE) -C $(BOOT_DIR) CC=$(CC) OBJCOPY=$(OBJCOPY) OBJDUMP=$(OBJDUMP) SIZE=$(SIZE) AR=$(AR)
+	$(MAKE) -C $(APP_DIR) CC=$(CC) OBJCOPY=$(OBJCOPY) OBJDUMP=$(OBJDUMP) SIZE=$(SIZE) AR=$(AR)
 	mkdir -p $(OBJ_DIR)
 	cp $(BOOT_PATH) $(OBJ_DIR)
 	cp $(APP1_PATH) $(OBJ_DIR)
 	cp $(APP2_PATH) $(OBJ_DIR)
-	sed -i '$$d' $(OBJ_DIR)$(BOOT_NAME)
-	sed -i '$$d' $(OBJ_DIR)$(APP1_NAME)
+	sed -i '' '$$d' $(OBJ_DIR)$(BOOT_NAME)
+	sed -i '' '$$d' $(OBJ_DIR)$(APP1_NAME)
 	cat $(OBJ_DIR)$(BOOT_NAME) $(OBJ_DIR)$(APP1_NAME) \
 	  $(OBJ_DIR)$(APP2_NAME) > $(OBJ_DIR)$(GEN_NAME).hex
 	$(OBJCOPY) --input-target=ihex --output-target=binary \
 	  $(OBJ_DIR)$(GEN_NAME).hex $(OBJ_DIR)$(GEN_NAME).bin
 
+.PHONY: all clean
 clean:
 	$(MAKE) -C $(BOOT_DIR) clean
 	$(MAKE) -C $(APP_DIR) clean
