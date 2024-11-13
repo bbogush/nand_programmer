@@ -116,3 +116,85 @@ void nor_flash_write(uint32_t address, uint16_t data)
     *((volatile uint16_t*) (Bank_NOR_ADDR + address)) = data;  // Direct memory-mapped access
 }
 
+static uint32_t nor_flash_read_spare_data(uint8_t *buf, uint32_t page, uint32_t offset, uint32_t data_size)
+{
+    // Since NOR flash doesn't have spare data, return invalid command error
+    return FLASH_STATUS_INVALID_CMD;
+}
+
+static uint32_t nor_flash_read_page(uint8_t *buf, uint32_t page, uint32_t page_size)
+{
+    // Read the page from NOR flash (example implementation)
+    // The address could be calculated using the page number
+    for (uint32_t i = 0; i < page_size; i++) {
+        buf[i] = *((volatile uint8_t *)(Bank_NOR_ADDR + (page * page_size) + i));
+    }
+    return FLASH_STATUS_READY;
+}
+
+static void nor_flash_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size)
+{
+    // Example asynchronous write (using polling or interrupts)
+    for (uint32_t i = 0; i < page_size; i++) {
+        *((volatile uint8_t *)(Bank_NOR_ADDR + (page * page_size) + i)) = buf[i];
+    }
+}
+
+static uint32_t nor_flash_read_status()
+{
+    // Return the flash status (dummy implementation, typically status registers)
+    return FLASH_STATUS_READY;
+}
+
+static bool nor_flash_is_bb_supported()
+{
+    // NOR flash doesn't support bad block management
+    return false;
+}
+
+static uint32_t nor_flash_enable_hw_ecc(bool enable)
+{
+    // NOR flash typically doesn't require ECC, but we can simulate it
+    if (enable) {
+        // Enable ECC (not applicable for most NOR flash chips)
+        return FLASH_STATUS_READY;
+    }
+    // Disable ECC
+    return FLASH_STATUS_READY;
+}
+
+// Initialize NOR Flash
+static int nor_flash_init(void *conf, uint32_t conf_size)
+{
+    // Initialize FSMC or other NOR flash-specific configurations
+    // Example: Set up FSMC for NOR flash
+    nor_fsmc_init();
+    return FLASH_STATUS_READY;
+}
+
+// Uninitialize NOR Flash
+static void nor_flash_uninit()
+{
+    // Disable FSMC or other NOR flash-specific configurations
+    FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM1, DISABLE);
+}
+
+// Read NOR Flash ID
+static void nor_flash_read_id(chip_id_t *chip_id)
+{
+    // Read the ID from the NOR flash chip (example)
+    chip_id->id = *((volatile uint32_t *)(Bank_NOR_ADDR));
+}
+
+flash_hal_t hal_fsmc_nor = {
+        .init = nor_flash_init,
+        .uninit = nor_flash_uninit,
+        .read_id = nor_flash_read_id,
+        .erase_block = NULL,  // NOR Flash typically doesn’t use block erase like NAND
+        .read_page = nor_flash_read_page,
+        .read_spare_data = nor_flash_read_spare_data,  // Unsupported for NOR Flash
+        .write_page_async = nor_flash_write_page_async,
+        .read_status = nor_flash_read_status,
+        .is_bb_supported = nor_flash_is_bb_supported,
+        .enable_hw_ecc = nor_flash_enable_hw_ecc,
+};
