@@ -9,7 +9,7 @@
 #define CMD_AREA                   (uint32_t)(1<<16)  /* A16 = CLE  high - Not used for NOR */
 #define ADDR_AREA                  (uint32_t)(1<<17)  /* A17 = ALE high */
 
-#define DATA_AREA                  ((uint32_t)0x00000000) 
+#define DATA_AREA                  ((uint32_t)0x00000000)
 
 /* NOR flash status */
 #define NOR_ERROR                  ((uint32_t)0x00000001)
@@ -28,32 +28,41 @@
 
 #define UNDEFINED_CMD 0xFF
 
-typedef struct __attribute__((__packed__))
-{
-    uint8_t setup_time;
-    uint8_t wait_setup_time;
-    uint8_t hold_setup_time;
-    uint8_t hi_z_setup_time;
-    uint8_t clr_setup_time;
-    uint8_t ar_setup_time;
-    uint8_t row_cycles;
-    uint8_t col_cycles;
-    uint8_t read_cmd;      // Read command for NOR flash (example: 0xFF for generic read)
-    uint8_t write_cmd;     // Write command for NOR flash (example: 0xA0 for generic write)
-    uint8_t erase_cmd;     // Erase command for NOR flash (example: 0xD0 for sector erase)
-    uint8_t status_cmd;    // Status command for NOR flash
+typedef struct __attribute__((__packed__)) {
+    uint8_t address_setup_time;        // Setup time for address to data transfer
+    uint8_t address_hold_time;         // Hold time for address after data transfer
+    uint8_t data_setup_time;           // Data setup time (after address)
+    uint8_t bus_turnaround_duration;   // Bus turnaround duration (between read/write)
+    uint8_t clk_division;              // Clock division factor for FSMC operations
+    uint8_t data_latency;              // Data latency (before data transfer starts)
+    uint8_t access_mode;
+
+    // Command sequences
+    uint8_t read1_cmd;          // First read command (usually 0x00 for NOR)
+    uint8_t read2_cmd;          // Second read command (if applicable)
+    uint8_t write1_cmd;         // First write command (usually 0x40 for NOR)
+    uint8_t write2_cmd;         // Second write command (if applicable)
+
+    uint8_t reset_cmd;          // Reset command (if applicable)
+    uint8_t erase_cmd;          // Erase command (if applicable)
+    uint8_t status_cmd;         // Status command (for checking flash status)
     uint8_t read_id_cmd;   // Command for reading ID (usually 0x90 for NOR)
+    uint8_t enable_ecc_value;   // ECC enable value (only applicable to some NOR flashes)
+    uint8_t disable_ecc_value;  // ECC disable value (only applicable to some NOR flashes)
+
+    uint8_t row_cycles;         // Number of row address cycles (typically 1 or 2 for NOR)
+    uint8_t col_cycles;         // Number of column address cycles (typically 1 or 2 for NOR)
 } fsmc_conf_t;
+
 
 static fsmc_conf_t fsmc_conf;
 
-static void nor_gpio_init(void)
-{
+static void nor_gpio_init(void) {
     GPIO_InitTypeDef gpio_init;
-  
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD | RCC_APB2Periph_GPIOE | 
-        RCC_APB2Periph_GPIOF | RCC_APB2Periph_GPIOG, ENABLE);
-  
+
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD | RCC_APB2Periph_GPIOE |
+                           RCC_APB2Periph_GPIOF | RCC_APB2Periph_GPIOG, ENABLE);
+
     /* Address and Data lines (D0 to D15) for NOR flash */
     gpio_init.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 |
                          GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7 |
@@ -71,89 +80,107 @@ static void nor_gpio_init(void)
     gpio_init.GPIO_Pin = GPIO_Pin_6;  // Optional: check datasheet for specific pin
     gpio_init.GPIO_Speed = GPIO_Speed_50MHz;
     gpio_init.GPIO_Mode = GPIO_Mode_IPU;
-    GPIO_Init(GPIOD, &gpio_init); 
+    GPIO_Init(GPIOD, &gpio_init);
 }
 
-static void nor_fsmc_init(void)
-{
+static void nor_fsmc_init(void) {
     FSMC_NORSRAMInitTypeDef fsmc_init;
     FSMC_NORSRAMTimingInitTypeDef timing_init;
 
+    timing_init.FSMC_AddressSetupTime = fsmc_conf.address_setup_time;
+    timing_init.FSMC_DataSetupTime = fsmc_conf.data_setup_time;  // Data setup time
+    timing_init.FSMC_AddressHoldTime = fsmc_conf.address_hold_time;
+    timing_init.FSMC_BusTurnAroundDuration = fsmc_conf.bus_turnaround_duration;  // Bus turnaround duration
+    timing_init.FSMC_CLKDivision = fsmc_conf.clk_division;      // FSMC clock division
+    timing_init.FSMC_DataLatency = fsmc_conf.data_latency;      // Data latency
+    timing_init.FSMC_AccessMode = fsmc_conf.access_mode;        // Access mode
+
+    // Enable the FSMC peripheral clock
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_FSMC, ENABLE);
 
-    // Set timing parameters specific to NOR flash (adjust these according to the datasheet)
-    timing_init.FSMC_SetupTime = 1;   // Adjust setup time for NOR flash
-    timing_init.FSMC_WaitSetupTime = 1; // Adjust wait time for NOR flash
-    timing_init.FSMC_HoldSetupTime = 1; // Adjust hold time for NOR flash
-    timing_init.FSMC_HiZSetupTime = 1; // High impedance time (if necessary)
-
-    fsmc_init.FSMC_Bank = FSMC_Bank1_NORSRAM1;  // Use FSMC Bank 1 for NOR flash
-    fsmc_init.FSMC_Waitfeature = FSMC_Waitfeature_Disable; // Typically disabled for NOR flash
+    fsmc_init.FSMC_Bank = FSMC_Bank1_NORSRAM1;  // NOR flash on Bank 1
     fsmc_init.FSMC_MemoryDataWidth = FSMC_MemoryDataWidth_16b; // 16-bit data width
-    fsmc_init.FSMC_ECC = FSMC_ECC_Disable;  // ECC typically not used for NOR flash
-    fsmc_init.FSMC_ECCPageSize = FSMC_ECCPageSize_2048Bytes;  // Default ECC page size
-    fsmc_init.FSMC_TCLRSetupTime = 1;   // Adjust based on NOR flash datasheet
-    fsmc_init.FSMC_TARSetupTime = 1;    // Adjust based on NOR flash datasheet
-    fsmc_init.FSMC_CommonSpaceTimingStruct = &timing_init;
-    fsmc_init.FSMC_AttributeSpaceTimingStruct = &timing_init;
+    fsmc_init.FSMC_DataAddressMux = FSMC_DataAddressMux_Enable;
+    fsmc_init.FSMC_MemoryType = FSMC_MemoryType_SRAM;
+    fsmc_init.FSMC_BurstAccessMode = FSMC_BurstAccessMode_Disable;
+    fsmc_init.FSMC_AsynchronousWait = FSMC_AsynchronousWait_Disable;
+    fsmc_init.FSMC_WaitSignalPolarity = FSMC_WaitSignalPolarity_Low;
+    fsmc_init.FSMC_WrapMode = FSMC_WrapMode_Disable;
+    fsmc_init.FSMC_WaitSignalActive = FSMC_WaitSignalActive_BeforeWaitState;
+    fsmc_init.FSMC_WriteOperation = FSMC_WriteOperation_Enable;
+    fsmc_init.FSMC_WaitSignal = FSMC_WaitSignal_Enable;
+    fsmc_init.FSMC_ExtendedMode = FSMC_ExtendedMode_Disable;
+    fsmc_init.FSMC_WriteBurst = FSMC_WriteBurst_Disable;
 
-    // Initialize FSMC for NOR flash
+    fsmc_init.FSMC_ReadWriteTimingStruct = &timing_init;
+    fsmc_init.FSMC_WriteTimingStruct = &timing_init;
+//    fsmc_init->FSMC_ReadWriteTimingStruct->FSMC_AddressSetupTime = 0xF;
+//    fsmc_init->FSMC_ReadWriteTimingStruct->FSMC_AddressHoldTime = 0xF;
+//    fsmc_init->FSMC_ReadWriteTimingStruct->FSMC_DataSetupTime = 0xFF;
+//    fsmc_init->FSMC_ReadWriteTimingStruct->FSMC_BusTurnAroundDuration = 0xF;
+//    fsmc_init->FSMC_ReadWriteTimingStruct->FSMC_CLKDivision = 0xF;
+//    fsmc_init->FSMC_ReadWriteTimingStruct->FSMC_DataLatency = 0xF;
+//    fsmc_init->FSMC_ReadWriteTimingStruct->FSMC_AccessMode = FSMC_AccessMode_A;
+//    fsmc_init->FSMC_WriteTimingStruct->FSMC_AddressSetupTime = 0xF;
+//    fsmc_init->FSMC_WriteTimingStruct->FSMC_AddressHoldTime = 0xF;
+//    fsmc_init->FSMC_WriteTimingStruct->FSMC_DataSetupTime = 0xFF;
+//    fsmc_init->FSMC_WriteTimingStruct->FSMC_BusTurnAroundDuration = 0xF;
+//    fsmc_init->FSMC_WriteTimingStruct->FSMC_CLKDivision = 0xF;
+//    fsmc_init->FSMC_WriteTimingStruct->FSMC_DataLatency = 0xF;
+//    fsmc_init->FSMC_WriteTimingStruct->FSMC_AccessMode = FSMC_AccessMode_A;
+
+// Initialize FSMC for NOR Flash
     FSMC_NORSRAMInit(&fsmc_init);
 
-    // Enable FSMC for NOR flash access
+// Enable FSMC for NOR flash access
     FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM1, ENABLE);
 }
 
+
 // Reading a 16-bit data from NOR flash at a specific address
-uint16_t nor_flash_read(uint32_t address)
-{
-    return *((volatile uint16_t*) (Bank_NOR_ADDR + address));  // Direct memory-mapped access
+uint16_t nor_flash_read(uint32_t address) {
+    return *((volatile uint16_t *) (Bank_NOR_ADDR + address));  // Direct memory-mapped access
 }
 
 // Writing a 16-bit data to NOR flash at a specific address
-void nor_flash_write(uint32_t address, uint16_t data)
-{
-    *((volatile uint16_t*) (Bank_NOR_ADDR + address)) = data;  // Direct memory-mapped access
+void nor_flash_write(uint32_t address, uint16_t data) {
+    *((volatile uint16_t *) (Bank_NOR_ADDR + address)) = data;  // Direct memory-mapped access
 }
 
-static uint32_t nor_flash_read_spare_data(uint8_t *buf, uint32_t page, uint32_t offset, uint32_t data_size)
-{
+static uint32_t nor_flash_read_spare_data(uint8_t *buf, uint32_t page, uint32_t offset, uint32_t data_size) {
     // Since NOR flash doesn't have spare data, return invalid command error
     return FLASH_STATUS_INVALID_CMD;
 }
 
-static uint32_t nor_flash_read_page(uint8_t *buf, uint32_t page, uint32_t page_size)
-{
+static uint32_t nor_flash_read_page(uint8_t *buf, uint32_t page, uint32_t page_size) {
     // Read the page from NOR flash (example implementation)
     // The address could be calculated using the page number
-    for (uint32_t i = 0; i < page_size; i++) {
+    uint32_t i = 0;
+    for (i = 0; i < page_size; i++) {
         buf[i] = *((volatile uint8_t *)(Bank_NOR_ADDR + (page * page_size) + i));
     }
     return FLASH_STATUS_READY;
 }
 
-static void nor_flash_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size)
-{
+static void nor_flash_write_page_async(uint8_t *buf, uint32_t page, uint32_t page_size) {
     // Example asynchronous write (using polling or interrupts)
-    for (uint32_t i = 0; i < page_size; i++) {
-        *((volatile uint8_t *)(Bank_NOR_ADDR + (page * page_size) + i)) = buf[i];
+    uint32_t i = 0;
+    for (i = 0; i < page_size; i++) {
+        *((volatile uint8_t *) (Bank_NOR_ADDR + (page * page_size) + i)) = buf[i];
     }
 }
 
-static uint32_t nor_flash_read_status()
-{
+static uint32_t nor_flash_read_status() {
     // Return the flash status (dummy implementation, typically status registers)
     return FLASH_STATUS_READY;
 }
 
-static bool nor_flash_is_bb_supported()
-{
+static bool nor_flash_is_bb_supported() {
     // NOR flash doesn't support bad block management
     return false;
 }
 
-static uint32_t nor_flash_enable_hw_ecc(bool enable)
-{
+static uint32_t nor_flash_enable_hw_ecc(bool enable) {
     // NOR flash typically doesn't require ECC, but we can simulate it
     if (enable) {
         // Enable ECC (not applicable for most NOR flash chips)
@@ -163,28 +190,83 @@ static uint32_t nor_flash_enable_hw_ecc(bool enable)
     return FLASH_STATUS_READY;
 }
 
+static void nor_print_fsmc_info() {
+    // Printing out the FSMC configuration values for the NOR flash
+    DEBUG_PRINT("FSMC Configuration Information for NOR Flash:\r\n");
+
+    DEBUG_PRINT("Setup time: %d\r\n", fsmc_conf.setup_time);
+    DEBUG_PRINT("Wait setup time: %d\r\n", fsmc_conf.wait_setup_time);
+    DEBUG_PRINT("Hold setup time: %d\r\n", fsmc_conf.hold_setup_time);
+    DEBUG_PRINT("High-Z setup time: %d\r\n", fsmc_conf.hi_z_setup_time);
+    DEBUG_PRINT("Clear setup time: %d\r\n", fsmc_conf.clr_setup_time);
+    DEBUG_PRINT("Address setup time: %d\r\n", fsmc_conf.ar_setup_time);
+
+    DEBUG_PRINT("Read Command 1: 0x%02X\r\n", fsmc_conf.read1_cmd);  // Print first read command
+    DEBUG_PRINT("Read Command 2: 0x%02X\r\n", fsmc_conf.read2_cmd);  // Print second read command
+
+    DEBUG_PRINT("Write Command: 0x%02X\r\n", fsmc_conf.write_cmd);
+    DEBUG_PRINT("Reset Command: 0x%02X\r\n", fsmc_conf.reset_cmd);
+    DEBUG_PRINT("Erase Command: 0x%02X\r\n", fsmc_conf.erase_cmd);
+    DEBUG_PRINT("Status Command: 0x%02X\r\n", fsmc_conf.status_cmd);
+
+    DEBUG_PRINT("Row address cycles: %d\r\n", fsmc_conf.row_cycles);
+    DEBUG_PRINT("Column address cycles: %d\r\n", fsmc_conf.col_cycles);
+}
+
+static void nor_flash_reset(void) {
+    // Send the reset command to the NOR flash chip via FSMC
+    *(__IO
+    uint8_t *)(Bank_NOR_ADDR | CMD_AREA) = fsmc_conf.reset_cmd;
+
+    DEBUG_PRINT("NOR flash reset complete.\r\n");
+}
+
 // Initialize NOR Flash
-static int nor_flash_init(void *conf, uint32_t conf_size)
-{
-    // Initialize FSMC or other NOR flash-specific configurations
-    // Example: Set up FSMC for NOR flash
+static int nor_flash_init(void *conf, uint32_t conf_size) {
+    nor_gpio_init();
     nor_fsmc_init();
+    nor_print_fsmc_info();
+    nor_flash_reset();
     return FLASH_STATUS_READY;
 }
 
 // Uninitialize NOR Flash
-static void nor_flash_uninit()
-{
+static void nor_flash_uninit() {
     // Disable FSMC or other NOR flash-specific configurations
     FSMC_NORSRAMCmd(FSMC_Bank1_NORSRAM1, DISABLE);
 }
 
 // Read NOR Flash ID
-static void nor_flash_read_id(chip_id_t *chip_id)
-{
-    // Read the ID from the NOR flash chip (example)
-    chip_id->id = *((volatile uint32_t *)(Bank_NOR_ADDR));
+static void nor_flash_read_id(chip_id_t *nor_id) {
+    uint32_t data = 0;
+
+    // Send the read ID command to the NOR flash
+    *(__IO
+    uint8_t *)(Bank_NOR_ADDR | CMD_AREA) = fsmc_conf.read_id_cmd;
+
+    // Send the address for the read ID command (usually 0x00 or a specific address depending on the chip)
+    *(__IO
+    uint8_t *)(Bank_NOR_ADDR | ADDR_AREA) = 0x00;
+
+    // Read the 32-bit ID value from the NOR flash
+    data = *(__IO
+    uint32_t *)(Bank_NOR_ADDR | DATA_AREA);
+
+    // Extract the ID parts from the 32-bit data
+    nor_id->maker_id = ADDR_1st_CYCLE(data);  // Manufacturer ID (usually 1 byte)
+    nor_id->device_id = ADDR_2nd_CYCLE(data);  // Device ID (usually 1 byte)
+    nor_id->third_id = ADDR_3rd_CYCLE(data);  // Third ID (if applicable)
+    nor_id->fourth_id = ADDR_4th_CYCLE(data);  // Fourth ID (if applicable)
+
+    // Optionally, you may want to read more ID data if the NOR flash provides more than 4 parts
+    // Here we read additional data if applicable, depending on your flash type
+    data = *((__IO
+    uint32_t *)(Bank_NOR_ADDR | DATA_AREA) + 1);
+
+    // You may have additional ID fields to extract if necessary
+    nor_id->fifth_id = ADDR_1st_CYCLE(data);  // Fifth ID (if available)
 }
+
 
 flash_hal_t hal_fsmc_nor = {
         .init = nor_flash_init,
