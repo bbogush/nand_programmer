@@ -6,6 +6,7 @@
 #include "nand_programmer.h"
 #include "nand_bad_block.h"
 #include "fsmc_nand.h"
+#include "fsmc_nor.h"
 #include "chip_info.h"
 #include "led.h"
 #include "log.h"
@@ -257,7 +258,7 @@ typedef struct
 static np_comm_cb_t *np_comm_cb;
 static np_prog_t prog;
 
-static flash_hal_t *hal[] = { &hal_fsmc, &hal_spi };
+static flash_hal_t *hal[] = { &hal_fsmc, &hal_spi, &hal_fsmc_nor };
 
 uint8_t np_packet_send_buf[NP_PACKET_BUF_SIZE];
 

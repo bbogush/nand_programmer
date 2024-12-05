@@ -35,7 +35,6 @@ typedef struct __attribute__((__packed__)) {
     uint8_t bus_turnaround_duration;   // Bus turnaround duration (between read/write)
     uint8_t clk_division;              // Clock division factor for FSMC operations
     uint8_t data_latency;              // Data latency (before data transfer starts)
-    uint8_t access_mode;
 
     // Command sequences
     uint8_t read1_cmd;          // First read command (usually 0x00 for NOR)
@@ -93,7 +92,7 @@ static void nor_fsmc_init(void) {
     timing_init.FSMC_BusTurnAroundDuration = fsmc_conf.bus_turnaround_duration;  // Bus turnaround duration
     timing_init.FSMC_CLKDivision = fsmc_conf.clk_division;      // FSMC clock division
     timing_init.FSMC_DataLatency = fsmc_conf.data_latency;      // Data latency
-    timing_init.FSMC_AccessMode = fsmc_conf.access_mode;        // Access mode
+    timing_init.FSMC_AccessMode = FSMC_AccessMode_A;        // Access mode
 
     // Enable the FSMC peripheral clock
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_FSMC, ENABLE);
@@ -223,6 +222,11 @@ static void nor_flash_reset(void) {
 
 // Initialize NOR Flash
 static int nor_flash_init(void *conf, uint32_t conf_size) {
+    if (conf_size < sizeof(fsmc_conf_t))
+        return -1;
+
+    fsmc_conf = *(fsmc_conf_t *)conf;
+    
     nor_gpio_init();
     nor_fsmc_init();
     nor_print_fsmc_info();
