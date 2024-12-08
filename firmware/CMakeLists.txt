@@ -6,7 +6,7 @@ set(CMAKE_EXE_LINKER_FLAGS "-nostdlib")
 set(CMAKE_C_FLAGS "-nostdlib")
 set(CMAKE_CXX_FLAGS "-nostdlib")
 # Define the base toolchain path
-set(TOOLCHAIN "/opt/local/gcc-arm-none-eabi-4_9-2015q1/bin/")
+set(TOOLCHAIN "/opt/local/gcc-arm-none-eabi-5_4-2016q3/bin/")
 
 # Set the compilers and tools using the TOOLCHAIN variable
 set(CMAKE_C_COMPILER "${TOOLCHAIN}arm-none-eabi-gcc")
@@ -19,7 +19,7 @@ set(SIZE "${TOOLCHAIN}arm-none-eabi-size")
 
 
 project(nando_fw)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_STANDARD 11)
 
 # Toolchain and directories
@@ -31,9 +31,9 @@ set(GEN_NAME nando_fw)
 set(MCPU cortex-m3)
 
 # Flags
-set(SPL_FLAGS -DSTM32F10X_HD -DCONFIG_BOOTLOADER)
+#set(SPL_FLAGS -DSTM32F10X_HD -DCONFIG_BOOTLOADER)
 set(CFLAGS -g -Wall -Werror -Og)
-list(APPEND CFLAGS ${INCLUDES} -MMD -MP -ffunction-sections -fdata-sections -mcpu=cortex-m3 -mthumb ${SPL_FLAGS})
+#list(APPEND CFLAGS ${INCLUDES} -MMD -MP -ffunction-sections -fdata-sections -mcpu=cortex-m3 -mthumb ${SPL_FLAGS})
 
 # Common compile options
 add_compile_options(-mcpu=${MCPU} -mthumb -mthumb-interwork)
@@ -74,7 +74,7 @@ set(SPL_USB_PATH "${SPL_PATH}/STM32_USB-FS-Device_Driver")
 set(SPL_CONFIG_FILE "${SPL_PATH}/stm32f10x_conf.h")
 
 # Additional include directories
-set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}")
 set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(USB_DIR "${CMAKE_SOURCE_DIR}/usb_cdc")
 
@@ -125,12 +125,14 @@ add_custom_command(TARGET bootloader_fw.elf POST_BUILD
 Building ${BIN_FILE_BOOT}
 Generating list file and displaying size"
         )
+target_compile_definitions(bootloader_fw.elf PRIVATE STM32F10X_MD)
 
 # Build app1
 file(GLOB_RECURSE LIB_SOURCES ${CMAKE_SOURCE_DIR}/libs/*.c ${CMAKE_SOURCE_DIR}/libs/*.s)
 file(GLOB_RECURSE APP1_SOURCES ${APP_DIR}/*.c ${APP_DIR}/*.s ${LIB_SOURCES})
 
 add_executable(app_fw_1.elf ${APP1_SOURCES})
+target_compile_definitions(app_fw_1.elf PRIVATE STM32F10X_MD)
 target_link_options(app_fw_1.elf PRIVATE -T ${LINKER_SCRIPT_1})
 set(HEX_FILE_1 ${PROJECT_BINARY_DIR}/app_fw_1.hex)
 set(BIN_FILE_1 ${PROJECT_BINARY_DIR}/app_fw_1.bin)
@@ -147,6 +149,7 @@ Generating list file and displaying size"
 
 # Build app2
 add_executable(app_fw_2.elf ${APP1_SOURCES})
+target_compile_definitions(app_fw_2.elf PRIVATE STM32F10X_MD)
 target_link_options(app_fw_2.elf PRIVATE -T ${LINKER_SCRIPT_2})
 set(HEX_FILE_2 ${PROJECT_BINARY_DIR}/app_fw_2.hex)
 set(BIN_FILE_2 ${PROJECT_BINARY_DIR}/app_fw_2.bin)
@@ -161,24 +164,22 @@ Building ${BIN_FILE_2}
 Generating list file and displaying size"
         )
 
-# Combine HEX files into a new target
-add_custom_target(nando_fw ALL
+add_custom_command(OUTPUT ${OBJ_DIR}/${GEN_NAME}.elf
         DEPENDS bootloader_fw.elf app_fw_1.elf app_fw_2.elf
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${OBJ_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy ${HEX_FILE_BOOT} ${OBJ_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy ${HEX_FILE_1} ${OBJ_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy ${HEX_FILE_2} ${OBJ_DIR}
-        COMMAND sed -i '' '$$d' ${OBJ_DIR}/bootloader_fw.hex
-        COMMAND sed -i '' '$$d' ${OBJ_DIR}/app_fw_1.hex
-        COMMAND cat ${OBJ_DIR}/bootloader_fw.hex ${OBJ_DIR}/app_fw_1.hex ${OBJ_DIR}/app_fw_2.hex > ${OBJ_DIR}/${GEN_NAME}.hex
         COMMAND ${CMAKE_OBJCOPY} --input-target=ihex --output-target=binary ${OBJ_DIR}/${GEN_NAME}.hex ${OBJ_DIR}/${GEN_NAME}.bin
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/bootloader_fw.elf ${OBJ_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/app_fw_1.elf ${OBJ_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/app_fw_2.elf ${OBJ_DIR}
+#        COMMAND sed -i '' '$$d' ${OBJ_DIR}/bootloader_fw.elf
+#        COMMAND sed -i '' '$$d' ${OBJ_DIR}/app_fw_1.elf
         COMMAND cat ${OBJ_DIR}/bootloader_fw.elf ${OBJ_DIR}/app_fw_1.elf ${OBJ_DIR}/app_fw_2.elf > ${OBJ_DIR}/${GEN_NAME}.elf
         COMMAND ${SIZE} ${OBJ_DIR}/${GEN_NAME}.elf
         COMMENT "Combining HEX files into ${OBJ_DIR}/${GEN_NAME}.hex and generating ${OBJ_DIR}/${GEN_NAME}.bin and ${OBJ_DIR}/${GEN_NAME}.elf"
         )
+
+
+# Combine HEX files into a new target
+add_executable(${GEN_NAME} ${BOOTLOADER_SOURCES} ${APP1_SOURCES} ${OBJ_DIR}/${GEN_NAME}.elf)
 
 # Erase and program target
 add_custom_target(erase

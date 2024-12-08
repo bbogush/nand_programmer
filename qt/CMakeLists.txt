@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.17)
 project(nand_programmer)
 
 # Set the CMAKE_PREFIX_PATH to find Qt5
