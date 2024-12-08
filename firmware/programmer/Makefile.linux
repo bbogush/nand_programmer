@@ -20,7 +20,6 @@ SPL_PERIPH_PATH=$(SPL_PATH)STM32F10x_StdPeriph_Driver/
 SPL_USB_PATH=$(SPL_PATH)STM32_USB-FS-Device_Driver/
 SPL_LIB=stm32f10x
 SPL_CONFIG_FILE=$(SPL_PATH)stm32f10x_conf.h
-SPL_FLAGS=-DSTM32F10X_HD -DCONFIG_BOOTLOADER
 
 #CC=$(TOOLCHAIN)gcc
 #OBJCOPY=$(TOOLCHAIN)objcopy
@@ -37,11 +36,6 @@ INCLUDES+=-I$(SPL_USB_PATH)inc
 INCLUDES+=-I$(SRC_DIR)
 INCLUDES+=-I$(USB_DIR)
 
-CFLAGS=-g -Wall -Werror -O3
-CFLAGS+=$(INCLUDES) -MMD -MP
-CFLAGS+=-ffunction-sections -fdata-sections
-CFLAGS+=-mcpu=cortex-m3 -mthumb
-CFLAGS+=$(SPL_FLAGS)
 
 LDFLAGS_1=-mcpu=cortex-m3 -mthumb -Wl,--gc-sections -Wl,-Map=$(APP_1).map
 LDFLAGS_2=-mcpu=cortex-m3 -mthumb -Wl,--gc-sections -Wl,-Map=$(APP_2).map
