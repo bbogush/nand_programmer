@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.15)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_VERSION 1)
 # Disable linking with the standard C library (libc)
@@ -164,9 +164,11 @@ Building ${BIN_FILE_2}
 Generating list file and displaying size"
         )
 
+add_executable(${GEN_NAME} ${BOOTLOADER_SOURCES} ${APP1_SOURCES})
+target_compile_definitions(${GEN_NAME} PRIVATE STM32F10X_MD)
 add_custom_command(OUTPUT ${OBJ_DIR}/${GEN_NAME}.elf
         DEPENDS bootloader_fw.elf app_fw_1.elf app_fw_2.elf
-        COMMAND ${CMAKE_OBJCOPY} --input-target=ihex --output-target=binary ${OBJ_DIR}/${GEN_NAME}.hex ${OBJ_DIR}/${GEN_NAME}.bin
+#        COMMAND ${CMAKE_OBJCOPY} --input-target=ihex --output-target=binary ${OBJ_DIR}/${GEN_NAME}.hex ${OBJ_DIR}/${GEN_NAME}.bin
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/bootloader_fw.elf ${OBJ_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/app_fw_1.elf ${OBJ_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/app_fw_2.elf ${OBJ_DIR}
@@ -177,9 +179,6 @@ add_custom_command(OUTPUT ${OBJ_DIR}/${GEN_NAME}.elf
         COMMENT "Combining HEX files into ${OBJ_DIR}/${GEN_NAME}.hex and generating ${OBJ_DIR}/${GEN_NAME}.bin and ${OBJ_DIR}/${GEN_NAME}.elf"
         )
 
-
-# Combine HEX files into a new target
-add_executable(${GEN_NAME} ${BOOTLOADER_SOURCES} ${APP1_SOURCES} ${OBJ_DIR}/${GEN_NAME}.elf)
 
 # Erase and program target
 add_custom_target(erase
