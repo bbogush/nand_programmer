@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.17)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_VERSION 1)
 # Disable linking with the standard C library (libc)
@@ -16,9 +16,12 @@ set(CMAKE_AR "${TOOLCHAIN}/arm-none-eabi-ar")
 set(CMAKE_OBJCOPY "${TOOLCHAIN}/arm-none-eabi-objcopy")
 set(CMAKE_OBJDUMP "${TOOLCHAIN}/arm-none-eabi-objdump")
 set(SIZE "${TOOLCHAIN}/arm-none-eabi-size")
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+
+project(nando_fw C ASM)
+#set(CMAKE_ASM_FLAGS "${CFLAGS} -x assembler-with-cpp")
 
 
-project(nando_fw)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_C_STANDARD 11)
 
@@ -31,9 +34,7 @@ set(GEN_NAME nando_fw)
 set(MCPU cortex-m3)
 
 # Flags
-#set(SPL_FLAGS -DSTM32F10X_HD -DCONFIG_BOOTLOADER)
 set(CFLAGS -g -Wall -Werror -Og)
-#list(APPEND CFLAGS ${INCLUDES} -MMD -MP -ffunction-sections -fdata-sections -mcpu=cortex-m3 -mthumb ${SPL_FLAGS})
 
 # Common compile options
 add_compile_options(-mcpu=${MCPU} -mthumb -mthumb-interwork)
@@ -67,6 +68,7 @@ set(LIB_DIR "${CMAKE_SOURCE_DIR}/libs")
 
 # Define the paths for SPL headers and configuration file
 set(SPL_PATH "${LIB_DIR}/spl")
+set(SPL_LIB "stm32f10x")
 set(SPL_DEVICE_SUPPORT_PATH "${SPL_PATH}/CMSIS/CM3/DeviceSupport/ST/STM32F10x")
 set(SPL_CORE_SUPPORT "${SPL_PATH}/CMSIS/CM3/CoreSupport")
 set(SPL_PERIPH_PATH "${SPL_PATH}/STM32F10x_StdPeriph_Driver")
@@ -80,7 +82,7 @@ set(USB_DIR "${CMAKE_SOURCE_DIR}/usb_cdc")
 
 # Add all necessary include directories
 include_directories(
-        ${INCLUDE_DIR}              # Project-specific include directory
+#        ${INCLUDE_DIR}              # Project-specific include directory
         ${SPL_CORE_SUPPORT}         # SPL Core support headers
         ${SPL_DEVICE_SUPPORT_PATH}  # Device support headers (STM32F10x)
         ${SPL_PATH}                 # SPL general headers
@@ -104,28 +106,36 @@ add_definitions(
 set(LINKER_SCRIPT_BOOT ${CMAKE_SOURCE_DIR}/${BOOT_DIR}/stm32_flash.ld)
 set(LINKER_SCRIPT_1 ${CMAKE_SOURCE_DIR}/${APP_DIR}/stm32_flash_1.ld)
 set(LINKER_SCRIPT_2 ${CMAKE_SOURCE_DIR}/${APP_DIR}/stm32_flash_2.ld)
+set(BOOT_PROG bootloader_fw)
+set(HEX_FILE_BOOT ${CMAKE_BINARY_DIR}/${BOOT_PROG}.hex)
+set(BIN_FILE_BOOT ${CMAKE_BINARY_DIR}/${BOOT_PROG}.bin)
 
 add_link_options(-Wl,-gc-sections,--print-memory-usage,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map)
 add_link_options(-mcpu=${MCPU} -mthumb -mthumb-interwork)
-
+#
+#file(GLOB_RECURSE SPL_LIB_SOURCES ${SPL_PATH}/*.c ${SPL_PATH}/*.s)
+#add_executable(lib ${SPL_LIB_SOURCES})
+#target_compile_definitions(lib PRIVATE STM32F10X_MD)
 
 # Build bootloader
-file(GLOB_RECURSE BOOTLOADER_SOURCES ${BOOT_DIR}/*.c ${BOOT_DIR}/*.s)
-add_executable(bootloader_fw.elf ${BOOTLOADER_SOURCES})
-target_link_options(bootloader_fw.elf PRIVATE -T ${LINKER_SCRIPT_BOOT})
-set(HEX_FILE_BOOT ${CMAKE_BINARY_DIR}/bootloader_fw.hex)
-set(BIN_FILE_BOOT ${CMAKE_BINARY_DIR}/bootloader_fw.bin)
+file(GLOB_RECURSE BOOTLOADER_SOURCES ${BOOT_DIR}/*.c ${BOOT_DIR}/*.s ${SPL_PATH}/*.c ${SPL_PATH}/*.s)
+add_executable(${BOOT_PROG}.elf ${BOOTLOADER_SOURCES})
+target_link_libraries(${BOOT_PROG}.elf PRIVATE -T${LINKER_SCRIPT_BOOT})
 
-add_custom_command(TARGET bootloader_fw.elf POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} --pad-to 0x08004000 -Oihex $<TARGET_FILE:bootloader_fw.elf> ${HEX_FILE_BOOT}
-        COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:bootloader_fw.elf> ${BIN_FILE_BOOT}
-        COMMAND ${CMAKE_OBJDUMP} -St $<TARGET_FILE:bootloader_fw.elf> > ${CMAKE_BINARY_DIR}/bootloader_fw.lst
-        COMMAND ${SIZE} $<TARGET_FILE:bootloader_fw.elf>
+
+# Ensure the main program depends on the library being built first
+#add_dependencies(${BOOT_PROG}.elf lib)
+
+add_custom_command(TARGET ${BOOT_PROG}.elf POST_BUILD
+        COMMAND ${CMAKE_OBJCOPY} --pad-to 0x08004000 -Oihex $<TARGET_FILE:${BOOT_PROG}.elf> ${HEX_FILE_BOOT}
+        COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${BOOT_PROG}.elf> ${BIN_FILE_BOOT}
+        COMMAND ${CMAKE_OBJDUMP} -St $<TARGET_FILE:${BOOT_PROG}.elf> > ${CMAKE_BINARY_DIR}/${BOOT_PROG}.lst
+        COMMAND ${SIZE} $<TARGET_FILE:${BOOT_PROG}.elf>
         COMMENT "Building ${HEX_FILE_BOOT}
 Building ${BIN_FILE_BOOT}
 Generating list file and displaying size"
         )
-target_compile_definitions(bootloader_fw.elf PRIVATE STM32F10X_MD)
+target_compile_definitions(${BOOT_PROG}.elf PRIVATE STM32F10X_MD)
 
 # Build app1
 file(GLOB_RECURSE LIB_SOURCES ${CMAKE_SOURCE_DIR}/libs/*.c ${CMAKE_SOURCE_DIR}/libs/*.s)
@@ -164,39 +174,19 @@ Building ${BIN_FILE_2}
 Generating list file and displaying size"
         )
 
-#add_executable(${GEN_NAME} ${APP1_SOURCES})
-#target_compile_definitions(${GEN_NAME} PRIVATE STM32F10X_MD)
-#add_custom_command(
-#        OUTPUT ${GEN_NAME}.elf
-#        DEPENDS bootloader_fw.elf app_fw_1.elf app_fw_2.elf
-#        COMMAND ${CMAKE_OBJCOPY} --input-target=elf32-little --output-target=elf32-little ${CMAKE_BINARY_DIR}/bootloader_fw.elf ${GEN_NAME}.elf
-#        COMMAND ${CMAKE_OBJCOPY} --input-target=elf32-little --output-target=elf32-little ${CMAKE_BINARY_DIR}/app_fw_1.elf app_fw_1.tmp
-#        COMMAND ${CMAKE_OBJCOPY} --input-target=elf32-little --output-target=elf32-little ${CMAKE_BINARY_DIR}/app_fw_2.elf app_fw_2.tmp
-#        COMMAND ${CMAKE_COMMAND} -E append app_fw_1.tmp ${GEN_NAME}.elf
-#        COMMAND ${CMAKE_COMMAND} -E append app_fw_2.tmp ${GEN_NAME}.elf
-#        COMMAND ${SIZE} ${GEN_NAME}.elf
-#        COMMENT "Combining ELF files into ${GEN_NAME}.elf"
 
 add_custom_target(
         ${GEN_NAME} ALL
-        DEPENDS bootloader_fw.hex app_fw_1.hex app_fw_2.hex
-#        COMMAND ${CMAKE_COMMAND} -E copy bootloader_fw.hex ${OBJ_DIR}/bootloader_fw.hex
-#        COMMAND ${CMAKE_COMMAND} -E copy app_fw_1.hex ${OBJ_DIR}
-#        COMMAND ${CMAKE_COMMAND} -E copy app_fw_2.hex ${OBJ_DIR}
-        COMMAND sed -i '' '$$d' bootloader_fw.hex
+        DEPENDS ${BOOT_PROG}.hex app_fw_1.hex app_fw_2.hex
+        COMMAND sed -i '' '$$d' ${BOOT_PROG}.hex
         COMMAND sed -i '' '$$d' app_fw_1.hex
-        COMMAND cat bootloader_fw.hex app_fw_1.hex app_fw_2.hex > ${GEN_NAME}.hex
+        COMMAND cat ${BOOT_PROG}.hex app_fw_1.hex app_fw_2.hex > ${GEN_NAME}.hex
         COMMAND ${CMAKE_OBJCOPY} -I ihex -O elf32-littlearm ${GEN_NAME}.hex ${GEN_NAME}.elf
         COMMAND ${CMAKE_OBJCOPY} -I ihex -O binary ${GEN_NAME}.hex ${GEN_NAME}.bin
         COMMAND ${SIZE} ${GEN_NAME}.elf
         COMMENT "Combining HEX files into ${GEN_NAME}.hex and generating ${GEN_NAME}.bin and ${GEN_NAME}.elf"
         )
 
-## Step 3: Optionally copy the combined ELF file or perform other operations
-#add_custom_command(TARGET ${GEN_NAME} POST_BUILD
-#        COMMAND ${CMAKE_OBJCOPY} -O binary ${GEN_NAME}.elf ${GEN_NAME}.bin
-#        COMMENT "Copying combined ELF to the binary directory and generating .bin file"
-#        )
 
 # Erase and program target
 add_custom_target(erase
@@ -217,6 +207,6 @@ add_custom_target(clean_all
         )
 
 # Ensure dependencies
-add_dependencies(app_fw_1.elf bootloader_fw.elf)
+add_dependencies(app_fw_1.elf ${BOOT_PROG}.elf)
 add_dependencies(app_fw_2.elf app_fw_1.elf)
 add_dependencies(${GEN_NAME} app_fw_2.elf)
