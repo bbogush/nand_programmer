@@ -47,7 +47,7 @@ LINKER_SCRIPT=$(SRC_DIR)stm32_flash.ld
 all: lib dirs $(PROG).elf
 
 lib:
-	$(MAKE) -C $(SPL_PATH) CC=$(CC) AR=$(AR)
+	$(MAKE) -C $(SPL_PATH) CC=$(CC) AR=$(AR) CFLAGS="$(CFLAGS)"
 
 dirs:
 	mkdir -p $(OBJ_DIR)
@@ -60,10 +60,10 @@ $(PROG).elf: $(OBJS)
 	$(SIZE) $(PROG).elf
 
 $(OBJ_DIR)%.o: %.c
-	$(CC) -c $(CFLAGS) $< -o $@ 
+	$(CC) -c $(CFLAGS) $(INCLUDES) $< -o $@
 
 $(OBJ_DIR)%.o: %.s
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $(INCLUDES) $< -o $@
 
 -include $(DEPS)
 

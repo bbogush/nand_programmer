@@ -36,6 +36,7 @@ INCLUDES+=-I$(SPL_USB_PATH)inc
 INCLUDES+=-I$(SRC_DIR)
 INCLUDES+=-I$(USB_DIR)
 
+#override CFLAGS := $(CFLAGS) $(INCLUDES)
 
 LDFLAGS_1=-mcpu=cortex-m3 -mthumb -Wl,--gc-sections -Wl,-Map=$(APP_1).map
 LDFLAGS_2=-mcpu=cortex-m3 -mthumb -Wl,--gc-sections -Wl,-Map=$(APP_2).map
@@ -61,13 +62,13 @@ LINKER_SCRIPT_2=$(SRC_DIR)stm32_flash_2.ld
 all: lib dirs $(APP_1).elf $(APP_2).elf
 
 lib:
-	$(MAKE) -C $(SPL_PATH)  CC=$(CC) AR=$(AR)
+	$(MAKE) -C $(SPL_PATH)  CC=$(CC) AR=$(AR) CFLAGS="$(CFLAGS)"
 
 dirs:
 	mkdir -p $(OBJ_DIR)
 
 $(APP_1).elf: $(OBJS)
-	$(CC) $(LDFLAGS_1) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) \
+	$(CC) $(LDFLAGS_1) $(CFLAGS) $(INCLUDES) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) \
 	  -T$(LINKER_SCRIPT_1)
 	$(OBJCOPY) --pad-to 0x08022000 -O ihex $(APP_1).elf $(APP_1).hex
 	$(OBJCOPY) -O binary $(APP_1).elf $(APP_1).bin
@@ -75,7 +76,7 @@ $(APP_1).elf: $(OBJS)
 	$(SIZE) $(APP_1).elf
 
 $(APP_2).elf: $(OBJS)
-	$(CC) $(LDFLAGS_2) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) \
+	$(CC) $(LDFLAGS_2) $(CFLAGS) $(INCLUDES) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) \
 	  -T$(LINKER_SCRIPT_2)
 	$(OBJCOPY) --pad-to 0x08040000 -O ihex $(APP_2).elf $(APP_2).hex
 	$(OBJCOPY) -O binary $(APP_2).elf $(APP_2).bin
@@ -83,10 +84,10 @@ $(APP_2).elf: $(OBJS)
 	$(SIZE) $(APP_2).elf
 
 $(OBJ_DIR)%.o: %.c
-	$(CC) -c $(CFLAGS) $< -o $@ 
+	$(CC) -c $(CFLAGS) $(INCLUDES) $< -o $@
 
 $(OBJ_DIR)%.o: %.s
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $(INCLUDES) $< -o $@
 
 -include $(DEPS)
 

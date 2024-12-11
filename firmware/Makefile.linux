@@ -28,8 +28,8 @@ AR=$(TOOLCHAIN)ar
 
 SPL_FLAGS=-DSTM32F10X_HD -DCONFIG_BOOTLOADER
 CFLAGS=-g -Wall -Werror -Og  # Debugging flags: -g for debug symbols, -O0 for no optimization
-CFLAGS+=$(INCLUDES) -MMD -MP
 CFLAGS+=-ffunction-sections -fdata-sections
+CFLAGS+=-MMD -MP
 CFLAGS+=-mcpu=cortex-m3 -mthumb
 CFLAGS+=$(SPL_FLAGS)
 
@@ -49,13 +49,7 @@ all:
 	  $(OBJ_DIR)$(GEN_NAME).hex $(OBJ_DIR)$(GEN_NAME).bin
 
 
-	# Copy the ELF files instead of HEX files for debugging
-	cp $(BOOT_OBJ_DIR)$(BOOT_NAME:.hex=.elf) $(OBJ_DIR)
-	cp $(APP_OBJ_DIR)$(APP1_NAME:.hex=.elf) $(OBJ_DIR)
-	cp $(APP_OBJ_DIR)$(APP2_NAME:.hex=.elf) $(OBJ_DIR)
-	cat $(OBJ_DIR)$(BOOT_NAME:.hex=.elf) $(OBJ_DIR)$(APP1_NAME:.hex=.elf) \
-    	  $(OBJ_DIR)$(APP2_NAME:.hex=.elf) > $(OBJ_DIR)$(GEN_NAME).elf
-
+	$(OBJCOPY) -I ihex -O elf32-littlearm $(OBJ_DIR)$(GEN_NAME).hex $(OBJ_DIR)$(GEN_NAME).elf
 	# Show the size of the ELF file
 	$(SIZE) $(OBJ_DIR)$(GEN_NAME).elf
 .PHONY: all clean
