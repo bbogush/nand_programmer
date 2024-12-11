@@ -6,7 +6,7 @@ set(CMAKE_EXE_LINKER_FLAGS "-nostdlib")
 set(CMAKE_C_FLAGS "-nostdlib")
 set(CMAKE_CXX_FLAGS "-nostdlib")
 # Define the base toolchain path
-set(TOOLCHAIN "/opt/local/gcc-arm-none-eabi-5_4-2016q3/bin")
+set(TOOLCHAIN "/opt/local/gcc-arm-none-eabi-4_9-2015q1/bin")
 
 # Set the compilers and tools using the TOOLCHAIN variable
 set(CMAKE_C_COMPILER "${TOOLCHAIN}/arm-none-eabi-gcc")
@@ -28,7 +28,6 @@ set(CMAKE_C_STANDARD 11)
 # Toolchain and directories
 set(BOOT_DIR bootloader)
 set(APP_DIR programmer)
-set(OBJ_DIR ${CMAKE_BINARY_DIR}/obj)
 set(GEN_NAME nando_fw)
 
 set(MCPU cortex-m3)
@@ -37,8 +36,7 @@ set(MCPU cortex-m3)
 set(CFLAGS -g -Wall -Werror -Og)
 
 # Common compile options
-add_compile_options(-mcpu=${MCPU} -mthumb -mthumb-interwork)
-add_compile_options(-ffunction-sections -fdata-sections -fno-common -fmessage-length=0)
+add_compile_options(-mcpu=${MCPU} -mthumb -mthumb-interwork -ffreestanding -nostdlib -nostartfiles -ffunction-sections -fdata-sections -fno-common -fmessage-length=0)
 
 # Uncomment for hardware floating point
 # add_compile_definitions(ARM_MATH_CM3;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)
@@ -76,19 +74,15 @@ set(SPL_CONFIG_FILE "${SPL_PATH}/stm32f10x_conf.h")
 
 # Additional include directories
 set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}")
-set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(USB_DIR "${CMAKE_SOURCE_DIR}/usb_cdc")
 
 # Add all necessary include directories
 include_directories(
-#        ${INCLUDE_DIR}              # Project-specific include directory
         ${SPL_PATH}
         ${SPL_CORE_SUPPORT}         # SPL Core support headers
         ${SPL_DEVICE_SUPPORT_PATH}  # Device support headers (STM32F10x)
-        ${SPL_PATH}                 # SPL general headers
         ${SPL_PERIPH_PATH}/inc       # Peripheral driver headers
         ${SPL_USB_PATH}/inc          # USB driver headers
-        ${SRC_DIR}                  # Source-specific includes
         ${USB_DIR}                  # USB CDC directory
 )
 
@@ -104,7 +98,6 @@ add_definitions(
 
 # Define the library name
 set(SPL_LIB stm32f10x)
-set(SPL_LIB_FILE libstm32f10x.a)
 
 file(GLOB_RECURSE LIB_SRCS
         ${SPL_PATH}/*.c
@@ -112,12 +105,8 @@ file(GLOB_RECURSE LIB_SRCS
 
 
 
-# Add compiler flags
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffreestanding -nostdlib")
-
-
 # Specify the static library to be built
-add_library(${SPL_LIB} STATIC ${LIB_SRCS})
+add_library(${SPL_LIB} STATIC ${LIB_SRCS} ${SPL_PATH}/startup_stm32f10x_hd.s)
 target_compile_definitions(${SPL_LIB} PRIVATE STM32F10X_MD)
 
 
@@ -126,35 +115,31 @@ set(LINKER_SCRIPT_BOOT ${CMAKE_SOURCE_DIR}/${BOOT_DIR}/stm32_flash.ld)
 set(LINKER_SCRIPT_1 ${CMAKE_SOURCE_DIR}/${APP_DIR}/stm32_flash_1.ld)
 set(LINKER_SCRIPT_2 ${CMAKE_SOURCE_DIR}/${APP_DIR}/stm32_flash_2.ld)
 set(BOOT_PROG bootloader_fw)
-set(HEX_FILE_BOOT ${CMAKE_BINARY_DIR}/${BOOT_PROG}.hex)
-set(BIN_FILE_BOOT ${CMAKE_BINARY_DIR}/${BOOT_PROG}.bin)
 
-add_link_options(-Wl,-gc-sections,--print-memory-usage,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map)
+add_link_options(-Wl,-gc-sections,-Map=${CMAKE_BINARY_DIR}/${PROJECT_NAME}.map)
 add_link_options(-mcpu=${MCPU} -mthumb -mthumb-interwork)
 #
 # Build bootloader
-file(GLOB_RECURSE BOOTLOADER_SOURCES ${BOOT_DIR}/*.c ${BOOT_DIR}/*.s)
+file(GLOB_RECURSE BOOTLOADER_SOURCES ${BOOT_DIR}/*.c)
 add_executable(${BOOT_PROG}.elf ${BOOTLOADER_SOURCES})
-target_link_libraries(${BOOT_PROG}.elf PRIVATE -T${LINKER_SCRIPT_BOOT} ${SPL_LIB_FILE})
-
+target_link_libraries(${BOOT_PROG}.elf PRIVATE -T${LINKER_SCRIPT_BOOT} ${SPL_LIB})
 add_custom_command(TARGET ${BOOT_PROG}.elf POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} --pad-to 0x08004000 -Oihex $<TARGET_FILE:${BOOT_PROG}.elf> ${HEX_FILE_BOOT}
-        COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${BOOT_PROG}.elf> ${BIN_FILE_BOOT}
+        COMMAND ${CMAKE_OBJCOPY} --pad-to 0x08004000 -Oihex $<TARGET_FILE:${BOOT_PROG}.elf> ${BOOT_PROG}.hex
+        COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${BOOT_PROG}.elf> ${BOOT_PROG}.bin
         COMMAND ${CMAKE_OBJDUMP} -St $<TARGET_FILE:${BOOT_PROG}.elf> > ${CMAKE_BINARY_DIR}/${BOOT_PROG}.lst
         COMMAND ${SIZE} $<TARGET_FILE:${BOOT_PROG}.elf>
-        COMMENT "Building ${HEX_FILE_BOOT}
-Building ${BIN_FILE_BOOT}
+        COMMENT "Building ${BOOT_PROG}.hex
+Building ${BOOT_PROG}.bin
 Generating list file and displaying size"
         )
 target_compile_definitions(${BOOT_PROG}.elf PRIVATE STM32F10X_MD)
 
 # Build app1
-file(GLOB_RECURSE LIB_SOURCES ${CMAKE_SOURCE_DIR}/libs/*.c ${CMAKE_SOURCE_DIR}/libs/*.s)
-file(GLOB_RECURSE APP1_SOURCES ${APP_DIR}/*.c ${APP_DIR}/*.s ${LIB_SOURCES})
+file(GLOB_RECURSE APP1_SOURCES ${APP_DIR}/*.c ${USB_DIR}/*.c)
 
 add_executable(app_fw_1.elf ${APP1_SOURCES})
 target_compile_definitions(app_fw_1.elf PRIVATE STM32F10X_MD)
-target_link_options(app_fw_1.elf PRIVATE -T ${LINKER_SCRIPT_1} ${SPL_LIB_FILE})
+target_link_options(app_fw_1.elf PRIVATE -T ${LINKER_SCRIPT_1} ${SPL_LIB})
 
 set(HEX_FILE_1 ${CMAKE_BINARY_DIR}/app_fw_1.hex)
 set(BIN_FILE_1 ${CMAKE_BINARY_DIR}/app_fw_1.bin)
@@ -172,7 +157,7 @@ Generating list file and displaying size"
 # Build app2
 add_executable(app_fw_2.elf ${APP1_SOURCES})
 target_compile_definitions(app_fw_2.elf PRIVATE STM32F10X_MD)
-target_link_options(app_fw_2.elf PRIVATE -T ${LINKER_SCRIPT_2} ${SPL_LIB_FILE})
+target_link_options(app_fw_2.elf PRIVATE -T ${LINKER_SCRIPT_2} ${SPL_LIB})
 set(HEX_FILE_2 ${CMAKE_BINARY_DIR}/app_fw_2.hex)
 set(BIN_FILE_2 ${CMAKE_BINARY_DIR}/app_fw_2.bin)
 

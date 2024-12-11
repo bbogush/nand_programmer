@@ -32,12 +32,13 @@ SRCS_PERIPH=misc.c stm32f10x_cec.c stm32f10x_dma.c stm32f10x_gpio.c \
   stm32f10x_bkp.c stm32f10x_dac.c stm32f10x_flash.c stm32f10x_iwdg.c \
   stm32f10x_sdio.c stm32f10x_wwdg.c stm32f10x_can.c stm32f10x_dbgmcu.c \
   stm32f10x_fsmc.c stm32f10x_pwr.c stm32f10x_spi.c
+STARTUP=startup_stm32f10x_hd.s
 
 SRCS_USB=usb_core.c usb_init.c usb_int.c usb_mem.c usb_regs.c usb_sil.c
 
 SRCS=$(SRCS_CORE) $(SRCS_PERIPH) $(SRCS_USB)
-
-OBJS=$(addprefix $(OBJ_DIR),$(SRCS:.c=.o))
+OBJS=$(addprefix $(OBJ_DIR),$(SRCS:.c=.o)) \
+  $(addprefix $(OBJ_DIR),$(STARTUP:.s=.o))
 DEPS=$(OBJS:%.o=%.d)
 
 all: dirs $(LIB_NAME)
@@ -50,6 +51,8 @@ $(LIB_NAME): $(OBJS)
 
 $(OBJ_DIR)%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
+$(OBJ_DIR)%.o: %.s
+	$(CC) -c $(CFLAGS) $(INCLUDES) $< -o $@
 
 -include $(DEPS)
 

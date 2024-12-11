@@ -34,12 +34,11 @@ LDFLAGS=-mcpu=cortex-m3 -mthumb -Wl,--gc-sections -Wl,-Map=$(PROG).map
 vpath %.c $(SRC_DIR) $(SPL_DEVICE_SUPPORT_PATH) $(SRC_BSP_DIR)
 vpath %.s $(SRC_DIR)
 
-STARTUP=startup_stm32f10x_hd.s
+STARTUP=$(SPL_PATH)startup_stm32f10x_hd.s
 
 SRCS=main.c system_stm32f10x.c syscalls.c uart.c
 
-OBJS=$(addprefix $(OBJ_DIR),$(SRCS:.c=.o)) \
-  $(addprefix $(OBJ_DIR),$(STARTUP:.s=.o))
+OBJS=$(addprefix $(OBJ_DIR),$(SRCS:.c=.o))
 DEPS=$(OBJS:%.o=%.d)
 
 LINKER_SCRIPT=$(SRC_DIR)stm32_flash.ld
