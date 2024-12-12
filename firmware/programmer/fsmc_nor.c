@@ -191,22 +191,24 @@ static uint32_t nor_flash_enable_hw_ecc(bool enable) {
 
 static void nor_print_fsmc_info() {
     // Printing out the FSMC configuration values for the NOR flash
-    DEBUG_PRINT("FSMC Configuration Information for NOR Flash:\r\n");
+    DEBUG_PRINT("Address setup time: %d\r\n", fsmc_conf.address_setup_time);
+    DEBUG_PRINT("Address hold time: %d\r\n", fsmc_conf.address_hold_time);
+    DEBUG_PRINT("Data setup time: %d\r\n", fsmc_conf.data_setup_time);
+    DEBUG_PRINT("Bus turnaround duration: %d\r\n", fsmc_conf.bus_turnaround_duration);
+    DEBUG_PRINT("Clock division: %d\r\n", fsmc_conf.clk_division);
+    DEBUG_PRINT("Data latency: %d\r\n", fsmc_conf.data_latency);
 
-    DEBUG_PRINT("Setup time: %d\r\n", fsmc_conf.setup_time);
-    DEBUG_PRINT("Wait setup time: %d\r\n", fsmc_conf.wait_setup_time);
-    DEBUG_PRINT("Hold setup time: %d\r\n", fsmc_conf.hold_setup_time);
-    DEBUG_PRINT("High-Z setup time: %d\r\n", fsmc_conf.hi_z_setup_time);
-    DEBUG_PRINT("Clear setup time: %d\r\n", fsmc_conf.clr_setup_time);
-    DEBUG_PRINT("Address setup time: %d\r\n", fsmc_conf.ar_setup_time);
+    DEBUG_PRINT("Read1 command: 0x%02X\r\n", fsmc_conf.read1_cmd);
+    DEBUG_PRINT("Read2 command: 0x%02X\r\n", fsmc_conf.read2_cmd);
+    DEBUG_PRINT("Write1 command: 0x%02X\r\n", fsmc_conf.write1_cmd);
+    DEBUG_PRINT("Write2 command: 0x%02X\r\n", fsmc_conf.write2_cmd);
 
-    DEBUG_PRINT("Read Command 1: 0x%02X\r\n", fsmc_conf.read1_cmd);  // Print first read command
-    DEBUG_PRINT("Read Command 2: 0x%02X\r\n", fsmc_conf.read2_cmd);  // Print second read command
-
-    DEBUG_PRINT("Write Command: 0x%02X\r\n", fsmc_conf.write_cmd);
-    DEBUG_PRINT("Reset Command: 0x%02X\r\n", fsmc_conf.reset_cmd);
-    DEBUG_PRINT("Erase Command: 0x%02X\r\n", fsmc_conf.erase_cmd);
-    DEBUG_PRINT("Status Command: 0x%02X\r\n", fsmc_conf.status_cmd);
+    DEBUG_PRINT("Reset command: 0x%02X\r\n", fsmc_conf.reset_cmd);
+    DEBUG_PRINT("Erase command: 0x%02X\r\n", fsmc_conf.erase_cmd);
+    DEBUG_PRINT("Status command: 0x%02X\r\n", fsmc_conf.status_cmd);
+    DEBUG_PRINT("Read ID command: 0x%02X\r\n", fsmc_conf.read_id_cmd);
+    DEBUG_PRINT("Enable ECC value: 0x%02X\r\n", fsmc_conf.enable_ecc_value);
+    DEBUG_PRINT("Disable ECC value: 0x%02X\r\n", fsmc_conf.disable_ecc_value);
 
     DEBUG_PRINT("Row address cycles: %d\r\n", fsmc_conf.row_cycles);
     DEBUG_PRINT("Column address cycles: %d\r\n", fsmc_conf.col_cycles);
@@ -226,7 +228,7 @@ static int nor_flash_init(void *conf, uint32_t conf_size) {
         return -1;
 
     fsmc_conf = *(fsmc_conf_t *)conf;
-    
+
     nor_gpio_init();
     nor_fsmc_init();
     nor_print_fsmc_info();
