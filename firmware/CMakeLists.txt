@@ -40,7 +40,11 @@ set(MCPU cortex-m3)
 set(CFLAGS -g -Wall -Werror -Og)
 
 # Common compile options
-add_compile_options(-mcpu=${MCPU} -mthumb -mthumb-interwork -ffreestanding -nostdlib -nostartfiles -ffunction-sections -fdata-sections -fno-common -fmessage-length=0)
+#add_compile_options(-DSTM32F10X_HD -DCONFIG_BOOTLOADER -mcpu=${MCPU} -mthumb -mthumb-interwork -ffreestanding -nostdlib -nostartfiles -ffunction-sections -fdata-sections -fno-common -fmessage-length=0)
+
+add_compile_options(-DSTM32F10X_HD -DCONFIG_BOOTLOADER ${CFLAGS})
+add_compile_options(-mcpu=${MCPU} -mthumb -mthumb-interwork -MMD -MP)
+add_compile_options(-ffunction-sections -fdata-sections)
 
 # Uncomment for hardware floating point
 # add_compile_definitions(ARM_MATH_CM3;ARM_MATH_MATRIX_CHECK;ARM_MATH_ROUNDING)
@@ -111,8 +115,8 @@ file(GLOB_RECURSE LIB_SRCS
 
 # Specify the static library to be built
 add_library(${SPL_LIB} STATIC ${LIB_SRCS} ${SPL_PATH}/startup_stm32f10x_hd.s)
-target_compile_definitions(${SPL_LIB} PRIVATE STM32F10X_MD)
-
+target_compile_definitions(${SPL_LIB} PRIVATE STM32F10X_HD)
+target_compile_options(${SPL_LIB} PRIVATE -ffreestanding -nostdlib)
 
 # Define linker scripts
 set(LINKER_SCRIPT_BOOT ${CMAKE_SOURCE_DIR}/${BOOT_DIR}/stm32_flash.ld)
@@ -128,29 +132,27 @@ file(GLOB_RECURSE BOOTLOADER_SOURCES ${BOOT_DIR}/*.c)
 add_executable(${BOOT_PROG}.elf ${BOOTLOADER_SOURCES} ${SPL_PATH}/init.c)
 target_link_libraries(${BOOT_PROG}.elf PRIVATE -T${LINKER_SCRIPT_BOOT} ${SPL_LIB})
 add_custom_command(TARGET ${BOOT_PROG}.elf POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} --pad-to 0x08004000 -Oihex $<TARGET_FILE:${BOOT_PROG}.elf> ${BOOT_PROG}.hex
-        COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${BOOT_PROG}.elf> ${BOOT_PROG}.bin
+        COMMAND ${CMAKE_OBJCOPY} --pad-to 0x08004000 -O ihex $<TARGET_FILE:${BOOT_PROG}.elf> ${CMAKE_BINARY_DIR}/${BOOT_PROG}.hex
+        COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${BOOT_PROG}.elf> ${CMAKE_BINARY_DIR}/${BOOT_PROG}.bin
         COMMAND ${CMAKE_OBJDUMP} -St $<TARGET_FILE:${BOOT_PROG}.elf> > ${CMAKE_BINARY_DIR}/${BOOT_PROG}.lst
         COMMAND ${SIZE} $<TARGET_FILE:${BOOT_PROG}.elf>
         COMMENT "Building ${BOOT_PROG}.hex
 Building ${BOOT_PROG}.bin
 Generating list file and displaying size"
         )
-target_compile_definitions(${BOOT_PROG}.elf PRIVATE STM32F10X_MD)
+target_compile_definitions(${BOOT_PROG}.elf PRIVATE STM32F10X_HD)
 
 # Build app1
 file(GLOB_RECURSE APP1_SOURCES ${APP_DIR}/*.c ${USB_DIR}/*.c)
 
 add_executable(${APP_FW_1_PROG}.elf ${APP1_SOURCES} ${SPL_PATH}/init.c)
-target_compile_definitions(${APP_FW_1_PROG}.elf PRIVATE STM32F10X_MD)
+target_compile_definitions(${APP_FW_1_PROG}.elf PRIVATE STM32F10X_HD)
 target_link_libraries(${APP_FW_1_PROG}.elf PRIVATE -T ${LINKER_SCRIPT_1} ${SPL_LIB})
 
-set(HEX_FILE_1 ${CMAKE_BINARY_DIR}/${APP_FW_1_PROG}.hex)
-set(BIN_FILE_1 ${CMAKE_BINARY_DIR}/${APP_FW_1_PROG}.bin)
 
 add_custom_command(TARGET ${APP_FW_1_PROG}.elf POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} --pad-to 0x08022000 -Oihex $<TARGET_FILE:${APP_FW_1_PROG}.elf> ${HEX_FILE_1}
-        COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${APP_FW_1_PROG}.elf> ${BIN_FILE_1}
+        COMMAND ${CMAKE_OBJCOPY} --pad-to 0x08022000 -O ihex $<TARGET_FILE:${APP_FW_1_PROG}.elf> ${CMAKE_BINARY_DIR}/${APP_FW_1_PROG}.hex
+        COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${APP_FW_1_PROG}.elf> ${CMAKE_BINARY_DIR}/${APP_FW_1_PROG}.bin
         COMMAND ${CMAKE_OBJDUMP} -St $<TARGET_FILE:${APP_FW_1_PROG}.elf> > ${CMAKE_BINARY_DIR}/${APP_FW_1_PROG}.lst
         COMMAND ${SIZE} $<TARGET_FILE:${APP_FW_1_PROG}.elf>
         COMMENT "Building ${HEX_FILE_1}
@@ -160,22 +162,18 @@ Generating list file and displaying size"
 
 # Build app2
 add_executable(${APP_FW_2_PROG}.elf ${APP1_SOURCES} ${SPL_PATH}/init.c)
-target_compile_definitions(${APP_FW_2_PROG}.elf PRIVATE STM32F10X_MD)
+target_compile_definitions(${APP_FW_2_PROG}.elf PRIVATE STM32F10X_HD)
 target_link_libraries(${APP_FW_2_PROG}.elf PRIVATE -T ${LINKER_SCRIPT_2} ${SPL_LIB})
-set(HEX_FILE_2 ${CMAKE_BINARY_DIR}/${APP_FW_2_PROG}.hex)
-set(BIN_FILE_2 ${CMAKE_BINARY_DIR}/${APP_FW_2_PROG}.bin)
 
 add_custom_command(TARGET ${APP_FW_2_PROG}.elf POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} --pad-to 0x08040000 -Oihex $<TARGET_FILE:${APP_FW_2_PROG}.elf> ${HEX_FILE_2}
-        COMMAND ${CMAKE_OBJCOPY} -Obinary $<TARGET_FILE:${APP_FW_2_PROG}.elf> ${BIN_FILE_2}
+        COMMAND ${CMAKE_OBJCOPY} --pad-to 0x08040000 -O ihex $<TARGET_FILE:${APP_FW_2_PROG}.elf> ${CMAKE_BINARY_DIR}/${APP_FW_2_PROG}.hex
+        COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${APP_FW_2_PROG}.elf> ${CMAKE_BINARY_DIR}/${APP_FW_2_PROG}.bin
         COMMAND ${CMAKE_OBJDUMP} -St $<TARGET_FILE:${APP_FW_2_PROG}.elf> > ${CMAKE_BINARY_DIR}/${APP_FW_2_PROG}.lst
         COMMAND ${SIZE} $<TARGET_FILE:${APP_FW_2_PROG}.elf>
         COMMENT "Building ${HEX_FILE_2}
 Building ${BIN_FILE_2}
 Generating list file and displaying size"
         )
-
-
 add_custom_target(
         ${GEN_NAME} ALL
         DEPENDS ${BOOT_PROG}.hex ${APP_FW_1_PROG}.hex ${APP_FW_2_PROG}.hex
@@ -206,8 +204,6 @@ add_custom_target(clean_all
         COMMAND ${CMAKE_COMMAND} -E rm -rf
         COMMENT "Cleaning all build artifacts"
         )
-
-# Ensure dependencies
 add_dependencies(${APP_FW_1_PROG}.elf ${BOOT_PROG}.elf)
 add_dependencies(${APP_FW_2_PROG}.elf ${APP_FW_1_PROG}.elf)
 add_dependencies(${GEN_NAME} ${APP_FW_2_PROG}.elf)
