@@ -18,7 +18,6 @@ class Writer : public QObject
     static const uint32_t bufSize = 64;
 
     SerialPort *serialPort = nullptr;
-    SerialPort *serialPortReader = nullptr;
     QString portName;
     qint32 baudRate;
     SyncBuffer *buf;
@@ -40,7 +39,6 @@ class Writer : public QObject
 
     int write(char *data, uint32_t dataLen);
     int read(char *data, uint32_t dataLen);
-    int readFrom(char *data, uint32_t dataLen);
     void readCb(int size);
     int handleWriteAck(RespHeader *header, uint32_t len);
     int handleBadBlock(RespHeader *header, uint32_t len, bool isSkipped);
@@ -52,8 +50,6 @@ class Writer : public QObject
     int writeData();
     int writeEnd();
     int serialPortCreate();
-    int serialPortReaderCreate();
-    void serialPortReaderDestroy();
     void serialPortDestroy();
     void logErr(const QString& msg);
     void logInfo(const QString& msg);

@@ -65,22 +65,6 @@ int Writer::read(char *data, uint32_t dataLen)
     if (serialPort->asyncReadWithTimeout(data, dataLen, cb, READ_ACK_TIMEOUT)
         < 0)
     {
-        logErr("Failed to read ack response!");
-        return -1;
-    }
-
-    return 0;
-}
-
-int Writer::readFrom(char *data, uint32_t dataLen)
-{
-    std::function<void(int)> cb = std::bind(&Writer::readCb, this,
-                                            std::placeholders::_1);
-
-    if (serialPortReader->asyncReadWithTimeout(data, dataLen, cb, READ_ACK_TIMEOUT)
-        < 0)
-    {
-        logErr("Failed to read ack response!");
         return -1;
     }
 
@@ -275,6 +259,9 @@ int Writer::writeStart()
         return -1;
     }
 
+    if (read(pbuf, bufSize))
+        return -1;
+
     return 0;
 }
 
@@ -292,8 +279,6 @@ int Writer::writeData()
     std::unique_lock<std::mutex> lck(buf->mutex);
     buf->cv.wait(lck, [this] { return this->buf->ready; });
     buf->ready = false;
-
-    serialPortReaderCreate();
 
     while (len)
     {
@@ -315,7 +300,8 @@ int Writer::writeData()
         if (!len || bytesWritten == pageLim)
             break;
     }
-    if (readFrom(pbuf, sizeof(RespWriteAck)))
+
+    if (read(pbuf, sizeof(RespWriteAck)))
         return -1;
 
     return 0;
@@ -347,25 +333,6 @@ int Writer::serialPortCreate()
     return 0;
 }
 
-int Writer::serialPortReaderCreate()
-{
-    serialPortReader = new SerialPort();
-
-    if (!serialPortReader->start("/dev/tty.usbmodem5700816939321", baudRate))
-        return -1;
-
-    return 0;
-}
-
-void Writer::serialPortReaderDestroy()
-{
-    if (!serialPortReader)
-        return;
-    serialPortReader->stop();
-    delete serialPortReader;
-    serialPortReader = nullptr;
-}
-
 void Writer::serialPortDestroy()
 {
     if (!serialPort)
@@ -380,9 +347,6 @@ void Writer::start()
     if (serialPortCreate())
         goto Exit;
 
-    if (read(pbuf, bufSize))
-        goto Exit;
-
     if (writeStart())
         goto Exit;
 
@@ -390,14 +354,12 @@ void Writer::start()
 
  Exit:
     serialPortDestroy();
-    serialPortReaderDestroy();
     emit result(-1);
 }
 
 void Writer::stop()
 {
     serialPortDestroy();
-    serialPortReaderDestroy();
 }
 
 void Writer::logErr(const QString& msg)
