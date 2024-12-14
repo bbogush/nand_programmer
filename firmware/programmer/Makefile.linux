@@ -9,7 +9,6 @@ USB_DIR=../usb_cdc/
 OBJ_DIR=obj/
 LIB_DIR=../libs/
 INCLUDE_DIR=../
-#TOOLCHAIN=/opt/local/arm-gnu-toolchain-13.3.rel1-darwin-arm64-arm-none-eabi/bin/arm-none-eabi-
 APP_1=$(OBJ_DIR)$(APP_NAME)_1
 APP_2=$(OBJ_DIR)$(APP_NAME)_2
 
@@ -21,10 +20,6 @@ SPL_USB_PATH=$(SPL_PATH)STM32_USB-FS-Device_Driver/
 SPL_LIB=stm32f10x
 SPL_CONFIG_FILE=$(SPL_PATH)stm32f10x_conf.h
 
-#CC=$(TOOLCHAIN)gcc
-#OBJCOPY=$(TOOLCHAIN)objcopy
-#OBJDUMP=$(TOOLCHAIN)objdump
-#SIZE=$(TOOLCHAIN)size
 
 INCLUDES=-include$(SPL_CONFIG_FILE)
 INCLUDES+=-I$(INCLUDE_DIR)

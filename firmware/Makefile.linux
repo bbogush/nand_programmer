@@ -19,7 +19,7 @@ APP2_PATH=$(APP_OBJ_DIR)$(APP2_NAME)
 
 OBJ_DIR=obj/
 
-TOOLCHAIN=/opt/local/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
+TOOLCHAIN=../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
 CC=$(TOOLCHAIN)gcc
 OBJCOPY=$(TOOLCHAIN)objcopy
 OBJDUMP=$(TOOLCHAIN)objdump
