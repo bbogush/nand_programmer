@@ -74,4 +74,19 @@ if (APPLE)
             COMMAND ${MACDEPLOYQT_PATH} ${CMAKE_BINARY_DIR}/nand_programmer.app
             COMMENT "Running macdeployqt to bundle Qt libraries"
             )
+
+    # Path to your create-dmg command
+    find_program(CREATE_DMG create-dmg)
+
+    if(CREATE_DMG)
+        add_custom_command(TARGET nand_programmer POST_BUILD
+                COMMAND ${CREATE_DMG}
+                --volname "Nand Programmer"
+                ${CMAKE_BINARY_DIR}/nand_programmer.dmg
+                ${CMAKE_BINARY_DIR}/nand_programmer.app
+                COMMENT "Creating macOS DMG"
+                )
+    else()
+        message(WARNING "create-dmg not found, DMG creation will be skipped.")
+    endif()
 endif ()
