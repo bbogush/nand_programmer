@@ -63,19 +63,10 @@ if (APPLE)
             DESTINATION ${CMAKE_BINARY_DIR}/nand_programmer.app/Contents/MacOS)
 
 
-    #    # Set the path to your icon file
-    #    set(MACOS_ICON ${CMAKE_SOURCE_DIR}/img/app_icon.ico)
-    #
-    #    # Set the .app bundle properties
-    #    set(MACOS_APP_ICON ${MACOS_ICON})
-    #
-    #    # Add the icon to your app bundle
-    #    set_target_properties(nand_programmer PROPERTIES
-    #            MACOSX_BUNDLE_ICON_FILE app_icon.ico
-    #            )
+    # Set the path to your icon file
+    set(MACOS_APP_ICON ${CMAKE_SOURCE_DIR}/img/app_icon.icns)
 
-    # Copy the icon to the .app bundle directory (inside Contents/Resources)
-    #    file(COPY ${MACOS_APP_ICON} DESTINATION ${CMAKE_BINARY_DIR}/nand_programmer.app/Contents/Resources)
+    file(COPY ${MACOS_APP_ICON} DESTINATION ${CMAKE_BINARY_DIR}/nand_programmer.app/Contents/Resources)
 
 
     # Add the post-build command to run macdeployqt
