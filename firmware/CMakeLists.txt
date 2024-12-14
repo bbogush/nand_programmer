@@ -40,8 +40,6 @@ set(MCPU cortex-m3)
 set(CFLAGS -g -Wall -Werror -Og)
 
 # Common compile options
-#add_compile_options(-DSTM32F10X_HD -DCONFIG_BOOTLOADER -mcpu=${MCPU} -mthumb -mthumb-interwork -ffreestanding -nostdlib -nostartfiles -ffunction-sections -fdata-sections -fno-common -fmessage-length=0)
-
 add_compile_options(-DSTM32F10X_HD -DCONFIG_BOOTLOADER ${CFLAGS})
 add_compile_options(-mcpu=${MCPU} -mthumb -mthumb-interwork -MMD -MP)
 add_compile_options(-ffunction-sections -fdata-sections)
@@ -115,7 +113,6 @@ file(GLOB_RECURSE LIB_SRCS
 
 # Specify the static library to be built
 add_library(${SPL_LIB} STATIC ${LIB_SRCS} ${SPL_PATH}/startup_stm32f10x_hd.s)
-target_compile_definitions(${SPL_LIB} PRIVATE STM32F10X_HD)
 target_compile_options(${SPL_LIB} PRIVATE -ffreestanding -nostdlib)
 
 # Define linker scripts
@@ -140,13 +137,11 @@ add_custom_command(TARGET ${BOOT_PROG}.elf POST_BUILD
 Building ${BOOT_PROG}.bin
 Generating list file and displaying size"
         )
-target_compile_definitions(${BOOT_PROG}.elf PRIVATE STM32F10X_HD)
 
 # Build app1
 file(GLOB_RECURSE APP1_SOURCES ${APP_DIR}/*.c ${USB_DIR}/*.c)
 
 add_executable(${APP_FW_1_PROG}.elf ${APP1_SOURCES} ${SPL_PATH}/init.c)
-target_compile_definitions(${APP_FW_1_PROG}.elf PRIVATE STM32F10X_HD)
 target_link_libraries(${APP_FW_1_PROG}.elf PRIVATE -T ${LINKER_SCRIPT_1} ${SPL_LIB})
 
 
@@ -162,7 +157,6 @@ Generating list file and displaying size"
 
 # Build app2
 add_executable(${APP_FW_2_PROG}.elf ${APP1_SOURCES} ${SPL_PATH}/init.c)
-target_compile_definitions(${APP_FW_2_PROG}.elf PRIVATE STM32F10X_HD)
 target_link_libraries(${APP_FW_2_PROG}.elf PRIVATE -T ${LINKER_SCRIPT_2} ${SPL_LIB})
 
 add_custom_command(TARGET ${APP_FW_2_PROG}.elf POST_BUILD
