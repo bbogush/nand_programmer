@@ -54,13 +54,13 @@ if (APPLE)
             MACOSX_BUNDLE_SHORT_VERSION_STRING 1.0.0
             )
     set(MACDEPLOYQT_PATH "/opt/local/libexec/qt5/bin/macdeployqt")
-    # Copy the file to the MacOS directory in the .app bundle
-    file(COPY ${CMAKE_SOURCE_DIR}/nando_parallel_chip_db.csv
-            DESTINATION ${CMAKE_BINARY_DIR}/nand_programmer.app/Contents/MacOS)
 
-    # Copy the file to the MacOS directory in the .app bundle
+    file(COPY ${CMAKE_SOURCE_DIR}/nando_parallel_chip_db.csv
+            DESTINATION ${CMAKE_BINARY_DIR}/nand_programmer.app/Contents/Resources)
+
     file(COPY ${CMAKE_SOURCE_DIR}/nando_spi_chip_db.csv
-            DESTINATION ${CMAKE_BINARY_DIR}/nand_programmer.app/Contents/MacOS)
+            DESTINATION ${CMAKE_BINARY_DIR}/nand_programmer.app/Contents/Resources)
+
 
 
     # Set the path to your icon file
