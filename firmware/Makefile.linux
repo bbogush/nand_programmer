@@ -33,6 +33,9 @@ CFLAGS+=-MMD -MP
 CFLAGS+=-mcpu=cortex-m3 -mthumb
 CFLAGS+=$(SPL_FLAGS)
 
+UNAME := $(shell uname)
+
+
 all:
 	$(MAKE) -C $(BOOT_DIR) CC=$(CC) CFLAGS="$(CFLAGS)" OBJCOPY=$(OBJCOPY) OBJDUMP=$(OBJDUMP) SIZE=$(SIZE) AR=$(AR)
 	$(MAKE) -C $(APP_DIR) CC=$(CC) CFLAGS="$(CFLAGS)" OBJCOPY=$(OBJCOPY) OBJDUMP=$(OBJDUMP) SIZE=$(SIZE) AR=$(AR)
@@ -41,8 +44,13 @@ all:
 	cp $(BOOT_PATH) $(OBJ_DIR)
 	cp $(APP1_PATH) $(OBJ_DIR)
 	cp $(APP2_PATH) $(OBJ_DIR)
+ifeq ($(UNAME), Darwin)
 	sed -i '' '$$d' $(OBJ_DIR)$(BOOT_NAME)
 	sed -i '' '$$d' $(OBJ_DIR)$(APP1_NAME)
+else
+	sed -i '$$d' $(OBJ_DIR)$(BOOT_NAME)
+	sed -i '$$d' $(OBJ_DIR)$(APP1_NAME)
+endif
 	cat $(OBJ_DIR)$(BOOT_NAME) $(OBJ_DIR)$(APP1_NAME) \
 	  $(OBJ_DIR)$(APP2_NAME) > $(OBJ_DIR)$(GEN_NAME).hex
 	$(OBJCOPY) --input-target=ihex --output-target=binary \
