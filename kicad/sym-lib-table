@@ -1,3 +1,6 @@
 (sym_lib_table
-  (lib (name nand_programmator)(type Legacy)(uri ${KIPRJMOD}/sch_lib/nand_programmator.lib)(options "")(descr ""))
+  (version 7)
+  (lib (name "nand_programmator")(type "Legacy")(uri "${KIPRJMOD}/sch_lib/nand_programmator.lib")(options "")(descr ""))
+  (lib (name "USB4125-GF-A-0190")(type "KiCad")(uri "${KIPRJMOD}/LIB_USB4125-GF-A-0190/USB4125-GF-A-0190.kicad_sym")(options "")(descr ""))
+  (lib (name "USB4500-03-0-A")(type "KiCad")(uri "${KIPRJMOD}/LIB_USB4500-03-0-A/KiCad/USB4500-03-0-A.kicad_sym")(options "")(descr ""))
 )
