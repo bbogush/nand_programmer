@@ -6,7 +6,7 @@ set(CMAKE_EXE_LINKER_FLAGS "-nostdlib")
 set(CMAKE_C_FLAGS "-nostdlib")
 set(CMAKE_CXX_FLAGS "-nostdlib")
 # Define the base toolchain path
-set(TOOLCHAIN "/opt/local/gcc-arm-none-eabi-4_9-2015q1/bin")
+set(TOOLCHAIN "../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin")
 
 # Set the compilers and tools using the TOOLCHAIN variable
 set(CMAKE_C_COMPILER "${TOOLCHAIN}/arm-none-eabi-gcc")
@@ -160,7 +160,7 @@ add_executable(${APP_FW_2_PROG}.elf ${APP1_SOURCES} ${SPL_PATH}/init.c)
 target_link_libraries(${APP_FW_2_PROG}.elf PRIVATE -T ${LINKER_SCRIPT_2} ${SPL_LIB})
 
 add_custom_command(TARGET ${APP_FW_2_PROG}.elf POST_BUILD
-        COMMAND ${CMAKE_OBJCOPY} --pad-to 0x08040000 -O ihex $<TARGET_FILE:${APP_FW_2_PROG}.elf> ${CMAKE_BINARY_DIR}/${APP_FW_2_PROG}.hex
+        COMMAND ${CMAKE_OBJCOPY} --pad-to 0x8003800 -O ihex $<TARGET_FILE:${APP_FW_2_PROG}.elf> ${CMAKE_BINARY_DIR}/${APP_FW_2_PROG}.hex
         COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${APP_FW_2_PROG}.elf> ${CMAKE_BINARY_DIR}/${APP_FW_2_PROG}.bin
         COMMAND ${CMAKE_OBJDUMP} -St $<TARGET_FILE:${APP_FW_2_PROG}.elf> > ${CMAKE_BINARY_DIR}/${APP_FW_2_PROG}.lst
         COMMAND ${SIZE} $<TARGET_FILE:${APP_FW_2_PROG}.elf>
