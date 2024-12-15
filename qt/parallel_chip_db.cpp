@@ -26,7 +26,7 @@ ChipInfo *ParallelChipDb::stringToChipInfo(const QString &s)
 
     paramsList = s.split(',');
     paramNum = paramsList.size();
-    if (paramNum != CHIP_PARAM_NUM)
+    if (paramNum < CHIP_PARAM_NUM)
     {
         QMessageBox::critical(nullptr, QObject::tr("Error"),
             QObject::tr("Failed to read chip DB entry. Expected %2 parameters, "

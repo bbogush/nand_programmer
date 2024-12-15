@@ -5,7 +5,7 @@
 
 #include "log.h"
 #include "nand_programmer.h"
-#include <usb_cdc/hw_config.h>
+#include "hw_config.h"
 
 #define SEND_TIMEOUT 0x1000000
 
