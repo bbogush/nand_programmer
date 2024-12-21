@@ -9,7 +9,6 @@ USB_DIR=../usb_cdc/
 OBJ_DIR=obj/
 LIB_DIR=../libs/
 INCLUDE_DIR=../
-TOOLCHAIN=../../../compiler/gcc-arm-none-eabi-4_9-2015q1/bin/arm-none-eabi-
 APP_1=$(OBJ_DIR)$(APP_NAME)_1
 APP_2=$(OBJ_DIR)$(APP_NAME)_2
 
@@ -20,12 +19,7 @@ SPL_PERIPH_PATH=$(SPL_PATH)STM32F10x_StdPeriph_Driver/
 SPL_USB_PATH=$(SPL_PATH)STM32_USB-FS-Device_Driver/
 SPL_LIB=stm32f10x
 SPL_CONFIG_FILE=$(SPL_PATH)stm32f10x_conf.h
-SPL_FLAGS=-DSTM32F10X_HD -DCONFIG_BOOTLOADER
 
-CC=$(TOOLCHAIN)gcc
-OBJCOPY=$(TOOLCHAIN)objcopy
-OBJDUMP=$(TOOLCHAIN)objdump
-SIZE=$(TOOLCHAIN)size
 
 INCLUDES=-include$(SPL_CONFIG_FILE)
 INCLUDES+=-I$(INCLUDE_DIR)
@@ -37,11 +31,7 @@ INCLUDES+=-I$(SPL_USB_PATH)inc
 INCLUDES+=-I$(SRC_DIR)
 INCLUDES+=-I$(USB_DIR)
 
-CFLAGS=-g -Wall -Werror -O3
-CFLAGS+=$(INCLUDES) -MMD -MP
-CFLAGS+=-ffunction-sections -fdata-sections
-CFLAGS+=-mcpu=cortex-m3 -mthumb
-CFLAGS+=$(SPL_FLAGS)
+#override CFLAGS := $(CFLAGS) $(INCLUDES)
 
 LDFLAGS_1=-mcpu=cortex-m3 -mthumb -Wl,--gc-sections -Wl,-Map=$(APP_1).map
 LDFLAGS_2=-mcpu=cortex-m3 -mthumb -Wl,--gc-sections -Wl,-Map=$(APP_2).map
@@ -49,7 +39,6 @@ LDFLAGS_2=-mcpu=cortex-m3 -mthumb -Wl,--gc-sections -Wl,-Map=$(APP_2).map
 vpath %.c $(SRC_DIR) $(SPL_DEVICE_SUPPORT_PATH) $(SRC_BSP_DIR) $(USB_DIR)
 vpath %.s $(SRC_DIR)
 
-STARTUP=startup_stm32f10x_hd.s
 USB_SRCS=hw_config.c stm32_it.c usb_prop.c usb_desc.c usb_istr.c usb_pwr.c \
   usb_endp.c usb.c
 
@@ -57,8 +46,7 @@ SRCS=main.c system_stm32f10x.c syscalls.c fsmc_nand.c led.c uart.c jtag.c \
   clock.c cdc.c nand_programmer.c nand_bad_block.c flash.c spi_flash.c \
   $(USB_SRCS)
 
-OBJS=$(addprefix $(OBJ_DIR),$(SRCS:.c=.o)) \
-  $(addprefix $(OBJ_DIR),$(STARTUP:.s=.o))
+OBJS=$(addprefix $(OBJ_DIR),$(SRCS:.c=.o))
 DEPS=$(OBJS:%.o=%.d)
 
 LINKER_SCRIPT_1=$(SRC_DIR)stm32_flash_1.ld
@@ -67,13 +55,13 @@ LINKER_SCRIPT_2=$(SRC_DIR)stm32_flash_2.ld
 all: lib dirs $(APP_1).elf $(APP_2).elf
 
 lib:
-	$(MAKE) -C $(SPL_PATH)
+	$(MAKE) -C $(SPL_PATH)  CC=$(CC) AR=$(AR) CFLAGS="$(CFLAGS)"
 
 dirs:
 	mkdir -p $(OBJ_DIR)
 
 $(APP_1).elf: $(OBJS)
-	$(CC) $(LDFLAGS_1) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) \
+	$(CC) $(LDFLAGS_1) $(CFLAGS) $(INCLUDES) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) \
 	  -T$(LINKER_SCRIPT_1)
 	$(OBJCOPY) --pad-to 0x08022000 -O ihex $(APP_1).elf $(APP_1).hex
 	$(OBJCOPY) -O binary $(APP_1).elf $(APP_1).bin
@@ -81,7 +69,7 @@ $(APP_1).elf: $(OBJS)
 	$(SIZE) $(APP_1).elf
 
 $(APP_2).elf: $(OBJS)
-	$(CC) $(LDFLAGS_2) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) \
+	$(CC) $(LDFLAGS_2) $(CFLAGS) $(INCLUDES) -o $@ $^ -L$(SPL_PATH) -l$(SPL_LIB) \
 	  -T$(LINKER_SCRIPT_2)
 	$(OBJCOPY) --pad-to 0x08040000 -O ihex $(APP_2).elf $(APP_2).hex
 	$(OBJCOPY) -O binary $(APP_2).elf $(APP_2).bin
@@ -89,10 +77,7 @@ $(APP_2).elf: $(OBJS)
 	$(SIZE) $(APP_2).elf
 
 $(OBJ_DIR)%.o: %.c
-	$(CC) -c $(CFLAGS) $< -o $@ 
-
-$(OBJ_DIR)%.o: %.s
-	$(CC) -c $(CFLAGS) $< -o $@
+	$(CC) -c $(CFLAGS) $(INCLUDES) $< -o $@
 
 -include $(DEPS)
 
