@@ -9,9 +9,6 @@
 #include <QMessageBox>
 #include <QDir>
 #include <QTextStream>
-#ifdef Q_OS_MAC
-#include <QCoreApplication>
-#endif
 
 ChipDb::ChipDb()
 {
@@ -133,17 +130,6 @@ bool ChipDb::isOptParamValid(quint64 param, quint64 min, quint64 max)
 
 QString ChipDb::findFile(QString fileName)
 {
-#ifdef Q_OS_MAC
-    // First, check if the file exists in the app's Resources folder
-    QString appDir = QCoreApplication::applicationDirPath();
-    QString resourcesPath = appDir + "/../Resources";
-    QString filePath = resourcesPath + "/" + fileName;
-
-    // Check if the file exists in the Resources folder
-    if (QFileInfo(filePath).exists()) {
-        return filePath;
-    }
-#endif
     if (!QFileInfo(fileName).exists() &&
         (fileName = QStandardPaths::locate(QStandardPaths::ConfigLocation,
         fileName)).isNull())

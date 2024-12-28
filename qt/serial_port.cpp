@@ -5,13 +5,6 @@
 
 #include "serial_port.h"
 #include <boost/bind.hpp>
-#include <qsystemdetection.h>
-
-#ifdef Q_OS_MAC
-    #include <termios.h>
-#endif
-
-
 
 SerialPort::SerialPort()
 {
@@ -154,41 +147,6 @@ void SerialPort::onTimeout(const boost::system::error_code &e)
         std::cerr << "Timer setup error: " << e.message() << std::endl;
 }
 
-void set_speed(serial_port_ptr p, unsigned speed)
-{
-    // Retrieve the native file descriptor of the serial port
-    int fd = p->native_handle();
-
-    // Create a termios structure to hold the current terminal settings
-    struct termios t;
-
-    // Get the current settings
-    if (tcgetattr(fd, &t) < 0) {
-        std::cerr << "Error getting terminal attributes" << std::endl;
-        return;  // Handle error properly (e.g., return or throw exception)
-    }
-
-    // Set baud rate (we assume `speed` is a valid integer baud rate)
-    // Using cfsetspeed works for standard baud rates, but if we need custom speeds,
-    // we must modify the termios structure directly.
-    speed_t baud_rate = static_cast<speed_t>(speed);
-
-    // Validate and apply the speed
-    if (cfsetspeed(&t, baud_rate) < 0) {
-        std::cerr << "Error setting baud rate to " << speed << std::endl;
-        return;  // Handle error properly (e.g., return or throw exception)
-    }
-
-    // Apply the changes immediately
-    if (tcsetattr(fd, TCSANOW, &t) < 0) {
-        std::cerr << "Error applying terminal attributes" << std::endl;
-        return;  // Handle error properly (e.g., return or throw exception)
-    }
-
-    std::cout << "Speed changed to " << speed << " successfully." << std::endl;
-}
-
-
 bool SerialPort::start(const char *portName, int baudRate)
 {
     boost::system::error_code ec;
@@ -209,12 +167,7 @@ bool SerialPort::start(const char *portName, int baudRate)
         return false;
     }
 
-#ifdef Q_OS_MAC
-    set_speed(port,baudRate);//To get higher baudrate for OSX
-#else
     port->set_option(boost::asio::serial_port_base::baud_rate(baudRate));
-#endif
-
     port->set_option(boost::asio::serial_port_base::character_size(8));
     port->set_option(boost::asio::serial_port_base::
         stop_bits(boost::asio::serial_port_base::stop_bits::one));

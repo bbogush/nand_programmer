@@ -140,7 +140,7 @@ static void nand_print_fsmc_info()
     DEBUG_PRINT("Erase 1 command: %d\r\n", fsmc_conf.erase1_cmd);
     DEBUG_PRINT("Erase 2 command: %d\r\n", fsmc_conf.erase2_cmd);
     DEBUG_PRINT("Status command: %d\r\n", fsmc_conf.status_cmd);
-//    DEBUG_PRINT("Set feature command: %d\r\n", fsmc_conf.set_feature_cmd);
+    DEBUG_PRINT("Set feature command: %d\r\n", fsmc_conf.set_feature_cmd);
     DEBUG_PRINT("Enable ECC address: %d\r\n", fsmc_conf.enable_ecc_addr);
     DEBUG_PRINT("Enable ECC value: %d\r\n", fsmc_conf.enable_ecc_value);
     DEBUG_PRINT("Disable ECC value: %d\r\n", fsmc_conf.disable_ecc_value);
