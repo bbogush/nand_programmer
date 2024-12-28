@@ -123,15 +123,13 @@ void USB_DataRx_Sched(void)
 void EP3_OUT_Callback(void)
 {
   Receive_length = GetEPRxCount(ENDP3);
-  if (size < CIRC_BUF_SIZE && Receive_length > 0)
+  if (size < CIRC_BUF_SIZE)
   {
     tail = (tail + 1) % CIRC_BUF_SIZE;
     PMAToUserBufferCopy(circ_buf[tail].pbuf, ENDP3_RXADDR, Receive_length);
     circ_buf[tail].len = Receive_length;
     size++;
-  }
-  if(size < CIRC_BUF_SIZE){
-      USB_DataRx_Sched_Internal();
+    USB_DataRx_Sched_Internal();
   }
 }
 

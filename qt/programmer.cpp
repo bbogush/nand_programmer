@@ -8,14 +8,11 @@
 #include <QTimer>
 
 #ifdef Q_OS_LINUX
-    #define USB_DEV_NAME "/dev/ttyACM0"
-    #define SERIAL_PORT_SPEED 4000000
-#elif defined(Q_OS_MAC)
-    #define USB_DEV_NAME "/dev/cu.usbmodem5700816939321"  // Update this to the actual device path on macOS
-    #define SERIAL_PORT_SPEED 921600
+  #define USB_DEV_NAME "/dev/ttyACM0"
+  #define SERIAL_PORT_SPEED 4000000
 #else
-    #define USB_DEV_NAME "COM1"
-    #define SERIAL_PORT_SPEED 4000000
+  #define USB_DEV_NAME "COM1"
+  #define SERIAL_PORT_SPEED 4000000
 #endif
 
 #define READ_TIMEOUT_MS 100
