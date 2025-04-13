@@ -236,16 +236,32 @@ void MainWindow::slotProgEraseProgress(quint64 progress)
 
 void MainWindow::slotProgErase()
 {
+    // Add confirmation dialog
+    QMessageBox msgBox;
+    msgBox.setWindowTitle(tr("Confirm erase"));
+    msgBox.setText(tr("Are you sure you want to erase the chip?"));
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+
+    // If the user clicks cancel, exit the function.
+    if (msgBox.exec() != QMessageBox::Ok)
+    {
+        qInfo() << "User canceled the erase operation";
+        return;
+    }
+
+ 
     quint64 start_address =
-            ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
-            * ui->firstSpinBox->value();
+        ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
+        * ui->firstSpinBox->value();
     areaSize =
-            ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
+        ui->blockSizeValueLabel->text().toULongLong(nullptr, 16)
             * (ui->lastSpinBox->value() + 1) - start_address;
 
     if (!areaSize)
     {
-        qCritical() << "Chip size is not set";
+        qCritical() << "Chip size not set";
         return;
     }
 
