@@ -1,5 +1,7 @@
 # NANDO (NANDopen) programmer
 
+## THE PROJECT IS NOT ACTIVELY SUPPORTED
+
 ## General
 NANDO is open source NAND programmer based on STM32 processor. It supports parallel NAND and SPI flash programming.
 
